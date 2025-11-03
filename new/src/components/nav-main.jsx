@@ -17,7 +17,8 @@ import {
 } from "@/components/ui/sidebar"
 
 export function NavMain({
-  items
+  items,
+  onNavigate
 }) {
   return (
     <SidebarGroup>
@@ -32,7 +33,12 @@ export function NavMain({
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
                 <SidebarMenuButton tooltip={item.title} asChild>
-                  <a href={item.url}>
+                  <a href={item.url} onClick={(e) => {
+                    if (onNavigate && item.url && item.url.startsWith('/')) {
+                      e.preventDefault()
+                      onNavigate(item.url)
+                    }
+                  }}>
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
                     {/* <ChevronRight

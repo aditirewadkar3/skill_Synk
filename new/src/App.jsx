@@ -181,7 +181,11 @@ function App() {
   if (isAuthenticated) {
     return (
       <SidebarProvider>
-        <AppSidebar navMain={navForRole} />
+        <AppSidebar navMain={navForRole} onNavigate={(path) => {
+          const pageName = path.replace(/^\//, '')
+          setPage(pageName)
+          window.history.pushState({}, '', path)
+        }} />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
             <SidebarTrigger />
