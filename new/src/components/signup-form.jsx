@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { authAPI } from "@/services/api"
 import { useToast } from "@/components/ui/use-toast"
 import { OTPVerification } from "@/components/otp-verification"
+import { getCurrentUser, setCurrentUser } from "@/services/api"
 
 // Available user roles
 const ROLES = [
@@ -101,6 +102,15 @@ export function SignupForm({
   }
 
   const handleOTPVerified = (user) => {
+    try {
+      if (role) {
+        localStorage.setItem("role", role)
+        const cu = getCurrentUser()
+        if (cu) {
+          setCurrentUser({ ...cu, role })
+        }
+      }
+    } catch {}
     if (onSignup) {
       onSignup()
     }

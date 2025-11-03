@@ -8,7 +8,7 @@ const BREVO_SMTP_SERVER = process.env.BREVO_SMTP_SERVER || 'smtp-relay.brevo.com
 const BREVO_SMTP_PORT = process.env.BREVO_SMTP_PORT || 587;
 const BREVO_SMTP_USER = process.env.BREVO_SMTP_USER || '';
 const BREVO_SMTP_PASSWORD = process.env.BREVO_SMTP_PASSWORD || '';
-const SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || 'skillsync@example.com';
+const SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || 'srmore125125@gmail.com';
 const SENDER_NAME = process.env.BREVO_SENDER_NAME || 'SkillSync Team';
 
 /**

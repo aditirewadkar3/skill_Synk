@@ -56,85 +56,31 @@ const data = {
       url: "/dashboard",
       icon: Terminal,
       isActive: true,
-      // items: [
-      //   {
-      //     title: "History",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Starred",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Settings",
-      //     url: "#",
-      //   },
-      // ],
+    },
+    {
+      title: "Entrepreneur",
+      url: "/entrepreneur",
+      icon: Activity,
+    },
+    {
+      title: "Freelancer",
+      url: "/freelancer",
+      icon: Frame,
+    },
+    {
+      title: "Investor",
+      url: "/investor",
+      icon: BookOpen,
     },
     {
       title: "Messages",
       url: "/chat",
       icon: Bot,
-      // items: [
-      //   {
-      //     title: "Genesis",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Explorer",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Quantum",
-      //     url: "#",
-      //   },
-      // ],
-    },
-    {
-      title: "Investors",
-      url: "#",
-      icon: BookOpen,
-      // items: [
-      //   {
-      //     title: "Introduction",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Get Started",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Tutorials",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Changelog",
-      //     url: "#",
-      //   },
-      // ],
     },
     {
       title: "Pitch Deck",
       url: "#",
       icon: Settings2,
-      // items: [
-      //   {
-      //     title: "General",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Team",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Billing",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Limits",
-      //     url: "#",
-      //   },
-      // ],
     },
     {
       title: "Analytics",
@@ -161,20 +107,47 @@ const data = {
   ],
 };
 
-export function AppSidebar({ ...props }) {
+function getUserRole() {
+  try {
+    const cuStr = localStorage.getItem("currentUser");
+    if (cuStr) {
+      const cu = JSON.parse(cuStr);
+      if (cu && cu.role) return cu.role;
+    }
+  } catch {}
+  const r = localStorage.getItem("role");
+  return r || "entrepreneur";
+}
+
+export function AppSidebar({ user, teams, navMain, projects, ...props }) {
+  const merged = {
+    user: user || data.user,
+    teams: teams || data.teams,
+    navMain: navMain || data.navMain,
+    projects: projects || data.projects,
+  }
+  const role = getUserRole();
+  const filteredNav = (merged.navMain || []).filter((item) => {
+    if (["Dashboard", "Messages", "Analytics", "Pitch Deck"].includes(item.title)) return true;
+    if (item.title === "Entrepreneur") return role === "entrepreneur";
+    if (item.title === "Freelancer") return role === "freelancer";
+    if (item.title === "Investor") return role === "investor";
+    return false;
+  });
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={merged.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavMain items={filteredNav} />
+        <NavProjects projects={merged.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={merged.user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
 }
+

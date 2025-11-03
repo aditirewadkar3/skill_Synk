@@ -3,15 +3,27 @@ import { LoginForm } from "@/components/login-form"
 import { SignupForm } from "@/components/signup-form"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { ChatPage } from "@/components/chat/ChatPage"
-import Dashboard from "@/pages/dashboard"
+// Optional Dashboard import removed (page not present)
+// import Dashboard from "@/pages/dashboard"
 import ProfilePage from "@/pages/profile"
 import AnalyticsPage from "@/pages/analytics"
+import EntrepreneurDashboard from "@/pages/entrepreneur"
+import FreelancerDashboard from "@/pages/freelancer"
+import InvestorDashboard from "@/pages/investor"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 
 function App() {
   const [page, setPage] = useState("login")
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [role, setRole] = useState(() => {
+    try {
+      const saved = window.localStorage.getItem("role")
+      return saved || "entrepreneur"
+    } catch {
+      return "entrepreneur"
+    }
+  })
 
   // Handle navigation based on window location
   useEffect(() => {
@@ -24,7 +36,10 @@ function App() {
       setIsAuthenticated(false)
     } else if (path === "/dashboard") {
       setIsAuthenticated(true)
-      setPage("dashboard")
+      // Map generic dashboard to current role-specific page
+      const target = role === "freelancer" ? "/freelancer" : role === "investor" ? "/investor" : "/entrepreneur"
+      window.history.replaceState({}, "", target)
+      setPage(target.slice(1))
     } else if (path === "/chat") {
       setIsAuthenticated(true)
       setPage("chat")
@@ -34,26 +49,60 @@ function App() {
     } else if (path === "/analytics") {
       setIsAuthenticated(true)
       setPage("analytics")
+    } else if (path === "/entrepreneur") {
+      setIsAuthenticated(true)
+      setPage("entrepreneur")
+      setRole("entrepreneur")
+    } else if (path === "/freelancer") {
+      setIsAuthenticated(true)
+      setPage("freelancer")
+      setRole("freelancer")
+    } else if (path === "/investor") {
+      setIsAuthenticated(true)
+      setPage("investor")
+      setRole("investor")
     } else if (path === "/" && isAuthenticated) {
       // Redirect authenticated users from root to dashboard
-      window.history.pushState({}, "", "/dashboard")
-      setPage("dashboard")
+      const target = role === "freelancer" ? "/freelancer" : role === "investor" ? "/investor" : "/entrepreneur"
+      window.history.pushState({}, "", target)
+      setPage(target.slice(1))
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, role])
+
+  // Persist role changes
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("role", role)
+    } catch {}
+  }, [role])
 
   // Handle login - redirect to dashboard
   const handleLogin = () => {
     setIsAuthenticated(true)
-    setPage("dashboard")
-    window.history.pushState({}, "", "/dashboard")
+    const target = role === "freelancer" ? "/freelancer" : role === "investor" ? "/investor" : "/entrepreneur"
+    setPage(target.slice(1))
+    window.history.pushState({}, "", target)
   }
 
   // Handle signup - redirect to dashboard
   const handleSignup = () => {
     setIsAuthenticated(true)
-    setPage("dashboard")
-    window.history.pushState({}, "", "/dashboard")
+    const target = role === "freelancer" ? "/freelancer" : role === "investor" ? "/investor" : "/entrepreneur"
+    setPage(target.slice(1))
+    window.history.pushState({}, "", target)
   }
+
+  // Build sidebar items based on role
+  const buildNavForRole = (currentRole) => {
+    const roleTitle = currentRole === "freelancer" ? "Freelancer" : currentRole === "investor" ? "Investor" : "Entrepreneur"
+    const rolePath = currentRole === "freelancer" ? "/freelancer" : currentRole === "investor" ? "/investor" : "/entrepreneur"
+    return [
+      { title: `${roleTitle}`, url: rolePath, isActive: true },
+      { title: "Messages", url: "/chat" },
+      { title: "Analytics", url: "/analytics" },
+    ]
+  }
+  const navForRole = buildNavForRole(role)
 
   // ---------- LOGIN PAGE ----------
   if (!isAuthenticated && page === "login") {
@@ -87,22 +136,39 @@ function App() {
   if (isAuthenticated) {
     return (
       <SidebarProvider>
-        <AppSidebar />
+        <AppSidebar navMain={navForRole} />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
             <SidebarTrigger />
             <div className="flex-1">
               <h1 className="text-lg font-semibold">
-                {page === "dashboard" ? "Dashboard" : page === "chat" ? "Chat" : page === "profile" ? "Profile" : page === "analytics" ? "Analytics" : ""}
+                {page === "dashboard"
+                  ? "Dashboard"
+                  : page === "chat"
+                  ? "Chat"
+                  : page === "profile"
+                  ? "Profile"
+                  : page === "analytics"
+                  ? "Analytics"
+                  : page === "entrepreneur"
+                  ? "Entrepreneur Dashboard"
+                  : page === "freelancer"
+                  ? "Freelancer Dashboard"
+                  : page === "investor"
+                  ? "Investor Dashboard"
+                  : ""}
               </h1>
             </div>
             <ThemeToggle />
           </header>
           <main className="flex-1 overflow-hidden min-h-0">
-            {page === "dashboard" && <Dashboard />}
+            {page === "dashboard" && null}
             {page === "chat" && <ChatPage />}
             {page === "profile" && <ProfilePage />}
             {page === "analytics" && <AnalyticsPage />}
+            {page === "entrepreneur" && <EntrepreneurDashboard />}
+            {page === "freelancer" && <FreelancerDashboard />}
+            {page === "investor" && <InvestorDashboard />}
           </main>
         </SidebarInset>
       </SidebarProvider>

@@ -78,8 +78,8 @@ router.post('/register', async (req, res) => {
     // Send OTP email
     try {
       const emailResult = await sendOTPEmail(email, otp);
-      
-      // If email is NOT configured, only then allow dev fallback with OTP
+
+      // Config missing: allow dev fallback with OTP
       if (emailResult?.notConfigured && process.env.NODE_ENV === 'development') {
         console.warn('📧 Email not configured. Returning OTP in response (development mode).');
         return res.json({ 
@@ -90,9 +90,29 @@ router.post('/register', async (req, res) => {
           development: true
         });
       }
-      
+
+      // If send failed, respect failure (and optionally fallback in dev)
+      if (!emailResult?.success) {
+        console.error('❌ Failed to send OTP email:', emailResult?.error || 'Unknown error');
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('⚠️ Email send failed but returning OTP in development mode.');
+          return res.json({
+            success: true,
+            message: 'OTP generated (email send failed - development mode)',
+            email,
+            otp,
+            development: true,
+            debug: { details: emailResult?.details }
+          });
+        }
+        return res.status(500).json({
+          error: 'Failed to send OTP email',
+          details: emailResult?.details
+        });
+      }
+
       // Email was sent successfully
-      res.json({ 
+      return res.json({ 
         success: true, 
         message: 'OTP sent to your email',
         email 
@@ -100,7 +120,6 @@ router.post('/register', async (req, res) => {
     } catch (emailError) {
       console.error('Email error:', emailError);
       
-      // If not in development, return error
       if (process.env.NODE_ENV !== 'development') {
         return res.status(500).json({ 
           error: 'Failed to send OTP email. Please check your email configuration.',
@@ -114,7 +133,7 @@ router.post('/register', async (req, res) => {
         success: true, 
         message: 'OTP generated (email send failed - development mode)',
         email,
-        otp: otp, // Return OTP in development mode
+        otp,
         development: true
       });
     }
@@ -227,6 +246,7 @@ router.post('/login', async (req, res) => {
           uid: user.uid,
           email: user.email,
           name: user.displayName || userData.name || email.split('@')[0],
+          role: userData.role || ROLES.FREELANCER,
         },
         customToken,
       });
@@ -256,7 +276,7 @@ router.post('/login', async (req, res) => {
  */
 router.post('/create-user-document', async (req, res) => {
   try {
-    const { uid, email, name } = req.body;
+    const { uid, email, name, role } = req.body;
 
     if (!uid || !email) {
       return res.status(400).json({ 
@@ -268,6 +288,7 @@ router.post('/create-user-document', async (req, res) => {
     const userData = {
       email: email,
       name: name || email.split('@')[0],
+      role: role || ROLES.FREELANCER,
       updatedAt: new Date(),
     };
 
@@ -285,6 +306,7 @@ router.post('/create-user-document', async (req, res) => {
         uid,
         email,
         name: userData.name,
+        role: userData.role,
       },
     });
   } catch (error) {
@@ -310,29 +332,24 @@ router.post('/get-user', async (req, res) => {
       });
     }
 
-    try {
-      const user = await auth.getUser(uid);
-      
-      // Get user data from Firestore
-      const userDoc = await db.collection('users').doc(uid).get();
-      const userData = userDoc.exists ? userDoc.data() : {};
-
-      res.json({
-        success: true,
-        user: {
-          uid: user.uid,
-          email: user.email,
-          name: user.displayName || userData.name || user.email?.split('@')[0] || 'User',
-        },
+    // Rely on Firestore only to avoid Admin SDK permission issues in development
+    const userDoc = await db.collection('users').doc(uid).get();
+    if (!userDoc.exists) {
+      return res.status(404).json({ 
+        error: 'User not found' 
       });
-    } catch (error) {
-      if (error.code === 'auth/user-not-found') {
-        return res.status(404).json({ 
-          error: 'User not found' 
-        });
-      }
-      throw error;
     }
+
+    const userData = userDoc.data() || {};
+    return res.json({
+      success: true,
+      user: {
+        uid,
+        email: userData.email || null,
+        name: userData.name || (userData.email ? userData.email.split('@')[0] : 'User'),
+        role: userData.role || ROLES.FREELANCER,
+      },
+    });
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ 

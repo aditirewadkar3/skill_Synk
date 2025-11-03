@@ -9,7 +9,6 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { authAPI } from "@/services/api"
 import { useToast } from "@/components/ui/use-toast"
 
 export function LoginForm({
@@ -27,16 +26,17 @@ export function LoginForm({
     setIsLoading(true)
 
     try {
-      await authAPI.login(email, password)
-      
+      // Frontend-only mock login
+      await new Promise((r) => setTimeout(r, 500))
+      localStorage.setItem("authed", "true")
+      localStorage.setItem("email", email)
+
       toast({
         title: "Login successful",
         description: "Welcome back!",
       })
       
-      if (onLogin) {
-        onLogin()
-      }
+      if (onLogin) onLogin()
     } catch (error) {
       toast({
         title: "Login failed",
@@ -114,3 +114,4 @@ export function LoginForm({
     </div>
   );
 }
+
