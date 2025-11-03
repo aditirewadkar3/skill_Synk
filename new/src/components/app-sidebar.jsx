@@ -85,7 +85,7 @@ const data = {
     {
       title: "Analytics",
       url: "/analytics",
-      icon: PieChart,
+      icon: Frame,
     },
   ],
   projects: [
@@ -144,7 +144,7 @@ export function AppSidebar({ user, teams, navMain, projects, onNavigate, ...prop
         <NavProjects projects={merged.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={merged.user} />
+        <NavUser user={merged.user} onNavigate={onNavigate} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

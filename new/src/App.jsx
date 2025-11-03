@@ -12,6 +12,7 @@ import FreelancerDashboard from "@/pages/freelancer"
 import InvestorDashboard from "@/pages/investor"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { PieChart } from "lucide-react"
 
 function App() {
   const [page, setPage] = useState("login")
@@ -144,7 +145,7 @@ function App() {
     return [
       { title: `${roleTitle}`, url: rolePath, isActive: true },
       { title: "Messages", url: "/chat" },
-      { title: "Analytics", url: "/analytics" },
+      { title: "Analytics", icon: PieChart, url: "/analytics" },
     ]
   }
   const navForRole = buildNavForRole(role)
@@ -182,6 +183,12 @@ function App() {
     return (
       <SidebarProvider>
         <AppSidebar navMain={navForRole} onNavigate={(path) => {
+          // Normalize common aliases
+          if (path === '/account') path = '/profile'
+          if (path === '/dashboard') {
+            const roleTarget = role === 'freelancer' ? '/freelancer' : (role === 'investor' ? '/investor' : '/entrepreneur')
+            path = roleTarget
+          }
           const pageName = path.replace(/^\//, '')
           setPage(pageName)
           window.history.pushState({}, '', path)
@@ -211,7 +218,11 @@ function App() {
             <ThemeToggle />
           </header>
           <main className="flex-1 overflow-hidden min-h-0">
-            {page === "dashboard" && null}
+            {page === "dashboard" && (
+              role === 'freelancer' ? <FreelancerDashboard /> :
+              role === 'investor' ? <InvestorDashboard /> :
+              <EntrepreneurDashboard />
+            )}
             {page === "chat" && <ChatPage />}
             {page === "profile" && <ProfilePage />}
             {page === "analytics" && <AnalyticsPage />}
