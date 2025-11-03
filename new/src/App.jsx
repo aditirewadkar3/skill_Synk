@@ -144,7 +144,7 @@ function App() {
     const rolePath = currentRole === "freelancer" ? "/freelancer" : currentRole === "investor" ? "/investor" : "/entrepreneur"
     return [
       { title: `${roleTitle}`, url: rolePath, isActive: true },
-      { title: "Messages", url: "/chat" },
+      { title: "Messages", icon: PieChart , url: "/chat" },
       { title: "Analytics", icon: PieChart, url: "/analytics" },
     ]
   }

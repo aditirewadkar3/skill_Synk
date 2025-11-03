@@ -42,9 +42,7 @@ export function TeamSwitcher({
                 <activeTeam.logo className="size-4 mr-3" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium" 
-                onClick={() => navigator("/dashboard")}
-                >slynk</span>
+                <a href="/dashboard" className="truncate font-medium">slynk</a>
                 {/* <span className="truncate text-xs">{activeTeam.plan}</span> */}
               </div>
               {/* <ChevronsUpDown className="ml-auto" /> */}
