@@ -17,14 +17,8 @@ import { PieChart } from "lucide-react"
 function App() {
   const [page, setPage] = useState("login")
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [role, setRole] = useState(() => {
-    try {
-      const saved = window.localStorage.getItem("role")
-      return saved || "entrepreneur"
-    } catch {
-      return "entrepreneur"
-    }
-  })
+  const [role, setRole] = useState(null)
+  const [roleLoading, setRoleLoading] = useState(false)
 
   // Handle navigation based on window location
   useEffect(() => {
@@ -70,27 +64,78 @@ function App() {
     }
   }, [isAuthenticated, role])
 
-  // Persist role changes
+  // Persist role changes (DB remains source of truth)
   useEffect(() => {
     try {
-      window.localStorage.setItem("role", role)
+      if (role) window.localStorage.setItem("role", role)
     } catch {}
   }, [role])
 
-  // Handle login - redirect to dashboard
+  // Fetch role from backend (Firestore) once authenticated
+  useEffect(() => {
+    const fetchRole = async () => {
+      try {
+        setRoleLoading(true)
+        const uid = window.localStorage.getItem("uid")
+        if (!uid) return
+        const res = await fetch("http://localhost:3001/api/auth/get-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ uid })
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        const fetchedRole = data?.user?.role
+        if (fetchedRole) setRole(fetchedRole)
+      } catch {}
+      finally { setRoleLoading(false) }
+    }
+    if (isAuthenticated) {
+      fetchRole()
+    }
+  }, [isAuthenticated])
+
+  // Optimistic route after signup using pendingRole hint, while DB role loads
+  useEffect(() => {
+    if (!isAuthenticated || role) return
+    try {
+      const pending = sessionStorage.getItem('pendingRole')
+      if (pending === 'freelancer' || pending === 'investor' || pending === 'entrepreneur') {
+        const target = `/${pending}`
+        if (window.location.pathname !== target) {
+          setPage(pending)
+          window.history.pushState({}, '', target)
+        }
+      }
+    } catch {}
+  }, [isAuthenticated, role])
+
+  // Clear pendingRole once real role is loaded
+  useEffect(() => {
+    if (role) {
+      try { sessionStorage.removeItem('pendingRole') } catch {}
+    }
+  }, [role])
+
+  // When role changes while authenticated, route to its dashboard
+  useEffect(() => {
+    if (!isAuthenticated || !role) return
+    const target = role === "freelancer" ? 
+      "freelancer" : role === "investor" ? "investor" : "entrepreneur"
+    if (page !== target) {
+      setPage(target)
+      window.history.pushState({}, "", `/${target}`)
+    }
+  }, [role, isAuthenticated])
+
+  // Handle login - wait for role fetch to route
   const handleLogin = () => {
     setIsAuthenticated(true)
-    const target = role === "freelancer" ? "/freelancer" : role === "investor" ? "/investor" : "/entrepreneur"
-    setPage(target.slice(1))
-    window.history.pushState({}, "", target)
   }
 
-  // Handle signup - redirect to dashboard
+  // Handle signup - wait for role fetch to route
   const handleSignup = () => {
     setIsAuthenticated(true)
-    const target = role === "freelancer" ? "/freelancer" : role === "investor" ? "/investor" : "/entrepreneur"
-    setPage(target.slice(1))
-    window.history.pushState({}, "", target)
   }
 
   // Build sidebar items based on role

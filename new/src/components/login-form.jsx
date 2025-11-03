@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
+import { authAPI } from "@/services/api"
 
 export function LoginForm({
   className,
@@ -26,16 +27,10 @@ export function LoginForm({
     setIsLoading(true)
 
     try {
-      // Frontend-only mock login
-      await new Promise((r) => setTimeout(r, 500))
-      localStorage.setItem("authed", "true")
-      localStorage.setItem("email", email)
-
-      toast({
-        title: "Login successful",
-        description: "Welcome back!",
-      })
-      
+      const res = await authAPI.login(email, password)
+      // Store uid for role fetch routing
+      try { localStorage.setItem('uid', res.user.uid) } catch {}
+      toast({ title: "Login successful", description: "Welcome back!" })
       if (onLogin) onLogin()
     } catch (error) {
       toast({

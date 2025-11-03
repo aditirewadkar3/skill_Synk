@@ -121,6 +121,7 @@ export const authAPI = {
               uid: user.uid,
               email: user.email,
               name: response.user?.name || user.displayName || email.split('@')[0],
+              role: response.user?.role,
             }),
           });
         } catch (err) {
@@ -133,7 +134,9 @@ export const authAPI = {
           uid: user.uid,
           email: user.email,
           name: user.displayName || response.user?.name || email.split('@')[0],
+          role: response.user?.role,
         });
+        try { localStorage.setItem('uid', user.uid); } catch {}
         
         return {
           success: true,
@@ -157,13 +160,27 @@ export const authAPI = {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
             const idToken = await user.getIdToken();
+            // Ensure Firestore user document exists with role/name
+            try {
+              await apiRequest('/auth/create-user-document', {
+                method: 'POST',
+                body: JSON.stringify({
+                  uid: user.uid,
+                  email: user.email,
+                  name: response.user?.name || user.displayName || email.split('@')[0],
+                  role: response.user?.role,
+                }),
+              });
+            } catch {}
             
             setAuthToken(idToken);
             setCurrentUser({
               uid: user.uid,
               email: user.email,
               name: user.displayName || email.split('@')[0],
+              role: response.user?.role,
             });
+            try { localStorage.setItem('uid', user.uid); } catch {}
             
             return {
               success: true,
@@ -229,6 +246,7 @@ export const authAPI = {
         email: user.email,
         name: user.displayName || user.email?.split('@')[0] || 'User',
       });
+      try { localStorage.setItem('uid', user.uid); } catch {}
 
       return {
         success: true,
