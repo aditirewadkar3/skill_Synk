@@ -6,7 +6,9 @@ import { ChatPage } from "@/components/chat/ChatPage"
 // Optional Dashboard import removed (page not present)
 // import Dashboard from "@/pages/dashboard"
 import ProfilePage from "@/pages/profile"
-import AnalyticsPage from "@/pages/analytics"
+import FreelancerAnalytics from "@/pages/freelanceranalytics"
+import InvestorAnalytics from "@/pages/investoranalytics"
+import EntrepreneurAnalytics from "@/pages/Entrepreneuranalytics"
 import EntrepreneurDashboard from "@/pages/entrepreneur"
 import FreelancerDashboard from "@/pages/freelancer"
 import InvestorDashboard from "@/pages/investor"
@@ -41,9 +43,19 @@ function App() {
     } else if (path === "/profile") {
       setIsAuthenticated(true)
       setPage("profile")
-    } else if (path === "/analytics") {
+    } else if (path === "/freelanceranalytics") {
       setIsAuthenticated(true)
-      setPage("analytics")
+      setPage("freelanceranalytics")
+    } else if (path === "/investoranalytics") {
+      setIsAuthenticated(true)
+      setPage("investoranalytics")
+    } else if (path === "/entrepreneuranalytics") {
+      setIsAuthenticated(true)
+      setPage("entrepreneuranalytics")
+    } else if (path === "/analytics") {
+      // Back-compat: route old analytics path to entrepreneur analytics
+      setIsAuthenticated(true)
+      setPage("entrepreneuranalytics")
     } else if (path === "/entrepreneur") {
       setIsAuthenticated(true)
       setPage("entrepreneur")
@@ -142,10 +154,11 @@ function App() {
   const buildNavForRole = (currentRole) => {
     const roleTitle = currentRole === "freelancer" ? "Freelancer" : currentRole === "investor" ? "Investor" : "Entrepreneur"
     const rolePath = currentRole === "freelancer" ? "/freelancer" : currentRole === "investor" ? "/investor" : "/entrepreneur"
+    const analyticsPath = currentRole === "freelancer" ? "/freelanceranalytics" : currentRole === "investor" ? "/investoranalytics" : "/entrepreneuranalytics"
     return [
       { title: `${roleTitle}`, icon: PieChart, url: rolePath, isActive: true },
       { title: "Messages", icon: PieChart , url: "/chat" },
-      { title: "Analytics", icon: PieChart, url: "/analytics" },
+      { title: "Analytics", icon: PieChart, url: analyticsPath },
     ]
   }
   const navForRole = buildNavForRole(role)
@@ -215,8 +228,12 @@ function App() {
                   ? "Chat"
                   : page === "profile"
                   ? "Profile"
-                  : page === "analytics"
-                  ? "Analytics"
+                  : page === "entrepreneuranalytics"
+                  ? "Entrepreneur Analytics"
+                  : page === "freelanceranalytics"
+                  ? "Freelancer Analytics"
+                  : page === "investoranalytics"
+                  ? "Investor Analytics"
                   : page === "entrepreneur"
                   ? "Entrepreneur Dashboard"
                   : page === "freelancer"
@@ -236,7 +253,9 @@ function App() {
             )}
             {page === "chat" && <ChatPage />}
             {page === "profile" && <ProfilePage />}
-            {page === "analytics" && <AnalyticsPage />}
+            {page === "entrepreneuranalytics" && <EntrepreneurAnalytics />}
+            {page === "freelanceranalytics" && <FreelancerAnalytics />}
+            {page === "investoranalytics" && <InvestorAnalytics />}
             {page === "entrepreneur" && <EntrepreneurDashboard />}
             {page === "freelancer" && <FreelancerDashboard />}
             {page === "investor" && <InvestorDashboard />}

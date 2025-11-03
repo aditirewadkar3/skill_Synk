@@ -88,7 +88,7 @@ export default function AnalyticsPage() {
     )} L ${width - padding},${height - padding} Z`
 
     return (
-      <div className="w-full h-20 mt-4">
+      <div className="w-full h-20 mt-4 theme-freelancer">
         <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
           <defs>
             <linearGradient id="fundingGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -122,7 +122,7 @@ export default function AnalyticsPage() {
     const maxValue = 100
 
     return (
-      <div className="w-full h-20 mt-4">
+      <div className="w-full h-20 mt-4 theme-freelancer">
         <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
           {investorData.map((investor, i) => {
             const barHeight = (investor.value / maxValue) * chartHeight
@@ -148,8 +148,8 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-background">
-      <div className="container max-w-7xl mx-auto px-4 py-6 sm:py-8">
+    <div className="h-full overflow-y-auto bg-background theme-freelancer">
+      <div className="container max-w-7xl mx-auto px-4 py-6 sm:py-8 ">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div>
