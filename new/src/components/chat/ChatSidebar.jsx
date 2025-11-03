@@ -17,15 +17,18 @@ export function ChatSidebar({
   className,
 }) {
   const [searchQuery, setSearchQuery] = React.useState("")
+  const [roleFilter, setRoleFilter] = React.useState("All")
 
   const filteredUsers = React.useMemo(() => {
-    if (!searchQuery.trim()) {
-      return users
-    }
-    return users.filter((user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  }, [users, searchQuery])
+    const q = searchQuery.trim().toLowerCase()
+    return (users || []).filter((user) => {
+      const matchesQuery = !q || (user?.name || "").toLowerCase().includes(q)
+      const role = (user?.role || "").toString().toLowerCase()
+      const filter = roleFilter.toLowerCase()
+      const matchesRole = filter === "all" || role === filter
+      return matchesQuery && matchesRole
+    })
+  }, [users, searchQuery, roleFilter])
 
   return (
     <div className={cn("flex flex-col h-full border-r bg-background", className)}>
@@ -40,6 +43,22 @@ export function ChatSidebar({
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
           />
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {[
+            { label: "All" },
+            { label: "Entrepreneur" },
+            { label: "Freelancer" },
+            { label: "Investor" },
+          ].map((r) => (
+            <Badge
+              key={r.label}
+              variant={roleFilter === r.label ? "default" : "secondary"}
+              className="cursor-pointer select-none"
+              onClick={() => setRoleFilter(r.label)}>
+              {r.label}
+            </Badge>
+          ))}
         </div>
       </div>
 

@@ -6,6 +6,7 @@ import { ChatPage } from "@/components/chat/ChatPage"
 // Optional Dashboard import removed (page not present)
 // import Dashboard from "@/pages/dashboard"
 import ProfilePage from "@/pages/profile"
+import ClientProfilePage from "@/pages/client-profile"
 import FreelancerAnalytics from "@/pages/freelanceranalytics"
 import InvestorAnalytics from "@/pages/investoranalytics"
 import EntrepreneurAnalytics from "@/pages/Entrepreneuranalytics"
@@ -43,6 +44,9 @@ function App() {
     } else if (path === "/profile") {
       setIsAuthenticated(true)
       setPage("profile")
+    } else if (path === "/client-profile") {
+      setIsAuthenticated(true)
+      setPage("client-profile")
     } else if (path === "/freelanceranalytics") {
       setIsAuthenticated(true)
       setPage("freelanceranalytics")
@@ -228,6 +232,8 @@ function App() {
                   ? "Chat"
                   : page === "profile"
                   ? "Profile"
+                  : page === "client-profile"
+                  ? "Client Profile"
                   : page === "entrepreneuranalytics"
                   ? "Entrepreneur Analytics"
                   : page === "freelanceranalytics"
@@ -253,6 +259,7 @@ function App() {
             )}
             {page === "chat" && <ChatPage />}
             {page === "profile" && <ProfilePage />}
+            {page === "client-profile" && <ClientProfilePage />}
             {page === "entrepreneuranalytics" && <EntrepreneurAnalytics />}
             {page === "freelanceranalytics" && <FreelancerAnalytics />}
             {page === "investoranalytics" && <InvestorAnalytics />}
