@@ -69,6 +69,7 @@ export function SignupForm({
     }
 
     setIsLoading(true)
+    try { sessionStorage.setItem('pendingRole', role) } catch {}
 
     try {
       const response = await authAPI.register(email, password, name || email.split('@')[0], role)
@@ -102,15 +103,8 @@ export function SignupForm({
   }
 
   const handleOTPVerified = (user) => {
-    try {
-      if (role) {
-        localStorage.setItem("role", role)
-        const cu = getCurrentUser()
-        if (cu) {
-          setCurrentUser({ ...cu, role })
-        }
-      }
-    } catch {}
+    try { if (user?.uid) localStorage.setItem('uid', user.uid) } catch {}
+    // Role is saved in Firestore via backend; DB is source of truth
     if (onSignup) {
       onSignup()
     }
