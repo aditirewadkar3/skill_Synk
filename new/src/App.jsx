@@ -6,13 +6,18 @@ import { ChatPage } from "@/components/chat/ChatPage"
 // Optional Dashboard import removed (page not present)
 // import Dashboard from "@/pages/dashboard"
 import ProfilePage from "@/pages/profile"
+import ClientProfilePage from "@/pages/client-profile"
 import FreelancerAnalytics from "@/pages/freelanceranalytics"
 import InvestorAnalytics from "@/pages/investoranalytics"
 import EntrepreneurAnalytics from "@/pages/Entrepreneuranalytics"
 import EntrepreneurDashboard from "@/pages/entrepreneur"
 import FreelancerDashboard from "@/pages/freelancer"
 import InvestorDashboard from "@/pages/investor"
+<<<<<<< HEAD
 import MyPostsPage from "@/pages/myposts"
+=======
+
+>>>>>>> 0438b1ca5ed0afd963e244c1270f8db1ae16e50a
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { PieChart } from "lucide-react"
@@ -32,6 +37,10 @@ function App() {
     } else if (path === "/login") {
       setPage("login")
       setIsAuthenticated(false)
+    } else if (path === "/") {
+      // Landing page for unauthenticated users
+      setIsAuthenticated(false)
+      setPage("landing")
     } else if (path === "/dashboard") {
       setIsAuthenticated(true)
       // Map generic dashboard to current role-specific page
@@ -44,6 +53,9 @@ function App() {
     } else if (path === "/profile") {
       setIsAuthenticated(true)
       setPage("profile")
+    } else if (path === "/client-profile") {
+      setIsAuthenticated(true)
+      setPage("client-profile")
     } else if (path === "/freelanceranalytics") {
       setIsAuthenticated(true)
       setPage("freelanceranalytics")
@@ -169,6 +181,13 @@ function App() {
   const navForRole = buildNavForRole(role)
 
   // ---------- LOGIN PAGE ----------
+  if (!isAuthenticated && page === "landing") {
+    return (
+      <Landing />
+    )
+  }
+
+  // ---------- LOGIN PAGE ----------
   if (!isAuthenticated && page === "login") {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm relative">
@@ -233,6 +252,8 @@ function App() {
                   ? "Chat"
                   : page === "profile"
                   ? "Profile"
+                  : page === "client-profile"
+                  ? "Client Profile"
                   : page === "entrepreneuranalytics"
                   ? "Entrepreneur Analytics"
                   : page === "freelanceranalytics"
@@ -258,6 +279,7 @@ function App() {
             )}
             {page === "chat" && <ChatPage />}
             {page === "profile" && <ProfilePage />}
+            {page === "client-profile" && <ClientProfilePage />}
             {page === "entrepreneuranalytics" && <EntrepreneurAnalytics />}
             {page === "freelanceranalytics" && <FreelancerAnalytics />}
             {page === "investoranalytics" && <InvestorAnalytics />}

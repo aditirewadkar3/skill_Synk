@@ -96,7 +96,11 @@ export function LoginForm({
           </form>
           <div className="bg-muted relative hidden md:block">
             <img
+<<<<<<< HEAD
               src="/placeholder.svg"
+=======
+              src="/login.svg"
+>>>>>>> 0438b1ca5ed0afd963e244c1270f8db1ae16e50a
               alt="Image"
               className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale" />
           </div>

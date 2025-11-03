@@ -148,7 +148,8 @@ export function SignupForm({
                 />
               </Field>
               <Field>
-                <FieldLabel>Email</FieldLabel>
+                <FieldLabel>Email</FieldLabel>6
+                
                 <Input 
                   id="email" 
                   type="email" 
