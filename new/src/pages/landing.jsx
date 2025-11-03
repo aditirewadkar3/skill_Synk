@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import EntrepreneurImg from "@/assets/Entrepreneur.svg"
 import InvestorImg from "@/assets/Investor.svg"
 import { PieChart } from "lucide-react"
-import Spline from "@splinetool/react-spline"
+// Spline removed to avoid dependency errors in dev
 
 export default function Landing() {
   const navigate = (path) => {
@@ -58,12 +58,14 @@ export default function Landing() {
                 </div>
               </div>
 
-              {/* 3D Model Section - No white container */}
+              {/* Illustration placeholder instead of Spline 3D */}
               <div className="flex justify-center md:justify-end relative">
-                <div className="w-full md:w-[130%] lg:w-[140%] transform md:translate-x-14">
-                  <Spline
-                    scene="https://prod.spline.design/vzxPkRGHgxpZGsYs/scene.splinecode"
-                    className="w-full h-[550px] md:h-[650px] rounded-3xl overflow-hidden"
+                <div className="w-full md:w-[110%] lg:w-[120%] transform md:translate-x-10">
+                  <img
+                    src={"https://illustrations.popsy.co/amber/online-world.svg"}
+                    alt="Collaboration illustration"
+                    className="w-full h-[420px] md:h-[520px] rounded-3xl object-contain"
+                    loading="lazy"
                   />
                 </div>
               </div>

@@ -102,6 +102,15 @@ export default function ClientProfilePage() {
     })()
   }, [])
 
+  const handleStartChat = () => {
+    const params = new URLSearchParams(window.location.search)
+    const targetUid = params.get("uid")
+    if (!targetUid) return
+    try { localStorage.setItem('chatTargetUid', targetUid) } catch {}
+    window.history.pushState({}, '', `/chat?with=${targetUid}`)
+    window.dispatchEvent(new Event('app:navigate'))
+  }
+
   const getInitials = (name) => {
     return name
       .split(" ")
@@ -114,6 +123,10 @@ export default function ClientProfilePage() {
   return (
     <div className="h-full overflow-y-auto bg-background">
       <div className="container max-w-7xl mx-auto px-4 py-6 sm:py-8">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-semibold">Profile</h1>
+          <Button onClick={handleStartChat}>Message</Button>
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Sidebar - Profile Summary */}
           <div className="lg:col-span-1">

@@ -4,6 +4,34 @@ import { auth } from '../config/firebase.js';
 
 const router = express.Router();
 
+// Helper to convert Firestore timestamps to ISO strings
+const convertTimestamps = (obj) => {
+  if (!obj || typeof obj !== 'object') return obj;
+  // Check if it's a Firestore Timestamp (has toDate method)
+  if (obj.toDate && typeof obj.toDate === 'function') {
+    try {
+      return obj.toDate().toISOString();
+    } catch (e) {
+      // If toDate fails, try toMillis
+      if (obj.toMillis && typeof obj.toMillis === 'function') {
+        return new Date(obj.toMillis()).toISOString();
+      }
+      return obj;
+    }
+  }
+  if (obj.toMillis && typeof obj.toMillis === 'function') {
+    return new Date(obj.toMillis()).toISOString();
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(convertTimestamps);
+  }
+  const converted = {};
+  for (const key in obj) {
+    converted[key] = convertTimestamps(obj[key]);
+  }
+  return converted;
+};
+
 /**
  * Middleware to verify Firebase token
  */
@@ -72,12 +100,13 @@ router.post('/messages', verifyToken, async (req, res) => {
       updatedAt: new Date(),
     }, { merge: true });
 
+    const messageResponse = convertTimestamps({
+      id: messageRef.id,
+      ...messageData,
+    });
     res.json({
       success: true,
-      message: {
-        id: messageRef.id,
-        ...messageData,
-      },
+      message: messageResponse,
     });
   } catch (error) {
     console.error('Send message error:', error);
@@ -146,9 +175,10 @@ router.get('/messages/:userId', verifyToken, async (req, res) => {
       await batch.commit();
     }
 
+    const convertedMessages = allMessages.map(msg => convertTimestamps(msg));
     res.json({
       success: true,
-      messages: allMessages,
+      messages: convertedMessages,
     });
   } catch (error) {
     console.error('Get messages error:', error);
@@ -172,12 +202,10 @@ router.get('/conversations', verifyToken, async (req, res) => {
     
     const chatsQuery1 = await chatsRef
       .where('participant1', '==', currentUserId)
-      .orderBy('lastMessageTime', 'desc')
       .get();
 
     const chatsQuery2 = await chatsRef
       .where('participant2', '==', currentUserId)
-      .orderBy('lastMessageTime', 'desc')
       .get();
 
     const conversations = [];
@@ -236,9 +264,17 @@ router.get('/conversations', verifyToken, async (req, res) => {
       })
     );
 
+    // Sort by lastMessageTime desc without requiring Firestore composite index
+    const sorted = conversationsWithDetails.sort((a, b) => {
+      const aTime = a.lastMessageTime?.toMillis?.() || new Date(a.lastMessageTime).getTime() || 0;
+      const bTime = b.lastMessageTime?.toMillis?.() || new Date(b.lastMessageTime).getTime() || 0;
+      return bTime - aTime;
+    });
+
+    const convertedConversations = sorted.map(conv => convertTimestamps(conv));
     res.json({
       success: true,
-      conversations: conversationsWithDetails,
+      conversations: convertedConversations,
     });
   } catch (error) {
     console.error('Get conversations error:', error);

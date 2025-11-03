@@ -28,11 +28,25 @@ function PostCard({ post, onSummarize }) {
     const [localSummary, setLocalSummary] = React.useState("");
     return (
 		<div className="bg-white rounded-xl shadow-md p-4 md:p-5 mb-5">
-			<div className="flex items-start gap-3">
-				<Avatar name={post.author} />
+            <div className="flex items-start gap-3">
+                <button
+                    type="button"
+                    onClick={() => { if (post.authorId) { window.history.pushState({}, '', `/client-profile?uid=${post.authorId}`); window.dispatchEvent(new Event('app:navigate')); } }}
+                    className="focus:outline-none"
+                    title="View profile"
+                >
+                    <Avatar name={post.author} />
+                </button>
 				<div className="flex-1 min-w-0">
 					<div className="flex items-center gap-2 flex-wrap">
-						<p className="font-semibold text-gray-900 truncate">{post.author}</p>
+                        <button
+                          type="button"
+                          onClick={() => { if (post.authorId) { window.history.pushState({}, '', `/client-profile?uid=${post.authorId}`); window.dispatchEvent(new Event('app:navigate')); } }}
+                          className="font-semibold text-gray-900 truncate hover:underline text-left"
+                          title="View profile"
+                        >
+                          {post.author}
+                        </button>
 						<span className={`text-xs px-2 py-0.5 rounded-full ${roleBadgeClasses[post.role] || "bg-gray-100 text-gray-700"}`}>
 							{post.role}
 						</span>

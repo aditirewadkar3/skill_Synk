@@ -11,7 +11,7 @@ import { MessageBubble } from "./MessageBubble"
 import { MessageInput } from "./MessageInput"
 import { TypingIndicator } from "./TypingIndicator"
 import { cn } from "@/lib/utils"
-import { CURRENT_USER_ID } from "@/services/chatService"
+import { getCurrentUser } from "@/services/api"
 
 export function ChatWindow({
   user,
@@ -170,13 +170,18 @@ export function ChatWindow({
               </p>
             </div>
           ) : (
-            messages.map((message) => (
-              <MessageBubble
-                key={message.id}
-                message={message}
-                isOwn={message.senderId === CURRENT_USER_ID}
-              />
-            ))
+            messages.map((message) => {
+              const currentUser = getCurrentUser()
+              const currentUserId = localStorage.getItem('uid')
+              const isOwn = message.senderId === currentUserId || message.senderId === currentUser?.uid
+              return (
+                <MessageBubble
+                  key={message.id}
+                  message={message}
+                  isOwn={isOwn}
+                />
+              )
+            })
           )}
           {isTyping && <TypingIndicator />}
           <div ref={messagesEndRef} />

@@ -1,4 +1,5 @@
 // API service for backend communication
+import { getAuth } from 'firebase/auth'
 const API_BASE_URL = 'http://localhost:3001/api';
 
 // Get auth token from localStorage
@@ -30,8 +31,22 @@ const setCurrentUser = (user) => {
   }
 };
 
+// Refresh Firebase ID token and persist
+const refreshAuthToken = async () => {
+  const auth = getAuth()
+  const user = auth.currentUser
+  if (!user) {
+    setAuthToken(null)
+    throw new Error('No authenticated user')
+  }
+  const newToken = await user.getIdToken(true)
+  setAuthToken(newToken)
+  try { window.dispatchEvent(new CustomEvent('auth:token-refreshed', { detail: { token: newToken } })) } catch {}
+  return newToken
+}
+
 // API request helper
-const apiRequest = async (endpoint, options = {}) => {
+const apiRequest = async (endpoint, options = {}, retry = true) => {
   const token = getAuthToken();
   const headers = {
     'Content-Type': 'application/json',
@@ -52,6 +67,16 @@ const apiRequest = async (endpoint, options = {}) => {
     const data = await response.json();
 
     if (!response.ok) {
+      const unauthorized = response.status === 401
+      const tokenErrorText = (data?.message || data?.error || '').toString()
+      const tokenError = tokenErrorText.includes('id-token') || tokenErrorText.includes('Invalid token')
+      if (unauthorized && tokenError && retry) {
+        try {
+          await refreshAuthToken()
+          return await apiRequest(endpoint, options, false)
+        } catch (e) {}
+      }
+
       console.error('API Error Details:', {
         status: response.status,
         statusText: response.statusText,

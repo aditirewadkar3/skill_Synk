@@ -13,11 +13,8 @@ import EntrepreneurAnalytics from "@/pages/Entrepreneuranalytics"
 import EntrepreneurDashboard from "@/pages/entrepreneur"
 import FreelancerDashboard from "@/pages/freelancer"
 import InvestorDashboard from "@/pages/investor"
-<<<<<<< HEAD
 import MyPostsPage from "@/pages/myposts"
-=======
-
->>>>>>> 0438b1ca5ed0afd963e244c1270f8db1ae16e50a
+import Landing from "@/pages/landing"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { PieChart } from "lucide-react"
@@ -144,6 +141,29 @@ function App() {
       try { sessionStorage.removeItem('pendingRole') } catch {}
     }
   }, [role])
+
+  // Listen to history/navigation events to handle in-app link navigation
+  useEffect(() => {
+    const handleLocation = () => {
+      const path = window.location.pathname
+      if (path === '/client-profile') {
+        setIsAuthenticated(true)
+        setPage('client-profile')
+      } else if (path === '/chat') {
+        setIsAuthenticated(true)
+        setPage('chat')
+      } else if (path === '/myposts') {
+        setIsAuthenticated(true)
+        setPage('myposts')
+      }
+    }
+    window.addEventListener('popstate', handleLocation)
+    window.addEventListener('app:navigate', handleLocation)
+    return () => {
+      window.removeEventListener('popstate', handleLocation)
+      window.removeEventListener('app:navigate', handleLocation)
+    }
+  }, [])
 
   // When role changes while authenticated, route to its dashboard
   useEffect(() => {
