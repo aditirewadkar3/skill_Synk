@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@livekit/components-react": "^2.9.15",
+    "@livekit/components-styles": "^1.1.6",
     "@lordicon/react": "^1.11.0",
     "@radix-ui/react-avatar": "^1.0.3",
     "@radix-ui/react-collapsible": "^1.0.3",
@@ -25,6 +27,8 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "firebase": "^12.5.0",
+    "livekit-client": "^2.15.14",
+    "livekit-server-sdk": "^2.14.0",
     "lottie-web": "^5.12.2",
     "lucide-react": "^0.279.0",
     "react": "^18.2.0",
