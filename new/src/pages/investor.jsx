@@ -1,7 +1,11 @@
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Feed from "@/components/feed/Feed";
+import SummaryPanel from "@/components/feed/SummaryPanel";
 
 export default function InvestorDashboard() {
+  const [summary, setSummary] = useState("")
   return (
     <div className="p-6 space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -57,6 +61,16 @@ export default function InvestorDashboard() {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Feed + Right Sidebar */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Feed onSummarize={(s) => setSummary(`${s.title} — ${s.text}`)} />
+        </div>
+        <div className="lg:col-span-1">
+          <SummaryPanel summary={summary} onClear={() => setSummary("")} />
+        </div>
+      </div>
     </div>
   );
 }
