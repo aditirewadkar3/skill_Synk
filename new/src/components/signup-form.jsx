@@ -146,9 +146,6 @@ export function SignupForm({
                   onChange={(e) => setName(e.target.value)}
                   disabled={isLoading}
                 />
-                <FieldDescription>
-                  Your display name (optional)
-                </FieldDescription>
               </Field>
               <Field>
                 <FieldLabel>Email</FieldLabel>
@@ -161,10 +158,6 @@ export function SignupForm({
                   required 
                   disabled={isLoading}
                 />
-                <FieldDescription>
-                  We&apos;ll use this to contact you. We will not share your
-                  email with anyone else.
-                </FieldDescription>
               </Field>
               <Field>
                 <FieldLabel htmlFor="role">Role</FieldLabel>
