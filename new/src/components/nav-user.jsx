@@ -89,7 +89,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={(e) => { e.preventDefault(); onNavigate && onNavigate('/login') }}>
               <LogOut />
               Log out
             </DropdownMenuItem>

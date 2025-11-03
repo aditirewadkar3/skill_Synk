@@ -143,7 +143,7 @@ function App() {
     const roleTitle = currentRole === "freelancer" ? "Freelancer" : currentRole === "investor" ? "Investor" : "Entrepreneur"
     const rolePath = currentRole === "freelancer" ? "/freelancer" : currentRole === "investor" ? "/investor" : "/entrepreneur"
     return [
-      { title: `${roleTitle}`, url: rolePath, isActive: true },
+      { title: `${roleTitle}`, icon: PieChart, url: rolePath, isActive: true },
       { title: "Messages", icon: PieChart , url: "/chat" },
       { title: "Analytics", icon: PieChart, url: "/analytics" },
     ]
@@ -188,6 +188,17 @@ function App() {
           if (path === '/dashboard') {
             const roleTarget = role === 'freelancer' ? '/freelancer' : (role === 'investor' ? '/investor' : '/entrepreneur')
             path = roleTarget
+          }
+          if (path === '/login') {
+            // Logout: clear auth and route to login
+            try {
+              window.localStorage.removeItem('uid')
+              sessionStorage.removeItem('pendingRole')
+            } catch {}
+            setIsAuthenticated(false)
+            setPage('login')
+            window.history.pushState({}, '', '/login')
+            return
           }
           const pageName = path.replace(/^\//, '')
           setPage(pageName)
