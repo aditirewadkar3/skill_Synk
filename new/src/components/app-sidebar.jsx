@@ -31,7 +31,7 @@ const data = {
   user: {
     name: "shadcn",
     email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    avatar: "/placeholder.svg",
   },
   teams: [
     {
@@ -119,7 +119,7 @@ function getUserRole() {
   return r || "entrepreneur";
 }
 
-export function AppSidebar({ user, teams, navMain, projects, ...props }) {
+export function AppSidebar({ user, teams, navMain, projects, onNavigate, ...props }) {
   const merged = {
     user: user || data.user,
     teams: teams || data.teams,
@@ -140,11 +140,11 @@ export function AppSidebar({ user, teams, navMain, projects, ...props }) {
         <TeamSwitcher teams={merged.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={filteredNav} />
+        <NavMain items={filteredNav} onNavigate={onNavigate} />
         <NavProjects projects={merged.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={merged.user} />
+        <NavUser user={merged.user} onNavigate={onNavigate} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

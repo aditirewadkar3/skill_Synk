@@ -28,7 +28,8 @@ import {
 } from "@/components/ui/sidebar"
 
 export function NavUser({
-  user
+  user,
+  onNavigate
 }) {
   const { isMobile } = useSidebar()
 
@@ -74,9 +75,9 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => { e.preventDefault(); onNavigate && onNavigate('/profile') }}>
                 <BadgeCheck />
-                <a href="/profile">Account</a>
+                <span>Account</span>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <CreditCard />

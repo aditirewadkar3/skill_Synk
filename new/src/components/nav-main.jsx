@@ -17,7 +17,8 @@ import {
 } from "@/components/ui/sidebar"
 
 export function NavMain({
-  items
+  items,
+  onNavigate
 }) {
   return (
     <SidebarGroup>
@@ -32,8 +33,18 @@ export function NavMain({
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
                 <SidebarMenuButton tooltip={item.title} asChild>
+<<<<<<< HEAD
                   <a href={item.url}>
                     {item.icon && <item.icon className="size-4 text-foreground" />}
+=======
+                  <a href={item.url} onClick={(e) => {
+                    if (onNavigate && item.url && item.url.startsWith('/')) {
+                      e.preventDefault()
+                      onNavigate(item.url)
+                    }
+                  }}>
+                    {item.icon && <item.icon />}
+>>>>>>> 14693646af88317c5ff1bb8821df43339b9fe09d
                     <span>{item.title}</span>
                     {/* <ChevronRight
                       className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" /> */}

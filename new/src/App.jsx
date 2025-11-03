@@ -182,7 +182,17 @@ function App() {
   if (isAuthenticated) {
     return (
       <SidebarProvider>
-        <AppSidebar navMain={navForRole} />
+        <AppSidebar navMain={navForRole} onNavigate={(path) => {
+          // Normalize common aliases
+          if (path === '/account') path = '/profile'
+          if (path === '/dashboard') {
+            const roleTarget = role === 'freelancer' ? '/freelancer' : (role === 'investor' ? '/investor' : '/entrepreneur')
+            path = roleTarget
+          }
+          const pageName = path.replace(/^\//, '')
+          setPage(pageName)
+          window.history.pushState({}, '', path)
+        }} />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
             <SidebarTrigger />
@@ -208,7 +218,11 @@ function App() {
             <ThemeToggle />
           </header>
           <main className="flex-1 overflow-hidden min-h-0">
-            {page === "dashboard" && null}
+            {page === "dashboard" && (
+              role === 'freelancer' ? <FreelancerDashboard /> :
+              role === 'investor' ? <InvestorDashboard /> :
+              <EntrepreneurDashboard />
+            )}
             {page === "chat" && <ChatPage />}
             {page === "profile" && <ProfilePage />}
             {page === "analytics" && <AnalyticsPage />}
