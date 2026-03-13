@@ -76,13 +76,15 @@ function PostCard({ post, onSummarize }) {
 					type="button"
 					className="ml-auto text-blue-600 hover:text-blue-800"
                     onClick={() => {
-                        const text = summarizeText(post.description)
-                        setLocalSummary(`${post.title} — ${text}`)
+                        const text = post.summary || summarizeText(post.description)
+                        const prefix = post.summary ? "✨ AI Summary: " : `${post.title} — `
+                        setLocalSummary(`${prefix}${text}`)
                         onSummarize && onSummarize({
                             title: post.title,
                             author: post.author,
                             role: post.role,
-                            text
+                            text: post.summary || text,
+                            isAI: !!post.summary
                         })
                     }}
 				>
@@ -117,6 +119,7 @@ export default function Feed({ onSummarize, filterAuthorId, filterMode = 'exclud
                         timestamp: p.createdAt?.toDate ? 'now' : 'now',
                         title: p.title,
                         description: p.description,
+                        summary: p.summary, // Added summary field
                         mediaType: p.mediaType, // 'image' or 'youtube'
                         mediaUrl: p.mediaUrl,
                         authorId: p.authorId,

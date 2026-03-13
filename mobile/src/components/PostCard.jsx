@@ -43,6 +43,7 @@ const FALLBACK_POSTS = [
 function PostCard({ post }) {
     const roleColor = ROLE_COLORS[post.role] || '#8b5cf6';
     const initials = (post.author || 'U').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
+    const [showSummary, setShowSummary] = useState(false);
 
     return (
         <View style={styles.postCard}>
@@ -62,7 +63,14 @@ function PostCard({ post }) {
             </View>
 
             <Text style={styles.postTitle}>{post.title}</Text>
-            <Text style={styles.postDesc} numberOfLines={4}>{post.description}</Text>
+            <Text style={styles.postDesc} numberOfLines={showSummary ? undefined : 4}>{post.description}</Text>
+
+            {showSummary && (
+                <View style={styles.summaryBox}>
+                    <Text style={styles.summaryTitle}>✨ AI Summary</Text>
+                    <Text style={styles.summaryText}>{post.summary || "Summarizing description..."}</Text>
+                </View>
+            )}
 
             {post.mediaType === 'image' && post.mediaUrl ? (
                 <Image source={{ uri: post.mediaUrl }} style={styles.postImage} resizeMode="cover" />
@@ -72,8 +80,13 @@ function PostCard({ post }) {
                 <TouchableOpacity style={styles.actionBtn}>
                     <Text style={styles.actionText}>👍 Like</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.actionBtn}>
-                    <Text style={styles.actionText}>💬 Comment</Text>
+                <TouchableOpacity 
+                    style={styles.actionBtn}
+                    onPress={() => setShowSummary(!showSummary)}
+                >
+                    <Text style={[styles.actionText, showSummary && { color: '#6366f1' }]}>
+                        📝 {showSummary ? 'Hide' : 'Summary'}
+                    </Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionBtn}>
                     <Text style={styles.actionText}>↗️ Share</Text>
@@ -83,8 +96,111 @@ function PostCard({ post }) {
     );
 }
 
-export default function PostCard({ post }) {
-    return <PostCard post={post} />;
-}
+const styles = StyleSheet.create({
+    postCard: {
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    postHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    avatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 12,
+    },
+    avatarText: {
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    authorRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    authorName: {
+        fontWeight: 'bold',
+        fontSize: 16,
+        color: '#1f2937',
+    },
+    roleBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 12,
+        borderWidth: 1,
+    },
+    roleText: {
+        fontSize: 10,
+        fontWeight: '600',
+    },
+    timestamp: {
+        fontSize: 12,
+        color: '#6b7280',
+    },
+    postTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#111827',
+        marginBottom: 8,
+    },
+    postDesc: {
+        fontSize: 14,
+        color: '#374151',
+        lineHeight: 20,
+        marginBottom: 12,
+    },
+    summaryBox: {
+        backgroundColor: '#f3f4f6',
+        borderRadius: 8,
+        padding: 12,
+        marginBottom: 12,
+        borderLeftWidth: 4,
+        borderLeftColor: '#6366f1',
+    },
+    summaryTitle: {
+        fontSize: 13,
+        fontWeight: 'bold',
+        color: '#4f46e5',
+        marginBottom: 4,
+    },
+    summaryText: {
+        fontSize: 13,
+        color: '#4b5563',
+        fontStyle: 'italic',
+    },
+    postImage: {
+        width: '100%',
+        height: 200,
+        borderRadius: 8,
+        marginBottom: 12,
+    },
+    actions: {
+        flexDirection: 'row',
+        paddingTop: 12,
+        borderTopWidth: 1,
+        borderTopColor: '#f3f4f6',
+        justifyContent: 'space-between',
+    },
+    actionBtn: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    actionText: {
+        fontSize: 14,
+        color: '#4b5563',
+    },
+});
 
 export { PostCard, FALLBACK_POSTS };

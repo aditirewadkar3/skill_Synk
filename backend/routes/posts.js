@@ -53,12 +53,38 @@ router.post('/', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'Invalid mediaType. Use image or youtube.' });
     }
 
+    let summary = null;
+    try {
+      if (description && description.length > 50) {
+        const { default: openai } = await import('../config/openai.js');
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o-mini", // Using a cost-effective model
+          messages: [
+            {
+              role: "system",
+              content: "You are a professional assistant that summarizes pitch decks and project descriptions. Provide a concise, engaging summary (max 2 sentences) of the following content."
+            },
+            {
+              role: "user",
+              content: description
+            }
+          ],
+          max_tokens: 100,
+        });
+        summary = response.choices[0].message.content.trim();
+      }
+    } catch (aiErr) {
+      console.error('AI Summarization error:', aiErr);
+      // Fallback: don't fail the whole post creation if AI fails
+    }
+
     const postDoc = {
       authorId,
       authorName,
       role,
       title,
       description,
+      summary, // Added summary field
       mediaType: normalizedMediaType,
       mediaUrl,
       createdAt: new Date(),
