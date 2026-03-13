@@ -333,9 +333,10 @@ function App() {
       { title: "News", icon: Rss, url: "/news" },
       ...(currentRole === 'entrepreneur' ? [
         { title: "My Projects", icon: FolderKanban, url: "/myprojects" },
-        { title: "AI Pitch Practice", icon: Mic, url: "/pitch-practice" }
+        { title: "AI Pitch Practice", icon: Mic, url: "/pitch-practice" },
+        { title: "Project Applications", icon: Bell, url: "/project-applications" }
       ] : []),
-      ...(currentRole === 'freelancer' ? [
+      ...(currentRole === 'freelancer' || currentRole === 'investor' ? [
         { title: "Browse Projects", icon: Search, url: "/myprojects" },
         { title: "Notifications", icon: Bell, url: "/notifications" }
       ] : []),

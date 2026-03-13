@@ -24,6 +24,8 @@ export default function MyProjectsPage() {
 
   const role = localStorage.getItem("role") || "entrepreneur";
   const isFreelancer = role === "freelancer";
+  const isInvestor = role === "investor";
+  const isApplicant = isFreelancer || isInvestor;
 
   const fetchUserProfile = async () => {
     try {
@@ -47,8 +49,8 @@ export default function MyProjectsPage() {
     try {
       setLoading(true);
       const token = getAuthToken();
-      // If entrepreneur, fetch only owned projects. If freelancer, fetch all.
-      const url = `http://localhost:3001/api/projects${!isFreelancer ? "?owned=true" : ""}`;
+      // If entrepreneur, fetch only owned projects. If freelancer or investor, fetch all.
+      const url = `http://localhost:3001/api/projects${!isApplicant ? "?owned=true" : ""}`;
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -69,10 +71,10 @@ export default function MyProjectsPage() {
 
   useEffect(() => {
     fetchProjects();
-    if (isFreelancer) {
+    if (isApplicant) {
       fetchUserProfile();
     }
-  }, [isFreelancer]);
+  }, [isApplicant]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -104,30 +106,44 @@ export default function MyProjectsPage() {
     }
   };
 
-  const handleApply = async (project) => {
+  const [isInvestmentModalOpen, setIsInvestmentModalOpen] = useState(false);
+  const [investmentData, setInvestmentData] = useState({ amount: "", equity: "" });
+
+  const handleApply = async (project, investorDetails = null) => {
     try {
       setIsSubmitting(true);
       const token = getAuthToken();
+      
+      const payload = {
+        applicantName: userProfile.name,
+        applicantEmail: userProfile.email,
+        type: role
+      };
+
+      if (investorDetails) {
+        payload.investmentAmount = investorDetails.amount;
+        payload.equityWanted = investorDetails.equity;
+      }
+
       const response = await fetch(`http://localhost:3001/api/projects/${project.id}/apply`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          freelancerName: userProfile.name,
-          freelancerEmail: userProfile.email
-        }),
+        body: JSON.stringify(payload),
       });
+      
       const data = await response.json();
       if (data.success) {
-        alert("Application sent successfully!");
+        alert(isInvestor ? "Investment request sent successfully!" : "Application sent successfully!");
         const updatedProject = { 
           ...project, 
           applicants: [...(project.applicants || []), data.application] 
         };
         setSelectedProject(updatedProject);
         setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
+        if (isInvestor) setIsInvestmentModalOpen(false);
       } else {
         alert(data.error || "Failed to apply");
       }
@@ -141,8 +157,8 @@ export default function MyProjectsPage() {
   if (selectedProject) {
     const userUid = localStorage.getItem("uid");
     const myApplication = selectedProject.applicants?.find(a => a.applicantId === userUid);
-    const isAcceptedFreelancer = myApplication?.status === 'accepted';
-    const showChat = !isFreelancer || isAcceptedFreelancer;
+    const isAcceptedApplicant = myApplication?.status === 'accepted';
+    const showChat = !isApplicant || isAcceptedApplicant;
 
     return (
       <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-background">
@@ -198,7 +214,7 @@ export default function MyProjectsPage() {
               </div>
             </section>
 
-            {isFreelancer && (
+            {isApplicant && (
               <section className="pt-8">
                 <div className="p-8 rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
                   {myApplication ? (
@@ -206,37 +222,95 @@ export default function MyProjectsPage() {
                       {myApplication.status === 'pending' && (
                         <>
                           <Loader2 className="h-12 w-12 text-muted-foreground animate-pulse mb-2" />
-                          <h3 className="text-xl font-bold">Application Pending</h3>
-                          <p className="text-muted-foreground">The entrepreneur is reviewing your application.</p>
+                          <h3 className="text-xl font-bold">Request Pending</h3>
+                          <p className="text-muted-foreground">The entrepreneur is reviewing your request.</p>
                         </>
                       )}
                       {myApplication.status === 'accepted' && (
                         <>
                           <CheckCircle2 className="h-12 w-12 text-emerald-500 mb-2" />
-                          <h3 className="text-xl font-bold text-emerald-500">Application accepted!</h3>
+                          <h3 className="text-xl font-bold text-emerald-500">Request accepted!</h3>
                           <p className="text-muted-foreground">You are now part of this project's community.</p>
                         </>
                       )}
                       {myApplication.status === 'rejected' && (
                         <>
                           <AlertCircle className="h-12 w-12 text-destructive mb-2" />
-                          <h3 className="text-xl font-bold text-destructive">Application Rejected</h3>
-                          <p className="text-muted-foreground">Unfortunately, your application was not accepted for this project.</p>
+                          <h3 className="text-xl font-bold text-destructive">Request Rejected</h3>
+                          <p className="text-muted-foreground">Unfortunately, your request was not accepted for this project.</p>
                         </>
                       )}
                     </div>
                   ) : (
                     <>
                       <h3 className="text-xl font-bold mb-2">Interested in this project?</h3>
-                      <p className="text-muted-foreground mb-6">Apply now and start collaborating with the creator.</p>
-                      <Button 
-                        className="w-full sm:w-auto px-8 gap-2 text-lg h-12 bg-gradient-to-r from-primary to-primary/80 hover:scale-[1.02] transition-transform"
-                        disabled={isSubmitting}
-                        onClick={() => handleApply(selectedProject)}
-                      >
-                        {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
-                        {isSubmitting ? "Submitting Application..." : "Apply to Project"}
-                      </Button>
+                      <p className="text-muted-foreground mb-6">
+                        {isInvestor ? "Propose an investment to join the project community." : "Apply now and start collaborating with the creator."}
+                      </p>
+                      
+                      {isInvestor ? (
+                         <Sheet open={isInvestmentModalOpen} onOpenChange={setIsInvestmentModalOpen}>
+                           <SheetTrigger asChild>
+                             <Button 
+                               className="w-full sm:w-auto px-8 gap-2 text-lg h-12 bg-gradient-to-r from-primary to-primary/80 hover:scale-[1.02] transition-transform"
+                             >
+                               <CheckCircle2 className="h-5 w-5" />
+                               Ask Investment
+                             </Button>
+                           </SheetTrigger>
+                           <SheetContent side="right" className="sm:max-w-[450px] premium-card border-none">
+                             <SheetHeader>
+                               <SheetTitle className="text-2xl font-bold gradient-text">Propose Investment</SheetTitle>
+                               <SheetDescription>
+                                 Offer funding in exchange for equity.
+                               </SheetDescription>
+                             </SheetHeader>
+                             <div className="space-y-6 mt-8">
+                               <div className="space-y-2">
+                                 <Label htmlFor="amount" className="text-sm font-semibold">Investment Amount ($)</Label>
+                                 <Input
+                                   id="amount"
+                                   type="number"
+                                   placeholder="e.g., 50000"
+                                   value={investmentData.amount}
+                                   onChange={(e) => setInvestmentData({ ...investmentData, amount: e.target.value })}
+                                   className="premium-input h-12 px-4 rounded-xl ring-offset-background focus-visible:ring-primary"
+                                 />
+                               </div>
+                               <div className="space-y-2">
+                                 <Label htmlFor="equity" className="text-sm font-semibold">Equity Wanted (%)</Label>
+                                 <Input
+                                   id="equity"
+                                   type="number"
+                                   placeholder="e.g., 10"
+                                   value={investmentData.equity}
+                                   onChange={(e) => setInvestmentData({ ...investmentData, equity: e.target.value })}
+                                   className="premium-input h-12 px-4 rounded-xl ring-offset-background focus-visible:ring-primary"
+                                 />
+                               </div>
+                               <SheetFooter className="mt-8">
+                                 <Button 
+                                   onClick={() => handleApply(selectedProject, investmentData)}
+                                   className="w-full h-12 gap-2 text-lg rounded-xl bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20" 
+                                   disabled={isSubmitting || !investmentData.amount || !investmentData.equity}
+                                 >
+                                   {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
+                                   {isSubmitting ? "Submitting..." : "Submit Proposal"}
+                                 </Button>
+                               </SheetFooter>
+                             </div>
+                           </SheetContent>
+                         </Sheet>
+                      ) : (
+                        <Button 
+                          className="w-full sm:w-auto px-8 gap-2 text-lg h-12 bg-gradient-to-r from-primary to-primary/80 hover:scale-[1.02] transition-transform"
+                          disabled={isSubmitting}
+                          onClick={() => handleApply(selectedProject)}
+                        >
+                          {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
+                          {isSubmitting ? "Submitting Application..." : "Apply to Project"}
+                        </Button>
+                      )}
                     </>
                   )}
                 </div>
@@ -281,7 +355,7 @@ export default function MyProjectsPage() {
           </p>
         </div>
         
-        {!isFreelancer && (
+        {!isApplicant && (
           <Sheet open={isModalOpen} onOpenChange={setIsModalOpen}>
             <SheetTrigger asChild>
               <Button className="gap-2 h-11 px-6 rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:scale-105 transition-all shadow-lg shadow-primary/20">
@@ -361,9 +435,9 @@ export default function MyProjectsPage() {
           </div>
           <p className="text-2xl font-bold text-foreground">No projects found</p>
           <p className="text-muted-foreground max-w-sm text-center mt-2 mb-8">
-            {isFreelancer ? "Check back later for new projects or explore the discovery page." : "Start your journey by creating your first exciting project now."}
+            {isApplicant ? "Check back later for new projects or explore the discovery page." : "Start your journey by creating your first exciting project now."}
           </p>
-          {!isFreelancer && (
+          {!isApplicant && (
             <Button variant="outline" onClick={() => setIsModalOpen(true)} className="rounded-xl px-10 h-12 border-primary/20 hover:bg-primary/5">
               Get Started
             </Button>

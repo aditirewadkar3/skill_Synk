@@ -116,6 +116,26 @@ router.post('/messages', verifyToken, async (req, res) => {
       id: messageRef.id,
       ...messageData,
     });
+
+    // Broadcast via Socket.IO
+    const io = req.app.get('io');
+    if (io) {
+      if (isCommunity) {
+        // Fetch community members to emit to
+        const chatDoc = await chatRef.get();
+        if (chatDoc.exists) {
+          const members = chatDoc.data().members || [];
+          members.forEach(memberId => {
+            if (memberId !== senderId) {
+              io.to(memberId).emit('message', messageResponse);
+            }
+          });
+        }
+      } else {
+        io.to(receiverId).emit('message', messageResponse);
+      }
+    }
+
     res.json({
       success: true,
       message: messageResponse,
@@ -147,7 +167,6 @@ router.get('/messages/:userId', verifyToken, async (req, res) => {
     if (userId.startsWith('community_')) {
       const snapshot = await messagesRef
         .where('chatId', '==', userId)
-        .orderBy('timestamp', 'asc')
         .get();
       
       snapshot.forEach(doc => {
@@ -157,13 +176,11 @@ router.get('/messages/:userId', verifyToken, async (req, res) => {
       const sentMessages = await messagesRef
         .where('senderId', '==', currentUserId)
         .where('receiverId', '==', userId)
-        .orderBy('timestamp', 'asc')
         .get();
 
       const receivedMessages = await messagesRef
         .where('senderId', '==', userId)
         .where('receiverId', '==', currentUserId)
-        .orderBy('timestamp', 'asc')
         .get();
 
       sentMessages.forEach(doc => {

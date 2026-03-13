@@ -290,7 +290,7 @@ export function ChatWindow({
       <div className="mt-auto border-t bg-background">
         <MessageInput
           onSend={onSendMessage}
-          disabled={connectionStatus !== "connected"}
+          disabled={false}
         />
       </div>
     </div>

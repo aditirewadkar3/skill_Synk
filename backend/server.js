@@ -135,7 +135,7 @@ io.on('connection', (socket) => {
       const messageRef = db.collection('messages').doc();
       const messageData = {
         senderId,
-        senderName,
+        senderName, // Ensure this is saved correctly
         receiverId: isCommunity ? null : receiverId,
         chatId,
         content: content.trim(),
