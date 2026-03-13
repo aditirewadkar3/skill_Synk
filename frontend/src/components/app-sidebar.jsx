@@ -58,14 +58,22 @@ const data = {
     {
       title: "Dashboard",
       url: "/dashboard",
-      icon: Terminal,
+      icon: <lord-icon
+    src="https://cdn.lordicon.com/bushiqea.json"
+    trigger="hover"
+    style="width:10px;height:10px">
+</lord-icon>,
       isActive: true,
     },
 
     {
       title: "Proposal",
       url: "/proposal",
-      icon: FileText,
+      icon: <lord-icon
+    src="https://cdn.lordicon.com/bushiqea.json"
+    trigger="hover"
+    style="width:10px;height:10px">
+</lord-icon>,
       isActive: true,
     },
     {
@@ -77,7 +85,11 @@ const data = {
     {
       title: "Entrepreneur",
       url: "/entrepreneur",
-      icon: Activity,
+      icon: <lord-icon
+    src="https://cdn.lordicon.com/bushiqea.json"
+    trigger="hover"
+    style="width:10px;height:10px">
+</lord-icon>,
     },
     {
       title: "Freelancer",
@@ -92,7 +104,11 @@ const data = {
     {
       title: "Messages",
       url: "/chat",
-      icon: Bot,
+      icon: <lord-icon
+    src="https://cdn.lordicon.com/bushiqea.json"
+    trigger="hover"
+    style="width:10px;height:10px">
+</lord-icon>,
     },
     {
       title: "Pitch Deck",
