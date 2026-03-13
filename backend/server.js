@@ -7,7 +7,6 @@ import authRoutes from './routes/auth.js';
 import chatRoutes from './routes/chat.js';
 import postsRoutes from './routes/posts.js';
 import meetingsRoutes from './routes/meetings.js';
-import analyticsRoutes from './routes/analytics.js';
 import communityRoutes from './routes/community.js';
 import newsRoutes from './routes/news.js';
 import { auth, db } from './config/firebase.js';
@@ -60,8 +59,6 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/posts', postsRoutes);
-app.use('/api/meetings', meetingsRoutes);
-app.use('/api/analytics', analyticsRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/news', newsRoutes);
 

@@ -140,6 +140,10 @@ export default function ClientProfilePage() {
   // ── Navigation helpers ────────────────────────────────────────────────────
   const handleStartChat = () => {
     if (!targetUid) return
+<<<<<<< HEAD
+=======
+    try { localStorage.setItem('chatTargetUid', targetUid) } catch {}
+>>>>>>> c4fed67257d4be5662eacad5837884b53dec1538
     window.history.pushState({}, "", `/chat?with=${targetUid}`)
     window.dispatchEvent(new Event("app:navigate"))
   }
@@ -253,9 +257,15 @@ export default function ClientProfilePage() {
 
           {!isOwnProfile && (
             <div className="flex items-center gap-3 shrink-0">
+<<<<<<< HEAD
               {profile.role?.toLowerCase() === 'freelancer' && getCurrentUser()?.role === 'freelancer' && (
                 <Button
                   variant="outline"
+=======
+              {getCurrentUser()?.role === 'freelancer' && profile.role === 'freelancer' && (
+                <Button 
+                  variant="outline" 
+>>>>>>> c4fed67257d4be5662eacad5837884b53dec1538
                   size="sm"
                   className="gap-2"
                   onClick={handleJoinCommunity}

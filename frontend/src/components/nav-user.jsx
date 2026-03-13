@@ -38,7 +38,7 @@ export function NavUser({
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+            className="peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-xl p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-all duration-300 hover:bg-primary/5 hover:text-primary active:scale-[0.98] [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[state=open]:bg-primary/10 data-[state=open]:text-primary data-[state=open]:shadow-inner">
             <Avatar className="h-8 w-8 rounded-lg">
               <AvatarImage src={user.avatar} alt={user.name} />
               <AvatarFallback className="rounded-lg">CN</AvatarFallback>
@@ -50,7 +50,7 @@ export function NavUser({
             <ChevronsUpDown className="ml-auto size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="z-[100] w-[var(--radix-dropdown-menu-trigger-width)] min-w-56 rounded-lg"
+            className="z-[100] w-[var(--radix-dropdown-menu-trigger-width)] min-w-56 rounded-xl premium-card"
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}>

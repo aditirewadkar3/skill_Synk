@@ -158,8 +158,8 @@ export default function AnalyticsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Analytics & Insights</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-4xl font-extrabold tracking-tight gradient-text">Analytics & Insights</h1>
+            <p className="text-muted-foreground mt-1 font-medium italic">
               View key metrics and predictions for your business.
             </p>
           </div>
@@ -201,7 +201,7 @@ export default function AnalyticsPage() {
         {/* Top Section - Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {/* Funding Over Time Card */}
-          <Card className="rounded-2xl shadow-sm border">
+          <Card className="premium-card border-none shadow-xl">
             <CardHeader>
               <CardTitle>Funding Over Time</CardTitle>
             </CardHeader>

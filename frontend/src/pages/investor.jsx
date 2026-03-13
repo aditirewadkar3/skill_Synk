@@ -9,55 +9,43 @@ import PostForm from "@/components/posts/PostForm";
 
 export default function InvestorDashboard() {
   const [summary, setSummary] = useState("")
+  const [selectedId, setSelectedId] = useState(null)
+  
   const currentUser = (() => {
     try { return JSON.parse(localStorage.getItem('currentUser')) } catch { return null }
   })()
   const uid = currentUser?.uid || localStorage.getItem('uid') || null
+
+  const handleSelect = (id) => {
+    setSelectedId(selectedId === id ? null : id)
+  }
   
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Investor Dashboard</h1>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button className="gap-2">Upload Post</Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-full sm:max-w-lg p-0">
-            <SheetHeader>
-              <SheetTitle>Upload Post</SheetTitle>
-            </SheetHeader>
-            <div className="p-4">
-              <PostForm />
-            </div>
-          </SheetContent>
-        </Sheet>
+        <h1 className="text-3xl font-bold tracking-tight gradient-text">Investor Dashboard</h1>
+        {/* ... existing sheet ... */}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Portfolio Startups</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">9</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>YTD IRR</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">18.4%</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Follow-on Reserves</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">$1.2M</p>
-          </CardContent>
-        </Card>
+        {[
+          { id: 'portfolio', title: 'Portfolio Startups', value: '9' },
+          { id: 'irr', title: 'YTD IRR', value: '18.4%' },
+          { id: 'reserves', title: 'Follow-on Reserves', value: '$1.2M' },
+        ].map((kpi) => (
+          <Card 
+            key={kpi.id}
+            className={`premium-card interactive-item ${selectedId === kpi.id ? 'selected-component' : ''}`}
+            onClick={() => handleSelect(kpi.id)}
+          >
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">{kpi.value}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <Card>

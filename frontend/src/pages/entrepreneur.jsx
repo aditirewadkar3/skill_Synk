@@ -15,20 +15,27 @@ import PostForm from "@/components/posts/PostForm";
 export default function EntrepreneurDashboard() {
   const [isUpdateSheetOpen, setIsUpdateSheetOpen] = useState(false);
   const [summary, setSummary] = useState("");
+  const [selectedId, setSelectedId] = useState(null);
+  
   const currentUser = (() => {
     try { return JSON.parse(localStorage.getItem('currentUser')) } catch { return null }
   })()
   const uid = currentUser?.uid || localStorage.getItem('uid') || null
+
+  const handleSelect = (id) => {
+    setSelectedId(selectedId === id ? null : id)
+  }
   
   return (
-    <div className="theme-entrepreneur p-6 space-y-6">
+    <div className="p-6 space-y-6">
       {/* Page header */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Entrepreneur Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Track product, team, and fundraising progress at a glance.</p>
+          <h1 className="text-3xl font-bold tracking-tight gradient-text">Entrepreneur Dashboard</h1>
+          <p className="text-sm text-muted-foreground italic">Track product, team, and fundraising progress at a glance.</p>
         </div>
         <div className="flex items-center gap-2">
+<<<<<<< HEAD
           <Sheet open={isUpdateSheetOpen} onOpenChange={setIsUpdateSheetOpen}>
             <SheetTrigger asChild>
               <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-md">
@@ -47,41 +54,34 @@ export default function EntrepreneurDashboard() {
               </div>
             </SheetContent>
           </Sheet>
+=======
+          {/* ... existing header controls ... */}
+>>>>>>> c4fed67257d4be5662eacad5837884b53dec1538
         </div>
       </div>
 
-      {/* KPI cards */}
+      {/* KPI cards - Interactive */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
-            <Briefcase className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">4</div>
-            <p className="text-xs text-muted-foreground">+1 since last week</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Burn</CardTitle>
-            <Coins className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">$12,400</div>
-            <p className="text-xs text-muted-foreground">-8% vs previous month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Runway</CardTitle>
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">8 months</div>
-            <p className="text-xs text-muted-foreground">safe zone (≥ 6 months)</p>
-          </CardContent>
-        </Card>
+        {[
+          { id: 'projects', title: 'Active Projects', value: '4', sub: '+1 since last week', icon: Briefcase },
+          { id: 'burn', title: 'Monthly Burn', value: '$12,400', sub: '-8% vs previous month', icon: Coins },
+          { id: 'runway', title: 'Runway', value: '8 months', sub: 'safe zone (≥ 6 months)', icon: CalendarDays },
+        ].map((kpi) => (
+          <Card 
+            key={kpi.id}
+            className={`premium-card interactive-item ${selectedId === kpi.id ? 'selected-component' : ''}`}
+            onClick={() => handleSelect(kpi.id)}
+          >
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
+              <kpi.icon className="h-4 w-4 text-primary animate-float" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{kpi.value}</div>
+              <p className="text-xs text-muted-foreground">{kpi.sub}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Overview + sidebar widgets */}

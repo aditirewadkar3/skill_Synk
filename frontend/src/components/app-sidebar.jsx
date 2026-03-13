@@ -12,16 +12,12 @@ import {
   PieChart,
   Settings2,
   Terminal,
-  Newspaper,
-  FileText,
-  Search,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavProjects } from "@/components/nav-projects";
 import { NavUser } from "@/components/nav-user";
 import { TeamSwitcher } from "@/components/team-switcher";
-
 import {
   Sidebar,
   SidebarContent,
@@ -65,6 +61,7 @@ const data = {
 </lord-icon>,
       isActive: true,
     },
+<<<<<<< HEAD
 
     {
       title: "Proposal",
@@ -82,6 +79,8 @@ const data = {
       icon: Newspaper,
     },
     
+=======
+>>>>>>> c4fed67257d4be5662eacad5837884b53dec1538
     {
       title: "Entrepreneur",
       url: "/entrepreneur",
@@ -119,16 +118,6 @@ const data = {
       title: "Analytics",
       url: "/analytics",
       icon: Frame,
-    },
-    {
-      title: "Proposal",
-      url: "/proposal",
-      icon: FileText,
-    },
-    {
-      title: "Discovery",
-      url: "/discovery",
-      icon: Search,
     },
   ],
   projects: [
@@ -189,22 +178,22 @@ export function AppSidebar({ user, teams, navMain, projects, onNavigate, ...prop
   }
   const role = getUserRole();
   const filteredNav = (merged.navMain || []).filter((item) => {
-    if (["Dashboard", "Messages", "Analytics", "Pitch Deck", "My Posts", "News", "Proposal", "Discovery"].includes(item.title)) return true;
+    if (["Dashboard", "Messages", "Analytics", "Pitch Deck", "My Posts", "News"].includes(item.title)) return true;
     if (item.title === "Entrepreneur") return role === "entrepreneur";
     if (item.title === "Freelancer") return role === "freelancer";
     if (item.title === "Investor") return role === "investor";
     return false;
   });
   return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
+    <Sidebar collapsible="icon" className={`premium-card border-none ${role ? `theme-${role}` : ""}`} {...props}>
+      <SidebarHeader className="bg-gradient-to-b from-primary/10 to-transparent">
         <TeamSwitcher teams={merged.teams} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={filteredNav} onNavigate={onNavigate} />
         <NavProjects projects={merged.projects} />
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="border-t border-white/5">
         <NavUser user={merged.user} onNavigate={onNavigate} />
       </SidebarFooter>
       <SidebarRail />
