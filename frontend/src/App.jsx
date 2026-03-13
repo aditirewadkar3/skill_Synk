@@ -21,7 +21,6 @@ import NotificationsPage from "@/pages/notifications"
 import ProposalPage from "@/pages/proposal"
 import NewsPage from "@/pages/news"
 import DiscoveryPage from "@/pages/discovery"
-import MyProjectsPage from "@/pages/myprojects"
 import PostForm from "@/components/posts/PostForm"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -206,7 +205,7 @@ function App() {
   useEffect(() => {
     try {
       if (role) window.localStorage.setItem("role", role)
-    } catch {}
+    } catch { }
   }, [role])
 
   // Fetch role from backend (Firestore) once authenticated
@@ -225,7 +224,7 @@ function App() {
         const data = await res.json()
         const fetchedRole = data?.user?.role
         if (fetchedRole) setRole(fetchedRole)
-      } catch {}
+      } catch { }
       finally { setRoleLoading(false) }
     }
     if (isAuthenticated) {
@@ -245,13 +244,13 @@ function App() {
           window.history.pushState({}, '', target)
         }
       }
-    } catch {}
+    } catch { }
   }, [isAuthenticated, role])
 
   // Clear pendingRole once real role is loaded
   useEffect(() => {
     if (role) {
-      try { sessionStorage.removeItem('pendingRole') } catch {}
+      try { sessionStorage.removeItem('pendingRole') } catch { }
     }
   }, [role])
 
@@ -299,7 +298,7 @@ function App() {
   // When role changes while authenticated, route to its dashboard
   useEffect(() => {
     if (!isAuthenticated || !role) return
-    const target = role === "freelancer" ? 
+    const target = role === "freelancer" ?
       "freelancer" : role === "investor" ? "investor" : "entrepreneur"
     // List of pages that should NOT be auto-redirected to the dashboard
     const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "myprojects", "notifications", "proposal", "news", "discovery"]
@@ -326,7 +325,7 @@ function App() {
     const analyticsPath = currentRole === "freelancer" ? "/freelanceranalytics" : currentRole === "investor" ? "/investoranalytics" : "/entrepreneuranalytics"
     return [
       { title: `${roleTitle}`, icon: PieChart, url: rolePath, isActive: true },
-      { title: "Messages", icon: PieChart , url: "/chat" },
+      { title: "Messages", icon: PieChart, url: "/chat" },
       { title: "Discovery", icon: Search, url: "/discovery" },
       { title: "Analytics", icon: PieChart, url: analyticsPath },
       { title: "My Posts", url: "/myposts" },
@@ -383,115 +382,115 @@ function App() {
     return (
       <div className={`h-full w-full ${themeClass}`}>
         <SidebarProvider>
-        <AppSidebar navMain={navForRole} onNavigate={(path) => {
-          // Normalize common aliases
-          if (path === '/account') path = '/profile'
-          if (path === '/dashboard') {
-            const roleTarget = role === 'freelancer' ? '/freelancer' : (role === 'investor' ? '/investor' : '/entrepreneur')
-            path = roleTarget
-          }
-          if (path === '/login') {
-            // Logout: clear auth and route to login
-            try {
-              window.localStorage.removeItem('uid')
-              sessionStorage.removeItem('pendingRole')
-            } catch {}
-            setIsAuthenticated(false)
-            setPage('login')
-            window.history.pushState({}, '', '/login')
-            return
-          }
-          const pageName = path.replace(/^\//, '')
-          setPage(pageName)
-          window.history.pushState({}, '', path)
-        }} />
-        <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
-            <SidebarTrigger />
-            <div className="flex-1">
-              <h1 className="text-lg font-semibold">
-                {page === "dashboard"
-                  ? "Dashboard"
-                  : page === "chat"
-                  ? "Chat"
-                  : page === "profile"
-                  ? "Profile"
-                  : page === "client-profile"
-                  ? "Client Profile"
-                  : page === "entrepreneuranalytics"
-                  ? "Entrepreneur Analytics"
-                  : page === "freelanceranalytics"
-                  ? "Freelancer Analytics"
-                  : page === "investoranalytics"
-                  ? "Investor Analytics"
-                  : page === "entrepreneur"
-                  ? "Entrepreneur Dashboard"
-                  : page === "freelancer"
-                  ? "Freelancer Dashboard"
-                  : page === "investor"
-                  ? "Investor Dashboard"
-                  : page === "notifications"
-                  ? "Notifications"
-                  : page === "proposal"
-                  ? "Send Proposal"
-                  : page === "news"
-                  ? "Ecosystem News"
-                  : page === "myprojects"
-                  ? "My Projects"
-                  : page === "discovery"
-                  ? "Discovery Hub"
-                  : ""}
-              </h1>
-            </div>
-            <div className="flex items-center gap-2">
-              {page === "entrepreneur" && (
-                <Sheet open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
-                  <SheetTrigger asChild>
-                    <Button variant="premium" size="sm" className="gap-2">
-                      <Rocket className="h-4 w-4" /> New Post
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="right" className="w-[400px] sm:w-[540px]">
-                    <SheetHeader>
-                      <SheetTitle>Create a New Post</SheetTitle>
-                    </SheetHeader>
-                    <div className="py-6">
-                      <PostForm onClose={() => setIsPostModalOpen(false)} onSuccess={() => {
-                        setIsPostModalOpen(false);
-                        window.dispatchEvent(new CustomEvent('app:post-created'));
-                      }} />
-                    </div>
-                  </SheetContent>
-                </Sheet>
+          <AppSidebar navMain={navForRole} onNavigate={(path) => {
+            // Normalize common aliases
+            if (path === '/account') path = '/profile'
+            if (path === '/dashboard') {
+              const roleTarget = role === 'freelancer' ? '/freelancer' : (role === 'investor' ? '/investor' : '/entrepreneur')
+              path = roleTarget
+            }
+            if (path === '/login') {
+              // Logout: clear auth and route to login
+              try {
+                window.localStorage.removeItem('uid')
+                sessionStorage.removeItem('pendingRole')
+              } catch { }
+              setIsAuthenticated(false)
+              setPage('login')
+              window.history.pushState({}, '', '/login')
+              return
+            }
+            const pageName = path.replace(/^\//, '')
+            setPage(pageName)
+            window.history.pushState({}, '', path)
+          }} />
+          <SidebarInset>
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
+              <SidebarTrigger />
+              <div className="flex-1">
+                <h1 className="text-lg font-semibold">
+                  {page === "dashboard"
+                    ? "Dashboard"
+                    : page === "chat"
+                      ? "Chat"
+                      : page === "profile"
+                        ? "Profile"
+                        : page === "client-profile"
+                          ? "Client Profile"
+                          : page === "entrepreneuranalytics"
+                            ? "Entrepreneur Analytics"
+                            : page === "freelanceranalytics"
+                              ? "Freelancer Analytics"
+                              : page === "investoranalytics"
+                                ? "Investor Analytics"
+                                : page === "entrepreneur"
+                                  ? "Entrepreneur Dashboard"
+                                  : page === "freelancer"
+                                    ? "Freelancer Dashboard"
+                                    : page === "investor"
+                                      ? "Investor Dashboard"
+                                      : page === "notifications"
+                                        ? "Notifications"
+                                        : page === "proposal"
+                                          ? "Send Proposal"
+                                          : page === "news"
+                                            ? "Ecosystem News"
+                                            : page === "myprojects"
+                                              ? "My Projects"
+                                              : page === "discovery"
+                                                ? "Discovery Hub"
+                                                : ""}
+                </h1>
+              </div>
+              <div className="flex items-center gap-2">
+                {page === "entrepreneur" && (
+                  <Sheet open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
+                    <SheetTrigger asChild>
+                      <Button variant="premium" size="sm" className="gap-2">
+                        <Rocket className="h-4 w-4" /> New Post
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="w-[400px] sm:w-[540px]">
+                      <SheetHeader>
+                        <SheetTitle>Create a New Post</SheetTitle>
+                      </SheetHeader>
+                      <div className="py-6">
+                        <PostForm onClose={() => setIsPostModalOpen(false)} onSuccess={() => {
+                          setIsPostModalOpen(false);
+                          window.dispatchEvent(new CustomEvent('app:post-created'));
+                        }} />
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                )}
+                <NotificationPopover />
+                <ThemeToggle />
+              </div>
+            </header>
+            <main className="flex-1 overflow-hidden min-h-0">
+              {page === "dashboard" && (
+                role === 'freelancer' ? <FreelancerDashboard /> :
+                  role === 'investor' ? <InvestorDashboard /> :
+                    <EntrepreneurDashboard />
               )}
-              <NotificationPopover />
-              <ThemeToggle />
-            </div>
-          </header>
-          <main className="flex-1 overflow-hidden min-h-0">
-            {page === "dashboard" && (
-              role === 'freelancer' ? <FreelancerDashboard /> :
-              role === 'investor' ? <InvestorDashboard /> :
-              <EntrepreneurDashboard />
-            )}
-            {page === "chat" && <ChatPage />}
-            {page === "profile" && <ProfilePage />}
-            {page === "client-profile" && <ClientProfilePage />}
-            {page === "entrepreneuranalytics" && <EntrepreneurAnalytics />}
-            {page === "freelanceranalytics" && <FreelancerAnalytics />}
-            {page === "investoranalytics" && <InvestorAnalytics />}
-            {page === "entrepreneur" && <EntrepreneurDashboard />}
-            {page === "freelancer" && <FreelancerDashboard />}
-            {page === "investor" && <InvestorDashboard />}
-            {page === "myposts" && <MyPostsPage />}
-            {page === "myprojects" && <MyProjectsPage />}
-            {page === "notifications" && <NotificationsPage />}
-            {page === "proposal" && <ProposalPage />}
-            {page === "news" && <NewsPage />}
-            {page === "discovery" && <DiscoveryPage />}
-          </main>
-        </SidebarInset>
-      </SidebarProvider>
+              {page === "chat" && <ChatPage />}
+              {page === "profile" && <ProfilePage />}
+              {page === "client-profile" && <ClientProfilePage />}
+              {page === "entrepreneuranalytics" && <EntrepreneurAnalytics />}
+              {page === "freelanceranalytics" && <FreelancerAnalytics />}
+              {page === "investoranalytics" && <InvestorAnalytics />}
+              {page === "entrepreneur" && <EntrepreneurDashboard />}
+              {page === "freelancer" && <FreelancerDashboard />}
+              {page === "investor" && <InvestorDashboard />}
+              {page === "myposts" && <MyPostsPage />}
+              {page === "myprojects" && <MyProjectsPage />}
+              {page === "notifications" && <NotificationsPage />}
+              {page === "proposal" && <ProposalPage />}
+              {page === "news" && <NewsPage />}
+              {page === "discovery" && <DiscoveryPage />}
+            </main>
+          </SidebarInset>
+        </SidebarProvider>
       </div>
     )
   }
