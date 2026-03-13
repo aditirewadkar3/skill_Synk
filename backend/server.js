@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import dotenv from 'dotenv';
@@ -11,8 +13,12 @@ import communityRoutes from './routes/community.js';
 import newsRoutes from './routes/news.js';
 import pitchPracticeRoutes from './routes/pitchPractice.js';
 import projectsRoutes from './routes/projects.js';
+import uploadRoutes from './routes/upload.js';
 import { initMeetingCron } from './cron.js';
 import { auth, db } from './config/firebase.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -57,6 +63,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -66,6 +73,7 @@ app.use('/api/community', communityRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/pitch-practice', pitchPracticeRoutes);
 app.use('/api/projects', projectsRoutes);
+app.use('/api/upload', uploadRoutes);
 app.use('/api/meetings', meetingsRoutes);
 
 // Health check
