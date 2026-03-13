@@ -156,6 +156,7 @@ function App() {
     } else if (path === "/myposts") {
       setIsAuthenticated(true)
       setPage("myposts")
+
     } else if (path === "/notifications") {
       setIsAuthenticated(true)
       setPage("notifications")
@@ -186,6 +187,7 @@ function App() {
       setIsAuthenticated(true)
       setPage("investor")
       setRole("investor")
+
     } else if (path === "/" && isAuthenticated) {
       const target = role === "freelancer" ? "/freelancer" : role === "investor" ? "/investor" : "/entrepreneur"
       window.history.pushState({}, "", target)
