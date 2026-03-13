@@ -12,9 +12,22 @@ dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
+const allowedOrigins = process.env.FRONTEND_URL 
+  ? process.env.FRONTEND_URL.split(',').map(o => o.trim())
+  : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176'];
+
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.FRONTEND_URL || ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176'],
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin) || allowedOrigins.some(allowed => origin.includes(allowed))) {
+        callback(null, true);
+      } else if (origin.includes('localhost')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -23,15 +36,10 @@ const io = new Server(httpServer, {
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-const allowedOrigins = process.env.FRONTEND_URL 
-  ? process.env.FRONTEND_URL.split(',')
-  : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176'];
-
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || allowedOrigins.some(allowed => origin && origin.includes(allowed))) {
+    if (allowedOrigins.includes(origin) || allowedOrigins.some(allowed => origin.includes(allowed))) {
       callback(null, true);
     } else {
       callback(null, true); // Allow all for development
@@ -39,6 +47,7 @@ app.use(cors({
   },
   credentials: true,
 }));
+
 app.use(express.json());
 
 // Routes
@@ -158,7 +167,7 @@ io.on('connection', (socket) => {
 httpServer.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
   console.log(`Socket.IO server ready`);
-  console.log(`CORS enabled for: ${process.env.FRONTEND_URL || 'http://localhost:5174'}`);
+  console.log(`CORS enabled for: ${allowedOrigins.join(', ')}`);
 }).on('error', (error) => {
   if (error.code === 'EADDRINUSE') {
     console.error(`Port ${PORT} is already in use. Please stop the existing server or use a different port.`);
