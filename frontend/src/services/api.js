@@ -348,6 +348,12 @@ export const meetingsAPI = {
       body: JSON.stringify({ participantId, participantName }),
     });
   },
+  join: async (roomName) => {
+    return await apiRequest('/meetings/join', {
+      method: 'POST',
+      body: JSON.stringify({ roomName }),
+    });
+  },
 };
 
 export { getAuthToken, setAuthToken, getCurrentUser, setCurrentUser };

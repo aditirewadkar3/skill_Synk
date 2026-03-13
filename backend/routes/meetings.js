@@ -77,4 +77,46 @@ router.post('/schedule', verifyToken, async (req, res) => {
   }
 });
 
+/**
+ * POST /api/meetings/join
+ * Join an existing meeting room
+ */
+router.post('/join', verifyToken, async (req, res) => {
+  try {
+    const { roomName } = req.body;
+    const userId = req.user.uid;
+    const userName = req.user.name || req.user.email || 'Participant';
+
+    if (!roomName) {
+      return res.status(400).json({ error: 'Room name is required' });
+    }
+
+    // Create Access Token for the participant
+    const at = new AccessToken(
+      process.env.LIVEKIT_API_KEY,
+      process.env.LIVEKIT_API_SECRET,
+      {
+        identity: userId,
+        name: userName,
+      }
+    );
+    at.addGrant({ roomJoin: true, room: roomName, canPublish: true, canSubscribe: true });
+
+    const token = await at.toJwt();
+
+    res.json({
+      success: true,
+      token,
+      roomName
+    });
+  } catch (error) {
+    console.error('Join meeting error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to join meeting', 
+      message: error.message 
+    });
+  }
+});
+
 export default router;

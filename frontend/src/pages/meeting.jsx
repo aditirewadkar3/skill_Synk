@@ -5,6 +5,7 @@ import {
   RoomAudioRenderer,
 } from '@livekit/components-react';
 import '@livekit/components-styles';
+import { meetingsAPI } from '@/services/api';
 
 export default function MeetingPage() {
   const [token, setToken] = React.useState(null);
@@ -14,14 +15,29 @@ export default function MeetingPage() {
     // Extract roomName and token from URL
     const path = window.location.pathname;
     const match = path.match(/\/meeting\/([^/]+)/);
+    let rName = null;
     if (match) {
-      setRoomName(match[1]);
+      rName = match[1];
+      setRoomName(rName);
     }
 
     const searchParams = new URLSearchParams(window.location.search);
     const t = searchParams.get('token');
     if (t) {
       setToken(t);
+    } else if (rName) {
+      // If no token, use the join API to get one for the current user
+      const fetchToken = async () => {
+        try {
+          const res = await meetingsAPI.join(rName);
+          if (res.success && res.token) {
+            setToken(res.token);
+          }
+        } catch (error) {
+          console.error('Failed to fetch meeting token:', error);
+        }
+      };
+      fetchToken();
     }
   }, []);
 
