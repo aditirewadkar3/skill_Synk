@@ -5,8 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription, SheetFooter } from "@/components/ui/sheet";
-import { Briefcase, Plus, Loader2, Info, CheckCircle2, AlertCircle } from "lucide-react";
+import { Briefcase, Plus, Loader2, Info, CheckCircle2, AlertCircle, ArrowLeft } from "lucide-react";
 import { getAuthToken } from "@/services/api";
+import { Separator } from "@/components/ui/separator";
+import { ProjectChat } from "@/components/chat/ProjectChat";
+import { Badge } from "@/components/ui/badge";
 
 export default function MyProjectsPage() {
   const [projects, setProjects] = useState([]);
@@ -119,7 +122,12 @@ export default function MyProjectsPage() {
       const data = await response.json();
       if (data.success) {
         alert("Application sent successfully!");
-        setIsDetailsOpen(false);
+        const updatedProject = { 
+          ...project, 
+          applicants: [...(project.applicants || []), data.application] 
+        };
+        setSelectedProject(updatedProject);
+        setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
       } else {
         alert(data.error || "Failed to apply");
       }
@@ -130,14 +138,143 @@ export default function MyProjectsPage() {
     }
   };
 
+  if (selectedProject) {
+    const userUid = localStorage.getItem("uid");
+    const myApplication = selectedProject.applicants?.find(a => a.applicantId === userUid);
+    const isAcceptedFreelancer = myApplication?.status === 'accepted';
+    const showChat = !isFreelancer || isAcceptedFreelancer;
+
+    return (
+      <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-background">
+        {/* Project Details Section */}
+        <div className="flex-1 flex flex-col min-w-0 border-r overflow-y-auto">
+          <div className="p-8 space-y-8 max-w-4xl mx-auto w-full">
+            <Button 
+              variant="ghost" 
+              className="mb-4 hover:bg-primary/10 -ml-4"
+              onClick={() => setSelectedProject(null)}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to projects
+            </Button>
+            
+            <header className="space-y-4">
+              <div className="p-4 rounded-2xl bg-primary/10 w-fit">
+                <Briefcase className="h-10 w-10 text-primary" />
+              </div>
+              <h1 className="text-4xl font-bold tracking-tight gradient-text leading-tight">
+                {selectedProject.name}
+              </h1>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  Status: <span className="text-emerald-500 font-semibold uppercase">Active</span>
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30" />
+                <span>Posted on {new Date(selectedProject.createdAt).toLocaleDateString()}</span>
+              </div>
+            </header>
+
+            <Separator className="bg-primary/10" />
+
+            <section className="space-y-6">
+              <div className="bg-muted/30 p-8 rounded-3xl border border-primary/5">
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                  <Info className="h-5 w-5 text-primary" /> Project Overview
+                </h3>
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-lg">
+                  {selectedProject.details}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="p-6 rounded-2xl bg-muted/30 border border-primary/5">
+                  <p className="text-sm text-muted-foreground mb-1">Owner</p>
+                  <p className="text-lg font-bold">Entrepreneur</p>
+                </div>
+                <div className="p-6 rounded-2xl bg-muted/30 border border-primary/5">
+                  <p className="text-sm text-muted-foreground mb-1">Duration</p>
+                  <p className="text-lg font-bold">Flexible</p>
+                </div>
+              </div>
+            </section>
+
+            {isFreelancer && (
+              <section className="pt-8">
+                <div className="p-8 rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
+                  {myApplication ? (
+                    <div className="flex flex-col items-center justify-center p-6 text-center space-y-4">
+                      {myApplication.status === 'pending' && (
+                        <>
+                          <Loader2 className="h-12 w-12 text-muted-foreground animate-pulse mb-2" />
+                          <h3 className="text-xl font-bold">Application Pending</h3>
+                          <p className="text-muted-foreground">The entrepreneur is reviewing your application.</p>
+                        </>
+                      )}
+                      {myApplication.status === 'accepted' && (
+                        <>
+                          <CheckCircle2 className="h-12 w-12 text-emerald-500 mb-2" />
+                          <h3 className="text-xl font-bold text-emerald-500">Application accepted!</h3>
+                          <p className="text-muted-foreground">You are now part of this project's community.</p>
+                        </>
+                      )}
+                      {myApplication.status === 'rejected' && (
+                        <>
+                          <AlertCircle className="h-12 w-12 text-destructive mb-2" />
+                          <h3 className="text-xl font-bold text-destructive">Application Rejected</h3>
+                          <p className="text-muted-foreground">Unfortunately, your application was not accepted for this project.</p>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <h3 className="text-xl font-bold mb-2">Interested in this project?</h3>
+                      <p className="text-muted-foreground mb-6">Apply now and start collaborating with the creator.</p>
+                      <Button 
+                        className="w-full sm:w-auto px-8 gap-2 text-lg h-12 bg-gradient-to-r from-primary to-primary/80 hover:scale-[1.02] transition-transform"
+                        disabled={isSubmitting}
+                        onClick={() => handleApply(selectedProject)}
+                      >
+                        {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
+                        {isSubmitting ? "Submitting Application..." : "Apply to Project"}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </section>
+            )}
+          </div>
+        </div>
+
+        {/* Community Chat Section */}
+        {showChat && (
+          <div className="w-[400px] lg:w-[450px] shrink-0 hidden md:block">
+            {selectedProject.communityChatId ? (
+              <ProjectChat 
+                projectId={selectedProject.id}
+                communityChatId={selectedProject.communityChatId}
+                projectName={selectedProject.name}
+              />
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-muted/10">
+                <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground font-medium">Community chat is being initialized...</p>
+                <p className="text-xs text-muted-foreground mt-2 italic">Try refreshing if it doesn't appear.</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight gradient-text">
+          <h1 className="text-4xl font-extrabold tracking-tight gradient-text">
             {isFreelancer ? "Browse Projects" : "My Projects"}
           </h1>
-          <p className="text-sm text-muted-foreground italic">
+          <p className="text-muted-foreground mt-1 text-lg italic">
             {isFreelancer 
               ? "Discover and apply to exciting new opportunities." 
               : "Manage and track all your created projects."}
@@ -147,8 +284,8 @@ export default function MyProjectsPage() {
         {!isFreelancer && (
           <Sheet open={isModalOpen} onOpenChange={setIsModalOpen}>
             <SheetTrigger asChild>
-              <Button className="gap-2 bg-gradient-to-r from-primary to-primary/80 hover:scale-105 transition-transform">
-                <Plus className="h-4 w-4" /> Create Project
+              <Button className="gap-2 h-11 px-6 rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:scale-105 transition-all shadow-lg shadow-primary/20">
+                <Plus className="h-5 w-5" /> Create Project
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="sm:max-w-[450px] premium-card border-none">
@@ -166,7 +303,7 @@ export default function MyProjectsPage() {
                     placeholder="Enter project name..."
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="premium-input ring-offset-background focus-visible:ring-primary"
+                    className="premium-input h-12 px-4 rounded-xl ring-offset-background focus-visible:ring-primary"
                     required
                   />
                 </div>
@@ -177,17 +314,17 @@ export default function MyProjectsPage() {
                     placeholder="Describe your project goals, scope, and timeline..."
                     value={formData.details}
                     onChange={(e) => setFormData({ ...formData, details: e.target.value })}
-                    className="min-h-[150px] premium-input ring-offset-background focus-visible:ring-primary resize-none"
+                    className="min-h-[200px] p-4 premium-input rounded-xl ring-offset-background focus-visible:ring-primary resize-none"
                     required
                   />
                 </div>
                 <SheetFooter className="mt-8">
                   <Button 
                     type="submit" 
-                    className="w-full gap-2 bg-gradient-to-r from-primary to-primary/80" 
+                    className="w-full h-12 gap-2 text-lg rounded-xl bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20" 
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                    {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-5 w-5" />}
                     {isSubmitting ? "Creating..." : "Create Project"}
                   </Button>
                 </SheetFooter>
@@ -197,131 +334,92 @@ export default function MyProjectsPage() {
         )}
       </div>
 
+      <Separator className="bg-primary/10" />
+
       {loading ? (
-        <div className="flex flex-col items-center justify-center min-h-[300px] space-y-4">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          <p className="text-muted-foreground animate-pulse">Loading projects...</p>
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-6">
+          <div className="relative">
+            <Loader2 className="h-16 w-16 animate-spin text-primary opacity-20" />
+            <Loader2 className="h-16 w-16 animate-spin text-primary absolute inset-0 [animation-delay:-0.3s]" />
+          </div>
+          <p className="text-muted-foreground font-medium animate-pulse tracking-widest uppercase text-xs">Loading projects...</p>
         </div>
       ) : error ? (
-        <Card className="border-destructive/20 bg-destructive/5">
-          <CardContent className="py-10 text-center">
-            <p className="text-destructive font-medium">{error}</p>
-            <Button variant="outline" onClick={fetchProjects} className="mt-4">Try Again</Button>
+        <Card className="border-destructive/20 bg-destructive/5 overflow-hidden">
+          <CardContent className="py-16 text-center">
+            <div className="inline-flex p-4 rounded-full bg-destructive/10 text-destructive mb-4">
+              <AlertCircle className="h-8 w-8" />
+            </div>
+            <p className="text-destructive font-bold text-xl mb-4">{error}</p>
+            <Button variant="outline" onClick={fetchProjects} className="rounded-xl px-8">Try Again</Button>
           </CardContent>
         </Card>
       ) : projects.length === 0 ? (
-        <Card className="border-dashed border-2 py-20 bg-muted/30">
-          <CardContent className="flex flex-col items-center space-y-4">
-            <div className="p-4 rounded-full bg-primary/10">
-              <Briefcase className="h-10 w-10 text-primary" />
-            </div>
-            <div className="text-center">
-              <p className="text-xl font-semibold">No projects found</p>
-              <p className="text-sm text-muted-foreground">
-                {isFreelancer ? "Check back later for new projects." : "Start by creating your first project."}
-              </p>
-            </div>
-            {!isFreelancer && (
-              <Button variant="outline" onClick={() => setIsModalOpen(true)} className="mt-2">
-                Get Started
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+        <div className="flex flex-col items-center justify-center min-h-[400px] border-2 border-dashed rounded-3xl bg-muted/10 p-12">
+          <div className="p-6 rounded-3xl bg-primary/5 mb-6 group-hover:scale-110 transition-transform">
+            <Briefcase className="h-16 w-16 text-primary/40" />
+          </div>
+          <p className="text-2xl font-bold text-foreground">No projects found</p>
+          <p className="text-muted-foreground max-w-sm text-center mt-2 mb-8">
+            {isFreelancer ? "Check back later for new projects or explore the discovery page." : "Start your journey by creating your first exciting project now."}
+          </p>
+          {!isFreelancer && (
+            <Button variant="outline" onClick={() => setIsModalOpen(true)} className="rounded-xl px-10 h-12 border-primary/20 hover:bg-primary/5">
+              Get Started
+            </Button>
+          )}
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {projects.map((project) => (
             <Card 
               key={project.id} 
-              className="premium-card interactive-item group hover:border-primary/50 transition-all duration-300 cursor-pointer"
+              className="premium-card group relative overflow-hidden h-full border-primary/5 hover:border-primary/40 transition-all duration-500 cursor-pointer shadow-sm hover:shadow-xl hover:shadow-primary/5"
               onClick={() => {
                 setSelectedProject(project);
-                setIsDetailsOpen(true);
               }}
             >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                    <Briefcase className="h-5 w-5 text-primary" />
-                  </div>
+              <div className="absolute top-0 right-0 p-6 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="bg-primary/10 rounded-full p-2">
+                  <Plus className="h-4 w-4 text-primary" />
                 </div>
-                <CardTitle className="text-xl font-bold mt-4 line-clamp-1">{project.name}</CardTitle>
-                <CardDescription className="text-xs">
-                  Created on {new Date(project.createdAt).toLocaleDateString()}
+              </div>
+
+              <CardHeader className="pb-4 relative z-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2.5 rounded-xl bg-primary/10 group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                    <Briefcase className="h-5 w-5" />
+                  </div>
+                  <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-500 border-none px-2.5 uppercase text-[10px] font-bold tracking-widest">
+                    Active
+                  </Badge>
+                </div>
+                <CardTitle className="text-2xl font-bold line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+                  {project.name}
+                </CardTitle>
+                <CardDescription className="text-xs font-medium uppercase tracking-widest text-muted-foreground/60">
+                   Added {new Date(project.createdAt).toLocaleDateString()}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+
+              <CardContent className="space-y-6 relative z-10">
+                <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed min-h-[4.5rem]">
                   {project.details}
                 </p>
-                <div className="mt-6 pt-4 border-t border-muted-foreground/10 flex items-center justify-between">
-                  <span className="text-xs font-medium text-emerald-500 flex items-center gap-1">
-                    <CheckCircle2 className="h-3 w-3" /> Active
-                  </span>
-                  <Button variant="ghost" size="sm" className="h-8 text-xs hover:text-primary">View Details</Button>
+                <div className="flex items-center justify-between pt-6 border-t border-primary/5">
+                  <div className="flex items-center gap-2">
+                     <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold">ENT</div>
+                     <span className="text-xs font-medium">Entrepreneur</span>
+                  </div>
+                  <Button variant="ghost" size="sm" className="h-10 px-4 rounded-lg text-xs font-bold uppercase tracking-wider group-hover:bg-primary group-hover:text-white transition-all">
+                    View Project
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
-
-      {/* Project Details Sheet */}
-      <Sheet open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <SheetContent side="right" className="sm:max-w-[500px] premium-card border-none">
-          {selectedProject && (
-            <div className="space-y-8 h-full flex flex-col">
-              <SheetHeader>
-                <div className="p-3 rounded-xl bg-primary/10 w-fit mb-4">
-                  <Briefcase className="h-8 w-8 text-primary" />
-                </div>
-                <SheetTitle className="text-3xl font-bold gradient-text">{selectedProject.name}</SheetTitle>
-                <SheetDescription className="text-sm font-medium">
-                  Posted on {new Date(selectedProject.createdAt).toLocaleDateString()}
-                </SheetDescription>
-              </SheetHeader>
-
-              <div className="space-y-6 flex-1 overflow-auto pr-2">
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <Info className="h-5 w-5 text-primary" /> Project Description
-                  </h3>
-                  <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                    {selectedProject.details}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 rounded-xl bg-muted/30 border border-white/5">
-                    <p className="text-xs text-muted-foreground mb-1">Status</p>
-                    <p className="text-sm font-bold text-emerald-500">Active</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-muted/30 border border-white/5">
-                    <p className="text-xs text-muted-foreground mb-1">Duration</p>
-                    <p className="text-sm font-bold">Flexible</p>
-                  </div>
-                </div>
-              </div>
-
-              {isFreelancer && (
-                <div className="pt-6 border-t border-white/5">
-                  <Button 
-                    className="w-full gap-2 text-lg h-12 bg-gradient-to-r from-primary to-primary/80"
-                    disabled={isSubmitting}
-                    onClick={() => handleApply(selectedProject)}
-                  >
-                    {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
-                    {isSubmitting ? "Applying..." : "Apply Now"}
-                  </Button>
-                  <p className="text-xs text-center text-muted-foreground mt-4 italic">
-                    By applying, your profile details will be shared with the entrepreneur.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
     </div>
   );
 }
