@@ -26,7 +26,7 @@ export function MessageInput({ onSend, disabled = false, className }) {
     <form
       onSubmit={handleSubmit}
       className={cn(
-        "flex items-center gap-2 border-t bg-background p-4",
+        "flex items-center gap-2 border-t bg-background p-4 sticky bottom-0 z-10",
         className
       )}>
       <Input
