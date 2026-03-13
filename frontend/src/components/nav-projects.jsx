@@ -31,9 +31,14 @@ export function NavProjects({
         {projects.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild>
-              <a href={item.url}>
+              <a href={item.url} className="flex-1">
                 <item.icon className="size-4 text-foreground" />
                 <span>{item.name}</span>
+                {item.freelancerCount !== undefined && (
+                  <span className="ml-auto text-[10px] bg-primary/20 text-primary-foreground px-1.5 py-0.5 rounded-full font-bold">
+                    {item.freelancerCount}
+                  </span>
+                )}
               </a>
             </SidebarMenuButton>
             {/* <DropdownMenu>

@@ -88,7 +88,7 @@ export default function AnalyticsPage() {
     )} L ${width - padding},${height - padding} Z`
 
     return (
-      <div className="w-full h-20 mt-4 theme-freelancer">
+      <div className="w-full h-20 mt-4">
         <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
           <defs>
             <linearGradient id="fundingGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -122,7 +122,7 @@ export default function AnalyticsPage() {
     const maxValue = 100
 
     return (
-      <div className="w-full h-20 mt-4 theme-freelancer">
+      <div className="w-full h-20 mt-4">
         <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
           {investorData.map((investor, i) => {
             const barHeight = (investor.value / maxValue) * chartHeight
@@ -148,13 +148,13 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-background theme-freelancer">
+    <div className="h-full overflow-y-auto bg-background">
       <div className="container max-w-7xl mx-auto px-4 py-6 sm:py-8 ">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Analytics & Insights</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-4xl font-extrabold tracking-tight gradient-text">Analytics & Insights</h1>
+            <p className="text-muted-foreground mt-1 font-medium italic">
               View key metrics and predictions for your business.
             </p>
           </div>
@@ -196,7 +196,7 @@ export default function AnalyticsPage() {
         {/* Top Section - Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {/* Funding Over Time Card */}
-          <Card className="rounded-2xl shadow-sm border">
+          <Card className="premium-card border-none shadow-xl">
             <CardHeader>
               <CardTitle>Funding Over Time</CardTitle>
             </CardHeader>

@@ -22,8 +22,12 @@ import ProposalPage from "@/pages/proposal"
 import NewsPage from "@/pages/news"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { PieChart } from "lucide-react"
+import { PieChart, Rocket } from "lucide-react"
 import { NotificationPopover } from "@/components/NotificationPopover"
+import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import PostForm from "@/components/posts/PostForm"
+import MyProjectsPage from "@/pages/myprojects"
 import { auth } from "@/config/firebase"
 import { onIdTokenChanged } from "firebase/auth"
 import { setAuthToken, setCurrentUser, getAuthToken } from "@/services/api"
@@ -37,6 +41,7 @@ function App() {
   const [roleLoading, setRoleLoading] = useState(false)
   const [isAuthReady, setIsAuthReady] = useState(false)
   const [socket, setSocket] = useState(null)
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false)
 
   // Sync Firebase Auth state with local storage
   useEffect(() => {
@@ -170,6 +175,9 @@ function App() {
     } else if (path === "/news") {
       setIsAuthenticated(true)
       setPage("news")
+    } else if (path === "/myprojects") {
+      setIsAuthenticated(true)
+      setPage("myprojects")
     } else if (path === "/entrepreneur") {
       setIsAuthenticated(true)
       setPage("entrepreneur")
@@ -268,6 +276,9 @@ function App() {
       } else if (path === '/notifications') {
         setIsAuthenticated(true)
         setPage('notifications')
+      } else if (path === '/myprojects') {
+        setIsAuthenticated(true)
+        setPage('myprojects')
       }
     }
     window.addEventListener('popstate', handleLocation)
@@ -284,7 +295,7 @@ function App() {
     const target = role === "freelancer" ? 
       "freelancer" : role === "investor" ? "investor" : "entrepreneur"
     // List of pages that should NOT be auto-redirected to the dashboard
-    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "notifications", "proposal", "news"]
+    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "myprojects", "notifications", "proposal", "news"]
     if (page !== target && !protectedPages.includes(page)) {
       setPage(target)
       window.history.pushState({}, "", `/${target}`)
@@ -312,6 +323,7 @@ function App() {
       { title: "Analytics", icon: PieChart, url: analyticsPath },
       { title: "My Posts", url: "/myposts" },
       { title: "News", url: "/news" },
+      ...(currentRole === 'entrepreneur' ? [{ title: "My Projects", url: "/myprojects" }] : []),
       ...(currentRole === 'freelancer' ? [{ title: "Notifications", url: "/notifications" }] : []),
     ]
   }
@@ -357,8 +369,12 @@ function App() {
     if (page === "meeting") {
       return <MeetingPage />
     }
+
+    const themeClass = role ? `theme-${role}` : ""
+
     return (
-      <SidebarProvider>
+      <div className={`h-full w-full ${themeClass}`}>
+        <SidebarProvider>
         <AppSidebar navMain={navForRole} onNavigate={(path) => {
           // Normalize common aliases
           if (path === '/account') path = '/profile'
@@ -412,36 +428,60 @@ function App() {
                   ? "Send Proposal"
                   : page === "news"
                   ? "Ecosystem News"
+                  : page === "myprojects"
+                  ? "My Projects"
                   : ""}
               </h1>
             </div>
             <div className="flex items-center gap-2">
+              {page === "entrepreneur" && (
+                <Sheet open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="premium" size="sm" className="gap-2">
+                      <Rocket className="h-4 w-4" /> New Post
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-[400px] sm:w-[540px]">
+                    <SheetHeader>
+                      <SheetTitle>Create a New Post</SheetTitle>
+                    </SheetHeader>
+                    <div className="py-6">
+                      <PostForm onClose={() => setIsPostModalOpen(false)} onSuccess={() => {
+                        setIsPostModalOpen(false);
+                        window.dispatchEvent(new CustomEvent('app:post-created'));
+                      }} />
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              )}
               <NotificationPopover />
               <ThemeToggle />
             </div>
           </header>
-          <main className="flex-1 overflow-hidden min-h-0">
-            {page === "dashboard" && (
-              role === 'freelancer' ? <FreelancerDashboard /> :
-              role === 'investor' ? <InvestorDashboard /> :
-              <EntrepreneurDashboard />
-            )}
-            {page === "chat" && <ChatPage />}
-            {page === "profile" && <ProfilePage />}
-            {page === "client-profile" && <ClientProfilePage />}
-            {page === "entrepreneuranalytics" && <EntrepreneurAnalytics />}
-            {page === "freelanceranalytics" && <FreelancerAnalytics />}
-            {page === "investoranalytics" && <InvestorAnalytics />}
-            {page === "entrepreneur" && <EntrepreneurDashboard />}
-            {page === "freelancer" && <FreelancerDashboard />}
-            {page === "investor" && <InvestorDashboard />}
-            {page === "myposts" && <MyPostsPage />}
-            {page === "notifications" && <NotificationsPage />}
-            {page === "proposal" && <ProposalPage />}
-            {page === "news" && <NewsPage />}
-          </main>
+            <main className="flex-1 overflow-hidden min-h-0">
+              {page === "dashboard" && (
+                role === 'freelancer' ? <FreelancerDashboard /> :
+                role === 'investor' ? <InvestorDashboard /> :
+                <EntrepreneurDashboard />
+              )}
+              {page === "chat" && <ChatPage />}
+              {page === "profile" && <ProfilePage />}
+              {page === "client-profile" && <ClientProfilePage />}
+              {page === "entrepreneuranalytics" && <EntrepreneurAnalytics />}
+              {page === "freelanceranalytics" && <FreelancerAnalytics />}
+              {page === "investoranalytics" && <InvestorAnalytics />}
+              {page === "entrepreneur" && <EntrepreneurDashboard />}
+              {page === "freelancer" && <FreelancerDashboard />}
+              {page === "investor" && <InvestorDashboard />}
+              {page === "myposts" && <MyPostsPage />}
+              {page === "myprojects" && <MyProjectsPage />}
+              {page === "notifications" && <NotificationsPage />}
+              {page === "proposal" && <ProposalPage />}
+              {page === "news" && <NewsPage />}
+            </main>
         </SidebarInset>
       </SidebarProvider>
+      </div>
     )
   }
 

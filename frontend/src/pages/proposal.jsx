@@ -98,21 +98,21 @@ export default function ProposalPage() {
 
         <div className="space-y-6">
           {/* Header */}
-          <div className="flex items-center gap-4 bg-card p-6 rounded-2xl border shadow-sm">
-            <Avatar className="h-16 w-16 border-2 border-primary/20">
+          <div className="flex items-center gap-6 premium-card p-8 border-none shadow-xl">
+            <Avatar className="h-20 w-20 border-2 border-primary/20 shadow-lg">
               <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${targetUser?.name}`} />
               <AvatarFallback>{targetUser?.name?.charAt(0)}</AvatarFallback>
             </Avatar>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">{pageTitle}</h1>
-              <p className="text-muted-foreground text-sm">
-                To: <span className="font-semibold text-foreground">{targetUser?.name}</span> ({targetUser?.role})
+            <div className="space-y-1">
+              <h1 className="text-3xl font-extrabold tracking-tight gradient-text leading-tight">{pageTitle}</h1>
+              <p className="text-muted-foreground text-sm font-medium">
+                Sending to: <span className="text-foreground font-bold">{targetUser?.name}</span> • {targetUser?.role}
               </p>
             </div>
           </div>
 
           {/* Form */}
-          <Card className="rounded-2xl shadow-lg border-2 border-primary/5">
+          <Card className="premium-card border-none shadow-2xl overflow-hidden min-h-[500px]">
             <form onSubmit={handleSubmit}>
               <CardHeader>
                 <CardTitle className="text-lg">Requirement Details</CardTitle>
@@ -174,9 +174,9 @@ export default function ProposalPage() {
                   </div>
                 </div>
 
-                <div className="bg-primary/5 border border-primary/10 p-4 rounded-xl flex gap-3">
-                  <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                  <p className="text-xs text-muted-foreground leading-relaxed">
+                <div className="bg-primary/5 border border-primary/10 p-5 rounded-2xl flex gap-4 backdrop-blur-sm">
+                  <AlertCircle className="h-6 w-6 text-primary shrink-0 transition-transform hover:rotate-12" />
+                  <p className="text-sm text-muted-foreground leading-relaxed italic">
                     By submitting this request, you are initiating a professional negotiation. {targetUser?.name} will receive a notification and can accept or decline your proposal via the Messages tab.
                   </p>
                 </div>

@@ -36,10 +36,10 @@ export function TeamSwitcher({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+              className="transition-all duration-300 interactive-item hover:bg-primary/5 active:scale-[0.98] data-[state=open]:bg-primary/10 data-[state=open]:text-primary data-[state=open]:shadow-inner">
               <div
-                className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                <activeTeam.logo className="size-4 mr-3" />
+                className="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-xl shadow-lg ring-1 ring-white/20">
+                <activeTeam.logo className="size-4 animate-float" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <a href="/dashboard" className="truncate font-medium">slynk</a>

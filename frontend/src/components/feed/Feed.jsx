@@ -1,5 +1,6 @@
 import React from "react"
 import { postsAPI } from "@/services/api"
+import { Button } from "@/components/ui/button"
 
 const roleBadgeClasses = {
 	Investor: "bg-indigo-100 text-indigo-700",
@@ -173,6 +174,64 @@ function PostCard({ post, onSummarize }) {
 					📝 Summarize
 				</button>
 			</div>
+            {post.isProject && (
+                <div className="mt-4 p-4 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-between">
+                    <div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-100/50 px-2 py-0.5 rounded">Project Gig</span>
+                            {post.budget && <span className="text-sm font-semibold text-indigo-900">${post.budget} Budget</span>}
+                        </div>
+                        <p className="text-xs text-indigo-700 font-medium">Seeking talented freelancers for this initiative.</p>
+                    </div>
+                    {currentUser.role === 'freelancer' && (
+                        <Button 
+                            variant="premium" 
+                            size="sm" 
+                            className="shadow-md"
+                            onClick={async () => {
+                                try {
+                                    // Basic profile check
+                                    const resUser = await fetch('http://localhost:3001/api/auth/get-user', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ uid: currentUser.uid })
+                                    });
+                                    const userData = await resUser.json();
+                                    const user = userData.user || {};
+                                    
+                                    if (!user.bio || !user.skills || user.skills.length === 0) {
+                                        alert("Please complete your profile (bio and skills) before applying!");
+                                        window.history.pushState({}, '', '/profile');
+                                        window.dispatchEvent(new Event('app:navigate'));
+                                        return;
+                                    }
+
+                                    const token = localStorage.getItem('token');
+                                    const resApply = await fetch(`http://localhost:3001/api/applications/apply/${post.id}`, {
+                                        method: 'POST',
+                                        headers: { 
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${token}`
+                                        },
+                                        body: JSON.stringify({ freelancerId: currentUser.uid, freelancerName: currentUser.name })
+                                    });
+                                    const applyData = await resApply.json();
+                                    if (applyData.success) {
+                                        alert("Application submitted successfully!");
+                                    } else {
+                                        alert(applyData.error || applyData.message || "Failed to apply.");
+                                    }
+                                } catch (err) {
+                                    console.error("Apply error:", err);
+                                    alert("An error occurred during application.");
+                                }
+                            }}
+                        >
+                            Apply Now
+                        </Button>
+                    )}
+                </div>
+            )}
             {localSummary && (
                 <div className="mt-3 border rounded-lg p-3 bg-indigo-50/50 border-indigo-100">
                     <p className="text-sm text-indigo-900 whitespace-pre-line">{localSummary}</p>
@@ -246,6 +305,8 @@ export default function Feed({ onSummarize, filterAuthorId, filterMode = 'exclud
                         mediaType: p.mediaType,
                         mediaUrl: p.mediaUrl,
                         authorId: p.authorId,
+                        isProject: p.isProject,
+                        budget: p.budget,
                     }));
                     setPosts(mapped);
                 } else {

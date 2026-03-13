@@ -101,12 +101,15 @@ router.post('/', upload.single('image'), async (req, res) => {
       role,
       title,
       description,
-      summary, // Added summary field
+      summary,
       mediaType: normalizedMediaType,
       mediaUrl,
       likes: [],
       comments: [],
       createdAt: new Date(),
+      isProject: req.body.isProject === 'true' || req.body.isProject === true,
+      budget: req.body.budget || null,
+      freelancers: []
     };
 
     const docRef = await db.collection('posts').add(postDoc);
@@ -126,6 +129,23 @@ router.get('/', async (req, res) => {
   } catch (err) {
     console.error('List posts error:', err);
     return res.status(500).json({ error: 'Failed to fetch posts', message: err.message });
+  }
+});
+
+// Get projects for a specific entrepreneur
+router.get('/my-projects/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const snap = await db.collection('posts')
+      .where('authorId', '==', uid)
+      .where('isProject', '==', true)
+      .orderBy('createdAt', 'desc')
+      .get();
+    const projects = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return res.json({ success: true, projects });
+  } catch (err) {
+    console.error('Fetch my projects error:', err);
+    return res.status(500).json({ error: 'Failed to fetch projects', message: err.message });
   }
 });
 

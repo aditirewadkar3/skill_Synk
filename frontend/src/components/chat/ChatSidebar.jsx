@@ -59,7 +59,7 @@ export function ChatSidebar({
     <div className={cn("flex flex-col h-full border-r bg-background", className)}>
       {/* Header */}
       <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold mb-4">Messages</h2>
+        <h2 className="text-xl font-bold mb-4 gradient-text">Messages</h2>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -125,8 +125,8 @@ export function ChatSidebar({
                         key={user.id}
                         onClick={() => onSelectUser(user)}
                         className={cn(
-                          "w-full flex items-center gap-3 p-3 rounded-lg transition-colors hover:bg-accent text-left",
-                          selectedUserId === user.id && "bg-accent"
+                          "w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-300 interactive-item",
+                          selectedUserId === user.id ? "selected-component" : "hover:bg-primary/5"
                         )}>
                         <div className="relative">
                           <Avatar className="h-12 w-12">

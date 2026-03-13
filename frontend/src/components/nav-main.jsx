@@ -51,7 +51,15 @@ export function NavMain({
             className="group/collapsible">
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
-                <SidebarMenuButton tooltip={item.title} asChild isActive={isActive} className={themeClass}>
+                <SidebarMenuButton 
+                  tooltip={item.title} 
+                  asChild 
+                  isActive={isActive} 
+                  className={`
+                    interactive-item transition-all duration-300
+                    ${isActive ? 'selected-component !bg-primary/10 shadow-sm' : 'hover:!bg-primary/5'}
+                  `}
+                >
                   <a
                     href={item.url}
                     onClick={(e) => {
@@ -60,10 +68,8 @@ export function NavMain({
                         onNavigate(item.url)
                       }
                     }} aria-current={isActive ? 'page' : undefined}>
-                    {item.icon && <item.icon className="size-4 text-foreground" />}
-                    <span>{item.title}</span>
-                    {/* <ChevronRight
-                      className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" /> */}
+                    {item.icon && <item.icon className={`size-4 transition-transform duration-300 ${isActive ? 'text-primary scale-110 animate-float' : 'text-foreground'}`} />}
+                    <span className={isActive ? "text-primary font-bold" : ""}>{item.title}</span>
                   </a>
                 </SidebarMenuButton>
               </CollapsibleTrigger>
