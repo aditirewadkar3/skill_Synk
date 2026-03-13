@@ -44,6 +44,7 @@ export default function ProfilePage() {
   const role = localStorage.getItem("role")
   const [isEditingPersonal, setIsEditingPersonal] = React.useState(false)
   const [isEditingBusiness, setIsEditingBusiness] = React.useState(false)
+  const [isEditingProfessional, setIsEditingProfessional] = React.useState(false)
   const [personalData, setPersonalData] = React.useState({
     fullName: "",
     email: "",
@@ -51,7 +52,6 @@ export default function ProfilePage() {
     location: "",
     bio: "",
   })
-  const [isUploadingResume, setIsUploadingResume] = React.useState(false)
 
   const [businessData, setBusinessData] = React.useState({
     companyName: "Innovate Inc.",
@@ -64,7 +64,6 @@ export default function ProfilePage() {
     linkedin: "linkedin.com/in/alexdoe",
     github: "github.com/alexdoe",
     portfolio: "innovateinc.com/portfolio",
-    resume: "",
   })
 
   const [skills, setSkills] = React.useState([
@@ -130,7 +129,6 @@ export default function ProfilePage() {
           linkedin: u.linkedin || "",
           github: u.github || "",
           portfolio: u.portfolio || "",
-          resume: u.resume || "",
         })
       } catch (err) {
         console.error("Error fetching user data:", err)
@@ -193,43 +191,6 @@ export default function ProfilePage() {
   const handleDeleteFile = (fileId) => {
     setUploadedFiles(uploadedFiles.filter((file) => file.id !== fileId))
   }
-
-  const handleResumeUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (file.type !== 'application/pdf') {
-      alert('Please upload a PDF file.');
-      return;
-    }
-
-    setIsUploadingResume(true);
-    const formData = new FormData();
-    formData.append('resume', file);
-
-    try {
-      const res = await fetch('http://localhost:3001/api/upload/resume', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        },
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        setSocialLinks(prev => ({ ...prev, resume: data.url }));
-        alert('Resume uploaded successfully!');
-      } else {
-        alert(data.error || 'Failed to upload resume');
-      }
-    } catch (error) {
-      console.error('Upload error:', error);
-      alert('An error occurred while uploading.');
-    } finally {
-      setIsUploadingResume(false);
-    }
-  };
 
   const getInitials = (name) => {
     return name
@@ -328,39 +289,19 @@ export default function ProfilePage() {
                           {socialLinks.github}
                         </a>
                       </div>
-                      <div className="flex items-center gap-3 text-sm">
-                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <a
-                          href={`https://${socialLinks.resume}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-primary transition-colors break-all"
-                        >
-                          {socialLinks.resume || "Resume Link"}
-                        </a>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm">
-                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <a
-                          href={socialLinks.resume?.startsWith('http') ? socialLinks.resume : `https://${socialLinks.resume}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-primary transition-colors break-all"
-                        >
-                          {socialLinks.resume || "Resume Link"}
-                        </a>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm">
-                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <a
-                          href={`https://${socialLinks.resume}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-primary transition-colors break-all"
-                        >
-                          {socialLinks.resume || "Resume Link"}
-                        </a>
-                      </div>
+                      {socialLinks.resume && (
+                        <div className="flex items-center gap-3 text-sm">
+                          <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <a
+                            href={socialLinks.resume.startsWith('http') ? socialLinks.resume : `https://${socialLinks.resume}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-muted-foreground hover:text-primary transition-colors break-all"
+                          >
+                            Resume Link
+                          </a>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -639,177 +580,123 @@ export default function ProfilePage() {
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold">Professional Summary</h3>
                       <Button
-                        variant="primary"
+                        variant="ghost"
                         size="sm"
                         onClick={() => {
-                           fetch('http://localhost:3001/api/auth/update-profile', {
-                             method: 'PUT',
-                             headers: { 
-                               'Content-Type': 'application/json',
-                               'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-                             },
-                             body: JSON.stringify({
-                               bio: personalData.bio,
-                               linkedin: socialLinks.linkedin,
-                               github: socialLinks.github,
-                               portfolio: socialLinks.portfolio,
-                               resume: socialLinks.resume
-                             })
-                           }).then(res => res.json()).then(data => {
-                             if (data.success) alert("Professional Summary updated!");
-                           });
+                          if (isEditingProfessional) {
+                            fetch('http://localhost:3001/api/auth/update-profile', {
+                              method: 'PUT',
+                              headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                              },
+                              body: JSON.stringify({
+                                bio: personalData.bio,
+                                linkedin: socialLinks.linkedin,
+                                github: socialLinks.github,
+                                portfolio: socialLinks.portfolio,
+                              })
+                            }).then(res => res.json()).then(data => {
+                              if (data.success) alert("Professional Summary updated!");
+                            });
+                          }
+                          setIsEditingProfessional(!isEditingProfessional);
                         }}
                       >
-                        Save Summary
+                        <Edit2 className="h-4 w-4 mr-2" />
+                        {isEditingProfessional ? "Save" : "Edit"}
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="max-w-2xl mx-auto space-y-6">
                       <div className="space-y-6">
-                        <Card className="rounded-2xl border shadow-sm">
-                          <CardHeader>
-                            <CardTitle className="text-sm font-medium">Bio & Socials</CardTitle>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="prof-bio">Bio</Label>
-                              <Textarea
-                                id="prof-bio"
-                                name="bio"
-                                value={personalData.bio}
-                                onChange={handlePersonalChange}
-                                placeholder="E.g. Full-stack developer with 5 years experience..."
-                                rows={4}
-                              />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
+                        {isEditingProfessional ? (
+                          <Card className="rounded-2xl border bg-background/50 backdrop-blur-sm shadow-md">
+                            <CardHeader>
+                              <CardTitle className="text-sm font-medium">Bio & Socials</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
                               <div className="space-y-2">
-                                <Label htmlFor="prof-linkedin">LinkedIn</Label>
-                                <Input
-                                  id="prof-linkedin"
-                                  name="linkedin"
-                                  value={socialLinks.linkedin}
-                                  onChange={handleSocialLinkChange}
-                                  placeholder="linkedin.com/in/..."
+                                <Label htmlFor="prof-bio">Bio</Label>
+                                <Textarea
+                                  id="prof-bio"
+                                  name="bio"
+                                  value={personalData.bio}
+                                  onChange={handlePersonalChange}
+                                  placeholder="E.g. Full-stack developer with 5 years experience..."
+                                  rows={4}
                                 />
                               </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="prof-github">GitHub</Label>
-                                <Input
-                                  id="prof-github"
-                                  name="github"
-                                  value={socialLinks.github}
-                                  onChange={handleSocialLinkChange}
-                                  placeholder="github.com/..."
-                                />
-                              </div>
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="prof-portfolio">Portfolio</Label>
-                              <Input
-                                id="prof-portfolio"
-                                name="portfolio"
-                                value={socialLinks.portfolio}
-                                onChange={handleSocialLinkChange}
-                                placeholder="your-portfolio.com"
-                              />
-                            </div>
-                          </CardContent>
-                        </Card>
-
-                        <Card className="rounded-2xl border shadow-sm">
-                          <CardHeader>
-                            <CardTitle className="text-sm font-medium">Resume Upload</CardTitle>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            <div className="flex items-center gap-3">
-                              <Input
-                                type="file"
-                                accept=".pdf"
-                                className="hidden"
-                                id="prof-resume-upload"
-                                onChange={handleResumeUpload}
-                                disabled={isUploadingResume}
-                              />
-                              <Button
-                                type="button"
-                                variant="outline"
-                                className="w-full gap-2 border-dashed h-24"
-                                onClick={() => document.getElementById('prof-resume-upload').click()}
-                                disabled={isUploadingResume}
-                              >
-                                <Upload className={`h-6 w-6 ${isUploadingResume ? 'animate-spin' : ''}`} />
-                                <div className="text-left">
-                                  <p className="font-medium">{isUploadingResume ? 'Uploading...' : 'Click to Upload PDF'}</p>
-                                  <p className="text-xs text-muted-foreground">Max 5MB</p>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="prof-linkedin">LinkedIn</Label>
+                                  <Input
+                                    id="prof-linkedin"
+                                    name="linkedin"
+                                    value={socialLinks.linkedin}
+                                    onChange={handleSocialLinkChange}
+                                    placeholder="linkedin.com/in/..."
+                                  />
                                 </div>
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
-
-                      <div className="space-y-6">
-                        <Card className="rounded-2xl border shadow-sm h-full flex flex-col">
-                          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Resume Preview</CardTitle>
-                            {socialLinks.resume && (
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                  title="Open in new tab"
-                                  onClick={() => window.open(socialLinks.resume, '_blank')}
-                                >
-                                  <ExternalLink className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                  title="Download Resume"
-                                  onClick={() => {
-                                    const link = document.createElement('a');
-                                    let downloadUrl = socialLinks.resume;
-                                    // For Cloudinary images (like PDFs uploaded as images), force download using fl_attachment
-                                    // Raw files don't support transformations, so we use them as is
-                                    if (downloadUrl.includes('cloudinary.com') && !downloadUrl.includes('/raw/upload/')) {
-                                      downloadUrl = downloadUrl.replace('/upload/', '/upload/fl_attachment/');
-                                    }
-                                    link.href = downloadUrl;
-                                    link.setAttribute('download', 'resume.pdf');
-                                    link.setAttribute('target', '_blank');
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                  }}
-                                >
-                                  <Download className="h-4 w-4" />
-                                </Button>
+                                <div className="space-y-2">
+                                  <Label htmlFor="prof-github">GitHub</Label>
+                                  <Input
+                                    id="prof-github"
+                                    name="github"
+                                    value={socialLinks.github}
+                                    onChange={handleSocialLinkChange}
+                                    placeholder="github.com/..."
+                                  />
+                                </div>
                               </div>
-                            )}
-                          </CardHeader>
-                          <CardContent className="flex-1 min-h-[400px]">
-                            {socialLinks.resume ? (
-                              <iframe 
-                                src={
-                                  socialLinks.resume.includes('cloudinary.com') 
-                                    ? `https://docs.google.com/viewer?url=${encodeURIComponent(socialLinks.resume)}&embedded=true`
-                                    : socialLinks.resume
-                                } 
-                                className="w-full h-full rounded-lg border shadow-inner"
-                                title="Resume Preview"
-                              />
-                            ) : (
-                              <div className="h-full flex flex-col items-center justify-center text-muted-foreground bg-muted/20 rounded-lg border-2 border-dashed">
-                                <FileText className="h-12 w-12 mb-2 opacity-20" />
-                                <p className="text-sm">No resume uploaded yet</p>
+                              <div className="space-y-2">
+                                <Label htmlFor="prof-portfolio">Portfolio</Label>
+                                <Input
+                                  id="prof-portfolio"
+                                  name="portfolio"
+                                  value={socialLinks.portfolio}
+                                  onChange={handleSocialLinkChange}
+                                  placeholder="your-portfolio.com"
+                                />
                               </div>
-                            )}
-                          </CardContent>
-                        </Card>
-
+                            </CardContent>
+                          </Card>
+                        ) : (
+                          <Card className="rounded-2xl border bg-background/50 backdrop-blur-sm shadow-md transition-all hover:shadow-lg h-full">
+                            <CardContent className="pt-6 space-y-4">
+                              <div>
+                                <p className="text-sm text-muted-foreground mb-1">Professional Bio</p>
+                                <p className="text-sm font-medium leading-relaxed">
+                                  {personalData.bio || "No bio added yet."}
+                                </p>
+                              </div>
+                              <Separator />
+                              <div className="space-y-3">
+                                <p className="text-sm text-muted-foreground">Professional Links</p>
+                                <div className="grid grid-cols-1 gap-2">
+                                  {socialLinks.linkedin && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Linkedin className="h-4 w-4 text-primary" />
+                                      <a href={`https://${socialLinks.linkedin}`} target="_blank" rel="noopener" className="hover:underline">{socialLinks.linkedin}</a>
+                                    </div>
+                                  )}
+                                  {socialLinks.github && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Github className="h-4 w-4 text-primary" />
+                                      <a href={`https://${socialLinks.github}`} target="_blank" rel="noopener" className="hover:underline">{socialLinks.github}</a>
+                                    </div>
+                                  )}
+                                  {socialLinks.portfolio && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Link2 className="h-4 w-4 text-primary" />
+                                      <a href={socialLinks.portfolio.startsWith('http') ? socialLinks.portfolio : `https://${socialLinks.portfolio}`} target="_blank" rel="noopener" className="hover:underline">Portfolio</a>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
                       </div>
                     </div>
                   </TabsContent>

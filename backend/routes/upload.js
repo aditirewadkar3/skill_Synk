@@ -37,20 +37,17 @@ router.post('/resume', upload.single('resume'), async (req, res) => {
     const dataURI = `data:${req.file.mimetype};base64,${b64}`;
 
     // Upload to Cloudinary
-    // We use 'raw' as it's the safest for PDFs in terms of delivery restrictions
+    // Use 'auto' to let Cloudinary handle the MIME type correctly for PDFs
+    const uniqueFileName = `resume-${Date.now()}-${Math.round(Math.random() * 1E9)}.pdf`;
+    
     const result = await cloudinary.uploader.upload(dataURI, {
       folder: 'resumes',
-      resource_type: 'raw',
+      resource_type: 'auto',
       access_mode: 'public',
-      use_filename: true,
-      unique_filename: true
+      public_id: uniqueFileName
     });
 
-    console.log('Cloudinary upload success (raw):', {
-      public_id: result.public_id,
-      url: result.secure_url,
-      resource_type: result.resource_type
-    });
+    console.log(`Cloudinary Success: ${result.secure_url}`);
 
     res.json({
       success: true,
