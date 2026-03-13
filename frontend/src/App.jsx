@@ -132,19 +132,17 @@ function App() {
   useEffect(() => {
     const path = window.location.pathname
     if (path === "/signup") {
-      setPage("signup")
-      setIsAuthenticated(false)
+      if (!isAuthenticated) setPage("signup")
     } else if (path === "/login") {
-      setPage("login")
-      setIsAuthenticated(false)
+      if (!isAuthenticated) setPage("login")
     } else if (path === "/") {
-      setIsAuthenticated(false)
-      setPage("landing")
+      if (!isAuthenticated) setPage("landing")
     } else if (path === "/dashboard") {
-      setIsAuthenticated(true)
-      const target = role === "freelancer" ? "/freelancer" : role === "investor" ? "/investor" : "/entrepreneur"
-      window.history.replaceState({}, "", target)
-      setPage(target.slice(1))
+      if (isAuthenticated && role) {
+        const target = role === "freelancer" ? "/freelancer" : role === "investor" ? "/investor" : "/entrepreneur"
+        window.history.replaceState({}, "", target)
+        setPage(target.slice(1))
+      }
     } else if (path === "/chat") {
       setIsAuthenticated(true)
       setPage("chat")
