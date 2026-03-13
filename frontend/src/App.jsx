@@ -15,6 +15,8 @@ import EntrepreneurDashboard from "@/pages/entrepreneur"
 import FreelancerDashboard from "@/pages/freelancer"
 import InvestorDashboard from "@/pages/investor"
 import MyPostsPage from "@/pages/myposts"
+import MyProjectsPage from "@/pages/my-projects"
+import ProjectApplicationsPage from "@/pages/project-applications.jsx"
 import Landing from "@/pages/landing"
 import MeetingPage from "@/pages/meeting"
 import NotificationsPage from "@/pages/notifications"
@@ -24,7 +26,7 @@ import DiscoveryPage from "@/pages/discovery"
 import PostForm from "@/components/posts/PostForm"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { PieChart, Search, Rocket } from "lucide-react"
+import { PieChart, Search, Rocket, Bell } from "lucide-react"
 import { NotificationPopover } from "@/components/NotificationPopover"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
@@ -331,7 +333,10 @@ function App() {
       { title: "My Posts", url: "/myposts" },
       { title: "News", url: "/news" },
       ...(currentRole === 'entrepreneur' ? [{ title: "My Projects", url: "/myprojects" }] : []),
-      ...(currentRole === 'freelancer' ? [{ title: "Notifications", url: "/notifications" }] : []),
+      ...(currentRole === 'freelancer' ? [
+        { title: "Browse Projects", url: "/myprojects" },
+        { title: "Notifications", url: "/notifications" }
+      ] : []),
     ]
   }
   const navForRole = buildNavForRole(role)
@@ -437,12 +442,28 @@ function App() {
                                             ? "Ecosystem News"
                                             : page === "myprojects"
                                               ? "My Projects"
+                                              : page === "project-applications"
+                                                ? "Project Applications"
                                               : page === "discovery"
                                                 ? "Discovery Hub"
                                                 : ""}
                 </h1>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
+                {role === "entrepreneur" && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="relative hover:bg-primary/10 rounded-full"
+                    onClick={() => {
+                      setPage("project-applications");
+                      window.history.pushState({}, '', "/project-applications");
+                    }}
+                  >
+                    <Bell className="h-5 w-5" />
+                    <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary border-2 border-background" />
+                  </Button>
+                )}
                 {page === "entrepreneur" && (
                   <Sheet open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
                     <SheetTrigger asChild>
@@ -487,6 +508,7 @@ function App() {
               {page === "notifications" && <NotificationsPage />}
               {page === "proposal" && <ProposalPage />}
               {page === "news" && <NewsPage />}
+              {page === "project-applications" && <ProjectApplicationsPage />}
               {page === "discovery" && <DiscoveryPage />}
             </main>
           </SidebarInset>
