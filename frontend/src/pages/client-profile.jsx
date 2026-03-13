@@ -254,9 +254,9 @@ export default function ClientProfilePage() {
 
           {!isOwnProfile && (
             <div className="flex items-center gap-3 shrink-0">
-              {getCurrentUser()?.role === 'freelancer' && profile.role === 'freelancer' && (
-                <Button 
-                  variant="outline" 
+              {profile.role?.toLowerCase() === 'freelancer' && getCurrentUser()?.role === 'freelancer' && (
+                <Button
+                  variant="outline"
                   size="sm"
                   className="gap-2"
                   onClick={handleJoinCommunity}

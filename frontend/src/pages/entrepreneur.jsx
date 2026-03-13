@@ -13,6 +13,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import PostForm from "@/components/posts/PostForm";
 
 export default function EntrepreneurDashboard() {
+  const [isUpdateSheetOpen, setIsUpdateSheetOpen] = useState(false);
   const [summary, setSummary] = useState("");
   const [selectedId, setSelectedId] = useState(null);
   
@@ -34,7 +35,24 @@ export default function EntrepreneurDashboard() {
           <p className="text-sm text-muted-foreground italic">Track product, team, and fundraising progress at a glance.</p>
         </div>
         <div className="flex items-center gap-2">
-          {/* ... existing header controls ... */}
+          <Sheet open={isUpdateSheetOpen} onOpenChange={setIsUpdateSheetOpen}>
+            <SheetTrigger asChild>
+              <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-md">
+                <Rocket className="h-4 w-4" /> Share Update
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full sm:max-w-lg p-0">
+              <SheetHeader className="p-6 border-b">
+                <SheetTitle>Share an Update</SheetTitle>
+              </SheetHeader>
+              <div className="p-6">
+                <PostForm 
+                  onSuccess={() => setIsUpdateSheetOpen(false)} 
+                  onClose={() => setIsUpdateSheetOpen(false)} 
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
 

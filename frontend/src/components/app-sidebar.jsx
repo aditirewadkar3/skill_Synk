@@ -12,6 +12,7 @@ import {
   PieChart,
   Settings2,
   Terminal,
+  Newspaper,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -54,13 +55,36 @@ const data = {
     {
       title: "Dashboard",
       url: "/dashboard",
-      icon: Terminal,
+      icon: <lord-icon
+    src="https://cdn.lordicon.com/bushiqea.json"
+    trigger="hover"
+    style="width:10px;height:10px">
+</lord-icon>,
       isActive: true,
+    },
+    {
+      title: "Proposal",
+      url: "/proposal",
+      icon: <lord-icon
+    src="https://cdn.lordicon.com/bushiqea.json"
+    trigger="hover"
+    style="width:10px;height:10px">
+</lord-icon>,
+      isActive: true,
+    },
+    {
+      title: "News",
+      url: "/news",
+      icon: Newspaper,
     },
     {
       title: "Entrepreneur",
       url: "/entrepreneur",
-      icon: Activity,
+      icon: <lord-icon
+    src="https://cdn.lordicon.com/bushiqea.json"
+    trigger="hover"
+    style="width:10px;height:10px">
+</lord-icon>,
     },
     {
       title: "Freelancer",
@@ -75,7 +99,11 @@ const data = {
     {
       title: "Messages",
       url: "/chat",
-      icon: Bot,
+      icon: <lord-icon
+    src="https://cdn.lordicon.com/bushiqea.json"
+    trigger="hover"
+    style="width:10px;height:10px">
+</lord-icon>,
     },
     {
       title: "Pitch Deck",
@@ -146,7 +174,11 @@ export function AppSidebar({ user, teams, navMain, projects, onNavigate, ...prop
   }
   const role = getUserRole();
   const filteredNav = (merged.navMain || []).filter((item) => {
+<<<<<<< HEAD
     if (["Dashboard", "Messages", "Analytics", "Pitch Deck", "My Posts", "News", "My Projects", "Browse Projects"].includes(item.title)) return true;
+=======
+    if (["Dashboard", "Messages", "Analytics", "Pitch Deck", "My Posts", "News", "AI Pitch Practice"].includes(item.title)) return true;
+>>>>>>> 5c230f0fe84e999b54f1870a0624c424036a44c2
     if (item.title === "Entrepreneur") return role === "entrepreneur";
     if (item.title === "Freelancer") return role === "freelancer";
     if (item.title === "Investor") return role === "investor";

@@ -9,6 +9,7 @@ import postsRoutes from './routes/posts.js';
 import meetingsRoutes from './routes/meetings.js';
 import communityRoutes from './routes/community.js';
 import newsRoutes from './routes/news.js';
+import pitchPracticeRoutes from './routes/pitchPractice.js';
 import { auth, db } from './config/firebase.js';
 
 dotenv.config();
@@ -61,6 +62,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/posts', postsRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/news', newsRoutes);
+app.use('/api/pitch-practice', pitchPracticeRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

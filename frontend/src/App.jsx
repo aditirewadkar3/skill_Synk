@@ -4,8 +4,6 @@ import { SignupForm } from "@/components/signup-form"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { io } from "socket.io-client"
 import { ChatPage } from "@/components/chat/ChatPage"
-// Optional Dashboard import removed (page not present)
-// import Dashboard from "@/pages/dashboard"
 import ProfilePage from "@/pages/profile"
 import ClientProfilePage from "@/pages/client-profile"
 import FreelancerAnalytics from "@/pages/freelanceranalytics"
@@ -21,7 +19,7 @@ import Landing from "@/pages/landing"
 import MeetingPage from "@/pages/meeting"
 import NotificationsPage from "@/pages/notifications"
 import ProposalPage from "@/pages/proposal"
-import NewsPage from "@/pages/news"
+import PitchPractice from "@/pages/PitchPractice"
 import DiscoveryPage from "@/pages/discovery"
 import PostForm from "@/components/posts/PostForm"
 import { AppSidebar } from "@/components/app-sidebar"
@@ -52,7 +50,6 @@ function App() {
         try {
           const token = await user.getIdToken()
           setAuthToken(token)
-          // Also sync uid to localStorage if missing
           if (!localStorage.getItem('uid')) {
             localStorage.setItem('uid', user.uid)
           }
@@ -61,8 +58,6 @@ function App() {
           console.error("Error updating ID token:", error)
         }
       } else {
-        // Only clear if we explicitly logged out or session is truly gone
-        // Keep isAuthenticated as false if no user
         setAuthToken(null)
       }
       setIsAuthReady(true)
@@ -95,12 +90,10 @@ function App() {
 
     newSocket.on('notification', (data) => {
       console.log('Real-time notification received:', data)
-      // Dispatch a global event so NotificationPopover (or others) can react
       window.dispatchEvent(new CustomEvent('app:notification', { detail: data }))
     })
 
     setSocket(newSocket)
-    // Attach to window for legacy components like ChatPage to re-use if needed
     window.socket = newSocket
 
     return () => {
@@ -131,12 +124,10 @@ function App() {
       setPage("login")
       setIsAuthenticated(false)
     } else if (path === "/") {
-      // Landing page for unauthenticated users
       setIsAuthenticated(false)
       setPage("landing")
     } else if (path === "/dashboard") {
       setIsAuthenticated(true)
-      // Map generic dashboard to current role-specific page
       const target = role === "freelancer" ? "/freelancer" : role === "investor" ? "/investor" : "/entrepreneur"
       window.history.replaceState({}, "", target)
       setPage(target.slice(1))
@@ -162,12 +153,12 @@ function App() {
       setIsAuthenticated(true)
       setPage("entrepreneuranalytics")
     } else if (path === "/analytics") {
-      // Back-compat: route old analytics path to entrepreneur analytics
       setIsAuthenticated(true)
       setPage("entrepreneuranalytics")
     } else if (path === "/myposts") {
       setIsAuthenticated(true)
       setPage("myposts")
+
     } else if (path === "/notifications") {
       setIsAuthenticated(true)
       setPage("notifications")
@@ -177,6 +168,9 @@ function App() {
     } else if (path === "/news") {
       setIsAuthenticated(true)
       setPage("news")
+    } else if (path === "/pitch-practice") {
+      setIsAuthenticated(true)
+      setPage("pitch-practice")
     } else if (path === "/myprojects") {
       setIsAuthenticated(true)
       setPage("myprojects")
@@ -195,15 +189,15 @@ function App() {
       setIsAuthenticated(true)
       setPage("investor")
       setRole("investor")
+
     } else if (path === "/" && isAuthenticated) {
-      // Redirect authenticated users from root to dashboard
       const target = role === "freelancer" ? "/freelancer" : role === "investor" ? "/investor" : "/entrepreneur"
       window.history.pushState({}, "", target)
       setPage(target.slice(1))
     }
   }, [isAuthenticated, role])
 
-  // Persist role changes (DB remains source of truth)
+  // Persist role changes
   useEffect(() => {
     try {
       if (role) window.localStorage.setItem("role", role)
@@ -234,7 +228,7 @@ function App() {
     }
   }, [isAuthenticated])
 
-  // Optimistic route after signup using pendingRole hint, while DB role loads
+  // Optimistic route after signup using pendingRole hint
   useEffect(() => {
     if (!isAuthenticated || role) return
     try {
@@ -256,7 +250,7 @@ function App() {
     }
   }, [role])
 
-  // Listen to history/navigation events to handle in-app link navigation
+  // Listen to history/navigation events
   useEffect(() => {
     const handleLocation = () => {
       const path = window.location.pathname
@@ -284,6 +278,9 @@ function App() {
       } else if (path === '/notifications') {
         setIsAuthenticated(true)
         setPage('notifications')
+      } else if (path === '/pitch-practice') {
+        setIsAuthenticated(true)
+        setPage('pitch-practice')
       } else if (path === '/myprojects') {
         setIsAuthenticated(true)
         setPage('myprojects')
@@ -302,59 +299,59 @@ function App() {
     if (!isAuthenticated || !role) return
     const target = role === "freelancer" ?
       "freelancer" : role === "investor" ? "investor" : "entrepreneur"
-    // List of pages that should NOT be auto-redirected to the dashboard
-    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "myprojects", "notifications", "proposal", "news", "discovery"]
+    const protectedPages = [
+      "meeting", "chat", "profile", "client-profile",
+      "freelanceranalytics", "investoranalytics", "entrepreneuranalytics",
+      "myposts", "myprojects", "notifications", "proposal", "news", "discovery", "pitch-practice"
+    ]
     if (page !== target && !protectedPages.includes(page)) {
       setPage(target)
       window.history.pushState({}, "", `/${target}`)
     }
   }, [role, isAuthenticated])
 
-  // Handle login - wait for role fetch to route
-  const handleLogin = () => {
-    setIsAuthenticated(true)
-  }
+  const handleLogin = () => { setIsAuthenticated(true) }
+  const handleSignup = () => { setIsAuthenticated(true) }
 
-  // Handle signup - wait for role fetch to route
-  const handleSignup = () => {
-    setIsAuthenticated(true)
-  }
-
-  // Build sidebar items based on role
+  // Build sidebar nav based on role
   const buildNavForRole = (currentRole) => {
     const roleTitle = currentRole === "freelancer" ? "Freelancer" : currentRole === "investor" ? "Investor" : "Entrepreneur"
     const rolePath = currentRole === "freelancer" ? "/freelancer" : currentRole === "investor" ? "/investor" : "/entrepreneur"
     const analyticsPath = currentRole === "freelancer" ? "/freelanceranalytics" : currentRole === "investor" ? "/investoranalytics" : "/entrepreneuranalytics"
     return [
-      { title: `${roleTitle}`, icon: PieChart, url: rolePath, isActive: true },
+      { title: roleTitle, icon: PieChart, url: rolePath, isActive: true },
       { title: "Messages", icon: PieChart, url: "/chat" },
       { title: "Discovery", icon: Search, url: "/discovery" },
       { title: "Analytics", icon: PieChart, url: analyticsPath },
       { title: "My Posts", url: "/myposts" },
       { title: "News", url: "/news" },
+<<<<<<< HEAD
       ...(currentRole === 'entrepreneur' ? [{ title: "My Projects", url: "/myprojects" }] : []),
       ...(currentRole === 'freelancer' ? [
         { title: "Browse Projects", url: "/myprojects" },
         { title: "Notifications", url: "/notifications" }
       ] : []),
+=======
+      ...(currentRole === 'entrepreneur' ? [
+        { title: "My Projects", url: "/myprojects" },
+        { title: "AI Pitch Practice", url: "/pitch-practice" }
+      ] : []),
+      ...(currentRole === 'freelancer' ? [{ title: "Notifications", url: "/notifications" }] : []),
+>>>>>>> 5c230f0fe84e999b54f1870a0624c424036a44c2
     ]
   }
   const navForRole = buildNavForRole(role)
 
-  // ---------- LOGIN PAGE ----------
+  // ── Landing ─────────────────────────────────────────────────────────────
   if (!isAuthenticated && page === "landing") {
-    return (
-      <Landing />
-    )
+    return <Landing />
   }
 
-  // ---------- LOGIN PAGE ----------
+  // ── Login ────────────────────────────────────────────────────────────────
   if (!isAuthenticated && page === "login") {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm relative">
-        <div className="absolute top-4 right-4 z-10">
-          <ThemeToggle />
-        </div>
+        <div className="absolute top-4 right-4 z-10"><ThemeToggle /></div>
         <div className="max-w-4xl w-full relative z-10">
           <LoginForm onLogin={handleLogin} />
         </div>
@@ -362,13 +359,11 @@ function App() {
     )
   }
 
-  // ---------- SIGNUP PAGE ----------
+  // ── Signup ───────────────────────────────────────────────────────────────
   if (!isAuthenticated && page === "signup") {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm relative">
-        <div className="absolute top-4 right-4 z-10">
-          <ThemeToggle />
-        </div>
+        <div className="absolute top-4 right-4 z-10"><ThemeToggle /></div>
         <div className="max-w-4xl w-full relative z-10">
           <SignupForm onSignup={handleSignup} />
         </div>
@@ -376,10 +371,25 @@ function App() {
     )
   }
 
-  // ---------- AUTHENTICATED PAGES (With Sidebar) ----------
+  // ── Authenticated ────────────────────────────────────────────────────────
   if (isAuthenticated) {
-    if (page === "meeting") {
-      return <MeetingPage />
+    if (page === "meeting") return <MeetingPage />
+
+    const pageTitle = {
+      dashboard: "Dashboard",
+      chat: "Chat",
+      profile: "Profile",
+      "client-profile": "Client Profile",
+      entrepreneuranalytics: "Entrepreneur Analytics",
+      freelanceranalytics: "Freelancer Analytics",
+      investoranalytics: "Investor Analytics",
+      entrepreneur: "Entrepreneur Dashboard",
+      freelancer: "Freelancer Dashboard",
+      investor: "Investor Dashboard",
+      notifications: "Notifications",
+      proposal: "Send Proposal",
+      news: "Ecosystem News",
+      discovery: "Discovery Hub",
     }
 
     const themeClass = role ? `theme-${role}` : ""
@@ -442,11 +452,19 @@ function App() {
                                             ? "Ecosystem News"
                                             : page === "myprojects"
                                               ? "My Projects"
+<<<<<<< HEAD
                                               : page === "project-applications"
                                                 ? "Project Applications"
                                               : page === "discovery"
                                                 ? "Discovery Hub"
                                                 : ""}
+=======
+                                              : page === "pitch-practice"
+                                                ? "AI Pitch Practice"
+                                                : page === "discovery"
+                                                  ? "Discovery Hub"
+                                                  : ""}
+>>>>>>> 5c230f0fe84e999b54f1870a0624c424036a44c2
                 </h1>
               </div>
               <div className="flex items-center gap-4">
@@ -510,6 +528,7 @@ function App() {
               {page === "news" && <NewsPage />}
               {page === "project-applications" && <ProjectApplicationsPage />}
               {page === "discovery" && <DiscoveryPage />}
+              {page === "pitch-practice" && <PitchPractice />}
             </main>
           </SidebarInset>
         </SidebarProvider>

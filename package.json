@@ -1,5 +1,8 @@
 {
   "devDependencies": {
     "shadcn": "^4.0.6"
+  },
+  "dependencies": {
+    "@lordicon/react": "^1.11.0"
   }
 }

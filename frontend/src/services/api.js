@@ -55,8 +55,9 @@ const refreshAuthToken = async () => {
 // API request helper
 const apiRequest = async (endpoint, options = {}, retry = true) => {
   const token = getAuthToken();
+  const isFormData = options.body instanceof FormData;
   const headers = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...options.headers,
   };
 
@@ -488,6 +489,19 @@ export const analyticsAPI = {
       body: JSON.stringify({ targetUid }),
     });
   },
+};
+
+// Pitch Practice API
+export const pitchPracticeAPI = {
+  analyze: async (videoBlob) => {
+    const formData = new FormData();
+    formData.append('video', videoBlob, 'pitch.webm');
+    
+    return await apiRequest('/pitch-practice/analyze', {
+      method: 'POST',
+      body: formData,
+    });
+  }
 };
 
 export { getAuthToken, setAuthToken, getCurrentUser, setCurrentUser };
