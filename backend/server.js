@@ -10,6 +10,7 @@ import meetingsRoutes from './routes/meetings.js';
 import communityRoutes from './routes/community.js';
 import newsRoutes from './routes/news.js';
 import pitchPracticeRoutes from './routes/pitchPractice.js';
+import projectsRoutes from './routes/projects.js';
 import { auth, db } from './config/firebase.js';
 
 dotenv.config();
@@ -63,6 +64,7 @@ app.use('/api/posts', postsRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/pitch-practice', pitchPracticeRoutes);
+app.use('/api/projects', projectsRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

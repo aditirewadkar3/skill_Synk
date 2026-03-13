@@ -227,13 +227,22 @@ function PostCard({ post, onSummarize }) {
 
 export default function Feed({ onSummarize, filterAuthorId, filterMode = 'exclude' }) {
     const [posts, setPosts] = React.useState(null);
+    const [activeTab, setActiveTab] = React.useState('all'); // 'all' or 'ai'
+    const [isLoading, setIsLoading] = React.useState(true);
+
     React.useEffect(() => {
-        (async () => {
+        let isMounted = true;
+        const loadPosts = async () => {
+            setIsLoading(true);
             try {
-                const fetchedPosts = await postsAPI.getAll();
-                if (Array.isArray(fetchedPosts)) {
-                    // Map backend fields to Feed shape
-                    const mapped = fetchedPosts.map(p => ({
+                const fetchedPosts = activeTab === 'all' 
+                    ? await postsAPI.getAll()
+                    : await postsAPI.getRecommendations();
+                
+                if (isMounted) {
+                    if (Array.isArray(fetchedPosts)) {
+                        // Map backend fields to Feed shape
+                        const mapped = fetchedPosts.map(p => ({
                         id: p.id,
                         author: p.authorName,
                         role: p.role,
@@ -251,12 +260,17 @@ export default function Feed({ onSummarize, filterAuthorId, filterMode = 'exclud
                 } else {
                     setPosts([]);
                 }
+                } // Close if (isMounted)
             } catch (err) {
                 console.error('Feed load error:', err);
-                setPosts([]);
+                if (isMounted) setPosts([]);
+            } finally {
+                if (isMounted) setIsLoading(false);
             }
-        })();
-    }, []);
+        };
+        loadPosts();
+        return () => { isMounted = false; };
+    }, [activeTab]);
     const fallbackPosts = [
 		{
 			id: 1,
@@ -322,15 +336,60 @@ export default function Feed({ onSummarize, filterAuthorId, filterMode = 'exclud
 		},
 	]
 
+    const filteredPosts = (posts || fallbackPosts).filter(p => {
+        if (!filterAuthorId) return true;
+        if (filterMode === 'only') return p.authorId === filterAuthorId;
+        return p.authorId !== filterAuthorId;
+    });
+
 	return (
-        <div className="max-w-2xl mx-auto">
-            {((posts ?? fallbackPosts).filter(p => {
-                if (!filterAuthorId) return true;
-                if (filterMode === 'only') return p.authorId === filterAuthorId;
-                return p.authorId !== filterAuthorId;
-            })).map((p) => (
-				<PostCard key={p.id} post={p} onSummarize={onSummarize} />
-			))}
+        <div className="max-w-2xl mx-auto space-y-4">
+            {/* Show tabs only on general feed, not on user profile specifically (filterMode === 'exclude') */}
+            {filterMode === 'exclude' && (
+                <div className="flex bg-white rounded-xl shadow-sm border border-gray-100 p-1">
+                    <button
+                        onClick={() => setActiveTab('all')}
+                        className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'all' ? 'bg-indigo-50 text-indigo-700 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
+                    >
+                        All Posts
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('ai')}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'ai' ? 'bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 shadow-sm border border-emerald-100/50' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
+                    >
+                        <span className="text-emerald-500">✨</span> AI Recommended
+                    </button>
+                </div>
+            )}
+
+            {isLoading ? (
+                <div className="space-y-4">
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className="bg-white rounded-xl shadow-md p-5 border border-gray-100 animate-pulse">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                                <div className="space-y-2 flex-1">
+                                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                                    <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+                                </div>
+                            </div>
+                            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                        </div>
+                    ))}
+                </div>
+            ) : filteredPosts.length > 0 ? (
+                filteredPosts.map((p) => (
+                    <PostCard key={p.id} post={p} onSummarize={onSummarize} />
+                ))
+            ) : (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-10 text-center">
+                    <p className="text-gray-500 font-medium">No posts found.</p>
+                    {activeTab === 'ai' && (
+                        <p className="text-sm text-gray-400 mt-1">Try updating your skills and bio to get better recommendations.</p>
+                    )}
+                </div>
+            )}
 		</div>
 	)
 }

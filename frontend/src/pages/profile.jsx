@@ -55,11 +55,20 @@ export default function ProfilePage() {
     businessAddress: "123 Innovation Drive, Silicon Valley, CA",
   })
 
+<<<<<<< HEAD
   /*const [socialLinks, setSocialLinks] = React.useState({
      linkedin: "linkedin.com/in/alexdoe",
      github: "github.com/alexdoe",
      portfolio: "innovateinc.com/portfolio",
    })*/
+=======
+  const [socialLinks, setSocialLinks] = React.useState({
+    linkedin: "linkedin.com/in/alexdoe",
+    github: "github.com/alexdoe",
+    portfolio: "innovateinc.com/portfolio",
+    resume: "",
+  })
+>>>>>>> b581a71a2b63fc4adc3b9b8f72eb657a891b6632
 
   const [skills, setSkills] = React.useState([
     "Product Management",
@@ -113,8 +122,20 @@ export default function ProfilePage() {
           ...prev,
           fullName: u.name || prev.fullName || "",
           email: u.email || prev.email || "",
+          phone: u.phone || prev.phone || "",
+          location: u.location || prev.location || "",
         }))
+<<<<<<< HEAD
       } catch { }
+=======
+        setSocialLinks({
+          linkedin: u.linkedin || "",
+          github: u.github || "",
+          portfolio: u.portfolio || "",
+          resume: u.resume || "",
+        })
+      } catch {}
+>>>>>>> b581a71a2b63fc4adc3b9b8f72eb657a891b6632
     })()
   }, [])
 
@@ -277,7 +298,33 @@ export default function ProfilePage() {
                         </a>
                       </div>
                     </div>
+<<<<<<< HEAD
                   )}
+=======
+                    <div className="flex items-center gap-3 text-sm">
+                      <Github className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <a
+                        href={`https://${socialLinks.github}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-primary transition-colors break-all"
+                      >
+                        {socialLinks.github}
+                      </a>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <a
+                        href={`https://${socialLinks.resume}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-primary transition-colors break-all"
+                      >
+                        {socialLinks.resume || "Resume Link"}
+                      </a>
+                    </div>
+                  </div>
+>>>>>>> b581a71a2b63fc4adc3b9b8f72eb657a891b6632
                 </div>
               </CardContent>
             </Card>
@@ -305,10 +352,35 @@ export default function ProfilePage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setIsEditingPersonal(!isEditingPersonal)}
+                          onClick={() => {
+                            if (isEditingPersonal) {
+                              // Save logic here
+                              const token = localStorage.getItem('token');
+                              const uid = localStorage.getItem('uid');
+                              fetch('http://localhost:3001/api/auth/update-profile', {
+                                method: 'PUT',
+                                headers: { 
+                                  'Content-Type': 'application/json',
+                                  'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                                },
+                                body: JSON.stringify({
+                                  name: personalData.fullName,
+                                  phone: personalData.phone,
+                                  location: personalData.location,
+                                  linkedin: socialLinks.linkedin,
+                                  github: socialLinks.github,
+                                  portfolio: socialLinks.portfolio,
+                                  resume: socialLinks.resume
+                                })
+                              }).then(res => res.json()).then(data => {
+                                if (data.success) alert("Profile updated successfully!");
+                              });
+                            }
+                            setIsEditingPersonal(!isEditingPersonal)
+                          }}
                         >
                           <Edit2 className="h-4 w-4 mr-2" />
-                          Edit
+                          {isEditingPersonal ? "Save" : "Edit"}
                         </Button>
                       </div>
 
@@ -350,6 +422,43 @@ export default function ProfilePage() {
                                 name="location"
                                 value={personalData.location}
                                 onChange={handlePersonalChange}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="linkedin">LinkedIn</Label>
+                              <Input
+                                id="linkedin"
+                                name="linkedin"
+                                value={socialLinks.linkedin}
+                                onChange={handleSocialLinkChange}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="github">GitHub</Label>
+                              <Input
+                                id="github"
+                                name="github"
+                                value={socialLinks.github}
+                                onChange={handleSocialLinkChange}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="portfolio">Portfolio</Label>
+                              <Input
+                                id="portfolio"
+                                name="portfolio"
+                                value={socialLinks.portfolio}
+                                onChange={handleSocialLinkChange}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="resume">Resume Link</Label>
+                              <Input
+                                id="resume"
+                                name="resume"
+                                value={socialLinks.resume}
+                                onChange={handleSocialLinkChange}
+                                placeholder="Paste your Google Drive or Dropbox link..."
                               />
                             </div>
                             <div className="flex gap-3 pt-2">
