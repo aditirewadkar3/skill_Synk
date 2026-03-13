@@ -146,7 +146,7 @@ export function AppSidebar({ user, teams, navMain, projects, onNavigate, ...prop
   }
   const role = getUserRole();
   const filteredNav = (merged.navMain || []).filter((item) => {
-    if (["Dashboard", "Messages", "Analytics", "Pitch Deck", "My Posts"].includes(item.title)) return true;
+    if (["Dashboard", "Messages", "Analytics", "Pitch Deck", "My Posts", "News"].includes(item.title)) return true;
     if (item.title === "Entrepreneur") return role === "entrepreneur";
     if (item.title === "Freelancer") return role === "freelancer";
     if (item.title === "Investor") return role === "investor";

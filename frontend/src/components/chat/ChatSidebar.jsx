@@ -170,9 +170,9 @@ export function ChatSidebar({
                             )}
                           </div>
                           <div className="flex items-center justify-between gap-2">
-                            <p className="text-sm text-muted-foreground truncate">
-                              {user.lastMessage || "No messages yet"}
-                            </p>
+                            {user.lastMessage 
+  ? user.lastMessage.slice(0, 7) + (user.lastMessage.length > 7 ? "..." : "") 
+  : "No messages yet"}
                             {user.unreadCount > 0 && (
                               <Badge
                                 variant="default"

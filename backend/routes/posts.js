@@ -1,7 +1,24 @@
 import express from 'express';
 import multer from 'multer';
 import cloudinary from '../config/cloudinary.js';
-import { db } from '../config/firebase.js';
+import { db, auth } from '../config/firebase.js';
+
+/**
+ * Middleware to verify Firebase token
+ */
+const verifyToken = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split('Bearer ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+    const decodedToken = await auth.verifyIdToken(token);
+    req.user = decodedToken;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Invalid token', message: error.message });
+  }
+};
 
 // Promisified upload_stream helper (do not mutate SDK object)
 const uploadBufferToCloudinary = (fileBuffer, options) => new Promise((resolve, reject) => {
@@ -62,7 +79,7 @@ router.post('/', upload.single('image'), async (req, res) => {
           messages: [
             {
               role: "system",
-              content: "You are a professional assistant that summarizes pitch decks and project descriptions. Provide a concise, engaging summary (max 2 sentences) of the following content."
+              content: "You are an expert venture capital analyst. Your task is to provide a highly professional, concise, and structured summary of a pitch deck or project description. Focus on the core value proposition, problem solved, and key traction/metrics. Keep the summary under 160 characters and use a professional, executive tone. No fluff."
             },
             {
               role: "user",
@@ -87,6 +104,8 @@ router.post('/', upload.single('image'), async (req, res) => {
       summary, // Added summary field
       mediaType: normalizedMediaType,
       mediaUrl,
+      likes: [],
+      comments: [],
       createdAt: new Date(),
     };
 
@@ -107,6 +126,81 @@ router.get('/', async (req, res) => {
   } catch (err) {
     console.error('List posts error:', err);
     return res.status(500).json({ error: 'Failed to fetch posts', message: err.message });
+  }
+});
+
+// Like/Unlike a post
+router.post('/:id/like', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.uid;
+    const postRef = db.collection('posts').doc(id);
+    const post = await postRef.get();
+
+    if (!post.exists) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    const postData = post.data();
+    const likes = postData.likes || [];
+    const isLiked = likes.includes(userId);
+
+    if (isLiked) {
+      // Unlike
+      await postRef.update({
+        likes: likes.filter(uid => uid !== userId)
+      });
+    } else {
+      // Like
+      await postRef.update({
+        likes: [...likes, userId]
+      });
+    }
+
+    return res.json({ success: true, isLiked: !isLiked });
+  } catch (err) {
+    console.error('Like post error:', err);
+    return res.status(500).json({ error: 'Failed to like post' });
+  }
+});
+
+// Comment on a post
+router.post('/:id/comment', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content, authorName } = req.body;
+    const userId = req.user.uid;
+
+    if (!content) {
+      return res.status(400).json({ error: 'Comment content is required' });
+    }
+
+    const postRef = db.collection('posts').doc(id);
+    const post = await postRef.get();
+
+    if (!post.exists) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    const comment = {
+      id: db.collection('dummy').doc().id,
+      userId,
+      authorName: authorName || 'User',
+      content,
+      createdAt: new Date()
+    };
+
+    const postData = post.data();
+    const comments = postData.comments || [];
+
+    await postRef.update({
+      comments: [...comments, comment]
+    });
+
+    return res.json({ success: true, comment });
+  } catch (err) {
+    console.error('Comment post error:', err);
+    return res.status(500).json({ error: 'Failed to add comment' });
   }
 });
 

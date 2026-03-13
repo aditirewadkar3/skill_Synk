@@ -18,6 +18,8 @@ import MyPostsPage from "@/pages/myposts"
 import Landing from "@/pages/landing"
 import MeetingPage from "@/pages/meeting"
 import NotificationsPage from "@/pages/notifications"
+import ProposalPage from "@/pages/proposal"
+import NewsPage from "@/pages/news"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { PieChart } from "lucide-react"
@@ -162,6 +164,12 @@ function App() {
     } else if (path === "/notifications") {
       setIsAuthenticated(true)
       setPage("notifications")
+    } else if (path === "/proposal") {
+      setIsAuthenticated(true)
+      setPage("proposal")
+    } else if (path === "/news") {
+      setIsAuthenticated(true)
+      setPage("news")
     } else if (path === "/entrepreneur") {
       setIsAuthenticated(true)
       setPage("entrepreneur")
@@ -245,9 +253,15 @@ function App() {
       } else if (path === '/chat') {
         setIsAuthenticated(true)
         setPage('chat')
-      } else if (path === '/myposts') {
+      } else if (path === "/myposts") {
         setIsAuthenticated(true)
-        setPage('myposts')
+        setPage("myposts")
+      } else if (path === "/proposal") {
+        setIsAuthenticated(true)
+        setPage("proposal")
+      } else if (path === '/news') {
+        setIsAuthenticated(true)
+        setPage('news')
       } else if (path.startsWith('/meeting/')) {
         setIsAuthenticated(true)
         setPage('meeting')
@@ -270,7 +284,7 @@ function App() {
     const target = role === "freelancer" ? 
       "freelancer" : role === "investor" ? "investor" : "entrepreneur"
     // List of pages that should NOT be auto-redirected to the dashboard
-    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "notifications"]
+    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "notifications", "proposal", "news"]
     if (page !== target && !protectedPages.includes(page)) {
       setPage(target)
       window.history.pushState({}, "", `/${target}`)
@@ -297,6 +311,7 @@ function App() {
       { title: "Messages", icon: PieChart , url: "/chat" },
       { title: "Analytics", icon: PieChart, url: analyticsPath },
       { title: "My Posts", url: "/myposts" },
+      { title: "News", url: "/news" },
       ...(currentRole === 'freelancer' ? [{ title: "Notifications", url: "/notifications" }] : []),
     ]
   }
@@ -393,6 +408,10 @@ function App() {
                   ? "Investor Dashboard"
                   : page === "notifications"
                   ? "Notifications"
+                  : page === "proposal"
+                  ? "Send Proposal"
+                  : page === "news"
+                  ? "Ecosystem News"
                   : ""}
               </h1>
             </div>
@@ -418,6 +437,8 @@ function App() {
             {page === "investor" && <InvestorDashboard />}
             {page === "myposts" && <MyPostsPage />}
             {page === "notifications" && <NotificationsPage />}
+            {page === "proposal" && <ProposalPage />}
+            {page === "news" && <NewsPage />}
           </main>
         </SidebarInset>
       </SidebarProvider>

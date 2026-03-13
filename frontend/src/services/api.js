@@ -425,5 +425,35 @@ export const communityAPI = {
   },
 };
 
-export { getAuthToken, setAuthToken, getCurrentUser, setCurrentUser };
+// News API
+export const newsAPI = {
+  getNews: async () => {
+    return await apiRequest('/news');
+  },
+};
 
+// Posts API
+export const postsAPI = {
+  // Get all posts
+  getAll: async () => {
+    const response = await apiRequest('/posts');
+    return response.posts || [];
+  },
+
+  // Like or unlike a post
+  likePost: async (postId) => {
+    return await apiRequest(`/posts/${postId}/like`, {
+      method: 'POST',
+    });
+  },
+
+  // Add a comment to a post
+  addComment: async (postId, content, authorName) => {
+    return await apiRequest(`/posts/${postId}/comment`, {
+      method: 'POST',
+      body: JSON.stringify({ content, authorName }),
+    });
+  },
+};
+
+export { getAuthToken, setAuthToken, getCurrentUser, setCurrentUser };
