@@ -35,6 +35,8 @@ import {
   Linkedin,
   Github,
   FileText,
+  Download,
+  ExternalLink,
   X,
 } from "lucide-react"
 
@@ -42,11 +44,13 @@ export default function ProfilePage() {
   const role = localStorage.getItem("role")
   const [isEditingPersonal, setIsEditingPersonal] = React.useState(false)
   const [isEditingBusiness, setIsEditingBusiness] = React.useState(false)
+  const [isEditingProfessional, setIsEditingProfessional] = React.useState(false)
   const [personalData, setPersonalData] = React.useState({
     fullName: "",
     email: "",
     phone: "",
     location: "",
+    bio: "",
   })
 
   const [businessData, setBusinessData] = React.useState({
@@ -60,7 +64,6 @@ export default function ProfilePage() {
     linkedin: "linkedin.com/in/alexdoe",
     github: "github.com/alexdoe",
     portfolio: "innovateinc.com/portfolio",
-    resume: "",
   })
 
   const [skills, setSkills] = React.useState([
@@ -120,12 +123,12 @@ export default function ProfilePage() {
           email: u.email || prev.email || "",
           phone: u.phone || prev.phone || "",
           location: u.location || prev.location || "",
+          bio: u.bio || prev.bio || "",
         }))
         setSocialLinks({
           linkedin: u.linkedin || "",
           github: u.github || "",
           portfolio: u.portfolio || "",
-          resume: u.resume || "",
         })
       } catch (err) {
         console.error("Error fetching user data:", err)
@@ -234,6 +237,11 @@ export default function ProfilePage() {
                         Founder & CEO at {businessData.companyName}
                       </p>
                     )}
+                    {personalData.bio && (
+                      <p className="text-sm text-muted-foreground mt-2 px-4 italic">
+                        "{personalData.bio}"
+                      </p>
+                    )}
                   </div>
 
                   <Separator />
@@ -281,39 +289,19 @@ export default function ProfilePage() {
                           {socialLinks.github}
                         </a>
                       </div>
-                      <div className="flex items-center gap-3 text-sm">
-                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <a
-                          href={`https://${socialLinks.resume}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-primary transition-colors break-all"
-                        >
-                          {socialLinks.resume || "Resume Link"}
-                        </a>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm">
-                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <a
-                          href={socialLinks.resume?.startsWith('http') ? socialLinks.resume : `https://${socialLinks.resume}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-primary transition-colors break-all"
-                        >
-                          {socialLinks.resume || "Resume Link"}
-                        </a>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm">
-                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <a
-                          href={`https://${socialLinks.resume}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-primary transition-colors break-all"
-                        >
-                          {socialLinks.resume || "Resume Link"}
-                        </a>
-                      </div>
+                      {socialLinks.resume && (
+                        <div className="flex items-center gap-3 text-sm">
+                          <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <a
+                            href={socialLinks.resume.startsWith('http') ? socialLinks.resume : `https://${socialLinks.resume}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-muted-foreground hover:text-primary transition-colors break-all"
+                          >
+                            Resume Link
+                          </a>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -326,10 +314,11 @@ export default function ProfilePage() {
             <Card className="premium-card border-none shadow-xl min-h-[600px]">
               <CardContent className="pt-6">
                 <Tabs defaultValue="personal" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsList className="grid w-full grid-cols-3 mb-6">
                     <TabsTrigger value="personal">
                       {role === 'freelancer' ? 'Personal Information' : 'Personal & Business'}
                     </TabsTrigger>
+                    <TabsTrigger value="professional">Professional Summary</TabsTrigger>
                     <TabsTrigger value="skills">Skills & Focus</TabsTrigger>
                   </TabsList>
 
@@ -344,9 +333,6 @@ export default function ProfilePage() {
                           size="sm"
                           onClick={() => {
                             if (isEditingPersonal) {
-                              // Save logic here
-                              const token = localStorage.getItem('token');
-                              const uid = localStorage.getItem('uid');
                               fetch('http://localhost:3001/api/auth/update-profile', {
                                 method: 'PUT',
                                 headers: { 
@@ -357,13 +343,9 @@ export default function ProfilePage() {
                                   name: personalData.fullName,
                                   phone: personalData.phone,
                                   location: personalData.location,
-                                  linkedin: socialLinks.linkedin,
-                                  github: socialLinks.github,
-                                  portfolio: socialLinks.portfolio,
-                                  resume: socialLinks.resume
                                 })
                               }).then(res => res.json()).then(data => {
-                                if (data.success) alert("Profile updated successfully!");
+                                if (data.success) alert("Personal Information updated!");
                               });
                             }
                             setIsEditingPersonal(!isEditingPersonal)
@@ -414,56 +396,12 @@ export default function ProfilePage() {
                                 onChange={handlePersonalChange}
                               />
                             </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="linkedin">LinkedIn</Label>
-                              <Input
-                                id="linkedin"
-                                name="linkedin"
-                                value={socialLinks.linkedin}
-                                onChange={handleSocialLinkChange}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="github">GitHub</Label>
-                              <Input
-                                id="github"
-                                name="github"
-                                value={socialLinks.github}
-                                onChange={handleSocialLinkChange}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="portfolio">Portfolio</Label>
-                              <Input
-                                id="portfolio"
-                                name="portfolio"
-                                value={socialLinks.portfolio}
-                                onChange={handleSocialLinkChange}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="resume">Resume Link</Label>
-                              <Input
-                                id="resume"
-                                name="resume"
-                                value={socialLinks.resume}
-                                onChange={handleSocialLinkChange}
-                                placeholder="Paste your Google Drive or Dropbox link..."
-                              />
-                            </div>
                             <div className="flex gap-3 pt-2">
                               <Button
                                 onClick={() => setIsEditingPersonal(false)}
                                 className="flex-1"
                               >
-                                Save Changes
-                              </Button>
-                              <Button
-                                variant="outline"
-                                onClick={() => setIsEditingPersonal(false)}
-                                className="flex-1"
-                              >
-                                Cancel
+                                Done
                               </Button>
                             </div>
                           </CardContent>
@@ -529,7 +467,7 @@ export default function ProfilePage() {
                               onClick={() => setIsEditingBusiness(!isEditingBusiness)}
                             >
                               <Edit2 className="h-4 w-4 mr-2" />
-                              Edit
+                              {isEditingBusiness ? "Save" : "Edit"}
                             </Button>
                           </div>
 
@@ -578,14 +516,7 @@ export default function ProfilePage() {
                                     onClick={() => setIsEditingBusiness(false)}
                                     className="flex-1"
                                   >
-                                    Save Changes
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    onClick={() => setIsEditingBusiness(false)}
-                                    className="flex-1"
-                                  >
-                                    Cancel
+                                    Done
                                   </Button>
                                 </div>
                               </CardContent>
@@ -644,104 +575,128 @@ export default function ProfilePage() {
                     </div>
                   </TabsContent>
 
-                  {/* Verification & KYC Tab */}
-                  <TabsContent value="verification" className="space-y-6">
-                    {/* PAN Verification Status */}
-                    <Card className="rounded-xl border">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="rounded-full bg-green-100 dark:bg-green-900/20 p-2">
-                              <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium">
-                                PAN Verification Status: Verified
-                              </p>
-                            </div>
-                          </div>
-                          <Button variant="outline" size="sm">
-                            Re-verify
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                  {/* Professional Summary Tab */}
+                  <TabsContent value="professional" className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Professional Summary</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (isEditingProfessional) {
+                            fetch('http://localhost:3001/api/auth/update-profile', {
+                              method: 'PUT',
+                              headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                              },
+                              body: JSON.stringify({
+                                bio: personalData.bio,
+                                linkedin: socialLinks.linkedin,
+                                github: socialLinks.github,
+                                portfolio: socialLinks.portfolio,
+                              })
+                            }).then(res => res.json()).then(data => {
+                              if (data.success) alert("Professional Summary updated!");
+                            });
+                          }
+                          setIsEditingProfessional(!isEditingProfessional);
+                        }}
+                      >
+                        <Edit2 className="h-4 w-4 mr-2" />
+                        {isEditingProfessional ? "Save" : "Edit"}
+                      </Button>
+                    </div>
 
-                    {/* KYC & Business Documents */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">KYC & Business Documents</h3>
-
-                      {/* File Upload Area */}
-                      <Card className="rounded-xl border border-dashed">
-                        <CardContent className="pt-6">
-                          <div className="flex flex-col items-center justify-center py-8 space-y-4">
-                            <div className="rounded-full bg-muted p-4">
-                              <Upload className="h-8 w-8 text-muted-foreground" />
-                            </div>
-                            <div className="text-center space-y-2">
-                              <p className="text-sm font-medium">
-                                Drag & drop files or click to upload
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                Supported formats: PDF, JPG, PNG (Max 5MB)
-                              </p>
-                            </div>
-                            <input
-                              type="file"
-                              id="file-upload"
-                              className="hidden"
-                              accept=".pdf,.jpg,.png"
-                              onChange={handleFileUpload}
-                            />
-                            <Button
-                              variant="outline"
-                              onClick={() =>
-                                document.getElementById("file-upload").click()
-                              }
-                            >
-                              <Upload className="h-4 w-4 mr-2" />
-                              Upload Files
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* Uploaded Files List */}
-                      <div className="space-y-3">
-                        {uploadedFiles.map((file) => (
-                          <Card key={file.id} className="rounded-xl border">
-                            <CardContent className="pt-4">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                  <div className="rounded-full bg-muted p-2 shrink-0">
-                                    <Upload className="h-4 w-4 text-muted-foreground" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium truncate">
-                                      {file.name}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                      Uploaded on {file.date}
-                                    </p>
-                                  </div>
+                    <div className="max-w-2xl mx-auto space-y-6">
+                      <div className="space-y-6">
+                        {isEditingProfessional ? (
+                          <Card className="rounded-2xl border bg-background/50 backdrop-blur-sm shadow-md">
+                            <CardHeader>
+                              <CardTitle className="text-sm font-medium">Bio & Socials</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="prof-bio">Bio</Label>
+                                <Textarea
+                                  id="prof-bio"
+                                  name="bio"
+                                  value={personalData.bio}
+                                  onChange={handlePersonalChange}
+                                  placeholder="E.g. Full-stack developer with 5 years experience..."
+                                  rows={4}
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="prof-linkedin">LinkedIn</Label>
+                                  <Input
+                                    id="prof-linkedin"
+                                    name="linkedin"
+                                    value={socialLinks.linkedin}
+                                    onChange={handleSocialLinkChange}
+                                    placeholder="linkedin.com/in/..."
+                                  />
                                 </div>
-                                <div className="flex items-center gap-2 shrink-0">
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    onClick={() => handleDeleteFile(file.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
+                                <div className="space-y-2">
+                                  <Label htmlFor="prof-github">GitHub</Label>
+                                  <Input
+                                    id="prof-github"
+                                    name="github"
+                                    value={socialLinks.github}
+                                    onChange={handleSocialLinkChange}
+                                    placeholder="github.com/..."
+                                  />
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="prof-portfolio">Portfolio</Label>
+                                <Input
+                                  id="prof-portfolio"
+                                  name="portfolio"
+                                  value={socialLinks.portfolio}
+                                  onChange={handleSocialLinkChange}
+                                  placeholder="your-portfolio.com"
+                                />
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ) : (
+                          <Card className="rounded-2xl border bg-background/50 backdrop-blur-sm shadow-md transition-all hover:shadow-lg h-full">
+                            <CardContent className="pt-6 space-y-4">
+                              <div>
+                                <p className="text-sm text-muted-foreground mb-1">Professional Bio</p>
+                                <p className="text-sm font-medium leading-relaxed">
+                                  {personalData.bio || "No bio added yet."}
+                                </p>
+                              </div>
+                              <Separator />
+                              <div className="space-y-3">
+                                <p className="text-sm text-muted-foreground">Professional Links</p>
+                                <div className="grid grid-cols-1 gap-2">
+                                  {socialLinks.linkedin && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Linkedin className="h-4 w-4 text-primary" />
+                                      <a href={`https://${socialLinks.linkedin}`} target="_blank" rel="noopener" className="hover:underline">{socialLinks.linkedin}</a>
+                                    </div>
+                                  )}
+                                  {socialLinks.github && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Github className="h-4 w-4 text-primary" />
+                                      <a href={`https://${socialLinks.github}`} target="_blank" rel="noopener" className="hover:underline">{socialLinks.github}</a>
+                                    </div>
+                                  )}
+                                  {socialLinks.portfolio && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Link2 className="h-4 w-4 text-primary" />
+                                      <a href={socialLinks.portfolio.startsWith('http') ? socialLinks.portfolio : `https://${socialLinks.portfolio}`} target="_blank" rel="noopener" className="hover:underline">Portfolio</a>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </CardContent>
                           </Card>
-                        ))}
+                        )}
                       </div>
                     </div>
                   </TabsContent>
@@ -790,6 +745,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   </TabsContent>
+
                 </Tabs>
               </CardContent>
             </Card>

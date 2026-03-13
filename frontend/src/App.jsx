@@ -33,6 +33,14 @@ import {
 import { NotificationPopover } from "@/components/NotificationPopover"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 import { auth } from "@/config/firebase"
 import { onIdTokenChanged } from "firebase/auth"
 import { setAuthToken, setCurrentUser, getAuthToken } from "@/services/api"
@@ -47,6 +55,7 @@ function App() {
   const [isAuthReady, setIsAuthReady] = useState(false)
   const [socket, setSocket] = useState(null)
   const [isPostModalOpen, setIsPostModalOpen] = useState(false)
+  const [navHistory, setNavHistory] = useState([])
 
   // Sync Firebase Auth state with local storage
   useEffect(() => {
@@ -418,50 +427,70 @@ function App() {
               return
             }
             const pageName = path.replace(/^\//, '')
+            setNavHistory((prev) => {
+              const next = [...prev.filter(p => p !== pageName), page]
+              return next.slice(-5)
+            })
             setPage(pageName)
             window.history.pushState({}, '', path)
           }} />
           <SidebarInset>
             <header className="flex h-16 shrink-0 border rounded-t-[1rem] mx-2 mt-2 items-center gap-2 px-4 bg-background">
               <SidebarTrigger />
-              <div className="flex-1">
-                <h1 className="text-lg font-semibold">
-                  {page === "dashboard"
-                    ? "Dashboard"
-                    : page === "chat"
-                      ? "Chat"
-                      : page === "profile"
-                        ? "Profile"
-                        : page === "client-profile"
-                          ? "Client Profile"
-                          : page === "entrepreneuranalytics"
-                            ? "Entrepreneur Analytics"
-                            : page === "freelanceranalytics"
-                              ? "Freelancer Analytics"
-                              : page === "investoranalytics"
-                                ? "Investor Analytics"
-                                : page === "entrepreneur"
-                                  ? "Entrepreneur Dashboard"
-                                  : page === "freelancer"
-                                    ? "Freelancer Dashboard"
-                                    : page === "investor"
-                                      ? "Investor Dashboard"
-                                      : page === "notifications"
-                                        ? "Notifications"
-                                        : page === "proposal"
-                                          ? "Send Proposal"
-                                          : page === "news"
-                                            ? "Ecosystem News"
-                                            : page === "myprojects"
-                                              ? "My Projects"
-                                              : page === "project-applications"
-                                                ? "Project Applications"
-                                              : page === "pitch-practice"
-                                                ? "AI Pitch Practice"
-                                              : page === "discovery"
-                                                ? "Discovery Hub"
-                                                : ""}
-                </h1>
+              <div className="flex-1 min-w-0">
+                {(() => {
+                  const PAGE_TITLES = {
+                    dashboard: "Dashboard", chat: "Chat", profile: "Profile",
+                    "client-profile": "Client Profile",
+                    entrepreneuranalytics: "Entrepreneur Analytics",
+                    freelanceranalytics: "Freelancer Analytics",
+                    investoranalytics: "Investor Analytics",
+                    entrepreneur: "Entrepreneur Dashboard",
+                    freelancer: "Freelancer Dashboard",
+                    investor: "Investor Dashboard",
+                    notifications: "Notifications",
+                    proposal: "Send Proposal",
+                    news: "Ecosystem News",
+                    myprojects: "My Projects",
+                    myposts: "My Posts",
+                    "project-applications": "Project Applications",
+                    "pitch-practice": "AI Pitch Practice",
+                    discovery: "Discovery Hub",
+                  }
+                  const homePage = role === "freelancer" ? "freelancer" : role === "investor" ? "investor" : "entrepreneur"
+                  const homeTitle = PAGE_TITLES[homePage]
+                  const currentTitle = PAGE_TITLES[page] || page
+                  const isHome = page === homePage
+                  return (
+                    <Breadcrumb>
+                      <BreadcrumbList>
+                        {!isHome && (
+                          <>
+                            <BreadcrumbItem>
+                              <BreadcrumbLink
+                                className="cursor-pointer text-muted-foreground hover:text-foreground text-sm"
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  setNavHistory([])
+                                  setPage(homePage)
+                                  window.history.pushState({}, '', `/${homePage}`)
+                                }}
+                              >
+                                {homeTitle}
+                              </BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                          </>
+                        )}
+                        <BreadcrumbItem>
+                          <BreadcrumbPage className="font-semibold text-foreground text-sm">
+                            {currentTitle}
+                          </BreadcrumbPage>
+                        </BreadcrumbItem>
+                      </BreadcrumbList>
+                    </Breadcrumb>
+                  )
+                })()}
               </div>
                 <div className="flex items-center gap-4">
                 {role === "entrepreneur" && (
@@ -480,11 +509,11 @@ function App() {
                 )}
                 {(page === "entrepreneur" || page === "myposts") && (
                   <Sheet open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
-                    <SheetTrigger asChild>
+                    {/* <SheetTrigger asChild>
                       <Button variant="premium" size="sm" className="gap-2">
                         <Rocket className="h-4 w-4" /> New Post
                       </Button>
-                    </SheetTrigger>
+                    </SheetTrigger> */}
                     <SheetContent side="right" className="w-[400px] sm:w-[540px]">
                       <SheetHeader>
                         <SheetTitle>Create a New Post</SheetTitle>

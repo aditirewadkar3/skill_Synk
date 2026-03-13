@@ -1,6 +1,7 @@
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
 import dotenv from 'dotenv';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -24,10 +25,13 @@ try {
   process.exit(1);
 }
 
+const projectId = process.env.FIREBASE_PROJECT_ID || serviceAccount.project_id;
+const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || `${projectId}.appspot.com`;
+
 // Initialize Firebase Admin
 const app = initializeApp({
   credential: cert(serviceAccount),
-  projectId: process.env.FIREBASE_PROJECT_ID || serviceAccount.project_id,
+  projectId: projectId,
 });
 
 // Initialize Firebase services
