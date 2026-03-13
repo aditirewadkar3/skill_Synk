@@ -1,6 +1,14 @@
 import * as React from "react"
+<<<<<<< HEAD
 import { authAPI, getCurrentUser } from "@/services/api"
 import { Card, CardContent } from "@/components/ui/card"
+=======
+import { getCurrentUser, communityAPI } from "@/services/api"
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card"
+>>>>>>> 47e5b265ea47e8e332fc5dbfd67896045ce186b8
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -42,6 +50,7 @@ export default function ClientProfilePage() {
     github: "",
     portfolio: "",
   })
+  const [requestLoading, setRequestLoading] = React.useState(false)
 
   const [targetUid, setTargetUid] = React.useState(null)
   const [isOwnProfile, setIsOwnProfile] = React.useState(false)
@@ -139,14 +148,38 @@ export default function ClientProfilePage() {
   // ── Navigation helpers ────────────────────────────────────────────────────
   const handleStartChat = () => {
     if (!targetUid) return
+<<<<<<< HEAD
     window.history.pushState({}, "", `/chat?with=${targetUid}`)
     window.dispatchEvent(new Event("app:navigate"))
+=======
+    try { localStorage.setItem('chatTargetUid', targetUid) } catch {}
+    window.dispatchEvent(new Event('app:navigate'))
+>>>>>>> 47e5b265ea47e8e332fc5dbfd67896045ce186b8
+  }
+
+  const handleJoinCommunity = async () => {
+    if (!targetUid) return
+    try {
+      setRequestLoading(true)
+      const res = await communityAPI.request(targetUid)
+      if (res.success) {
+        alert("Community request sent successfully!")
+      }
+    } catch (error) {
+      alert(error.message || "Failed to send community request")
+    } finally {
+      setRequestLoading(false)
+    }
   }
 
   const handleHireOrFund = () => {
     if (!targetUid) return
+<<<<<<< HEAD
     window.history.pushState({}, "", `/proposal?uid=${targetUid}`)
     window.dispatchEvent(new Event("app:navigate"))
+=======
+    window.history.pushState({}, '', `/proposal?uid=${targetUid}`)
+>>>>>>> 47e5b265ea47e8e332fc5dbfd67896045ce186b8
   }
 
   const getInitials = (name) =>
@@ -235,6 +268,7 @@ export default function ClientProfilePage() {
             </div>
           </div>
 
+<<<<<<< HEAD
           {!isOwnProfile && (
             <div className="flex items-center gap-3 shrink-0">
               <Button variant="outline" size="sm" className="gap-2" onClick={handleStartChat}>
@@ -247,6 +281,29 @@ export default function ClientProfilePage() {
               </Button>
             </div>
           )}
+=======
+          <div className="flex items-center gap-3">
+            {getCurrentUser()?.role === 'freelancer' && personalData.role === 'freelancer' && (
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="rounded-xl px-6"
+                onClick={handleJoinCommunity}
+                disabled={requestLoading}
+              >
+                {requestLoading ? "Sending..." : "Join Community"}
+              </Button>
+            )}
+            <Button variant="outline" size="lg" className="rounded-xl px-6" onClick={handleStartChat}>
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Message
+            </Button>
+            <Button size="lg" className="rounded-xl px-8 font-semibold shadow-lg shadow-primary/20 transition-all hover:scale-105" onClick={handleHireOrFund}>
+              {getActionIcon()}
+              {getActionButtonLabel()}
+            </Button>
+          </div>
+>>>>>>> 47e5b265ea47e8e332fc5dbfd67896045ce186b8
         </div>
 
         {/* ── Main Layout ── */}

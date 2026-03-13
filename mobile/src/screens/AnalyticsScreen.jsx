@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, StatusBar, ActivityIndicator } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { analyticsAPI } from '../services/api';
 import { THEME, SHADOW } from '../theme';
 
 const ROLE_DATA = {
@@ -37,12 +37,78 @@ const INSIGHT_ICONS = { 0: '✅', 1: '📈', 2: '⚠️' };
 
 export default function AnalyticsScreen() {
     const { role } = useAuth();
-    const data = ROLE_DATA[role] || ROLE_DATA.entrepreneur;
+    const [loading, setLoading] = React.useState(true);
+    const [stats, setStats] = React.useState(null);
+    const [insights, setInsights] = React.useState([]);
+
     const accent = THEME.roles[role]?.primary || THEME.primary;
     const title = role === 'freelancer' ? 'Freelancer Analytics' : role === 'investor' ? 'Investor Analytics' : 'Entrepreneur Analytics';
 
+    React.useEffect(() => {
+        const loadData = async () => {
+            try {
+                setLoading(true);
+                if (role === 'entrepreneur') {
+                    const data = await analyticsAPI.getEntrepreneurData();
+                    setStats([
+                        { label: 'Pitch Views', value: data.pitchViews.toString(), sub: 'Lifetime total', sparkVals: [10, 20, 15, 30, 25, 40, 35, data.pitchViews] },
+                        { label: 'Investor Interest', value: data.investorInterest.toString(), sub: 'Interested investors', sparkVals: [1, 2, 1, 3, 2, 4, 3, data.investorInterest] },
+                        { label: 'Meetings', value: data.meetingsScheduled.toString(), sub: 'Scheduled interactions', sparkVals: [0, 1, 1, 2, 1, 3, 2, data.meetingsScheduled] },
+                        { label: 'Applications', value: data.freelancerApplications.toString(), sub: 'Responses to posts', sparkVals: [5, 8, 10, 12, 11, 15, 14, data.freelancerApplications] },
+                    ]);
+                    setInsights([
+                        `Pitch has been viewed ${data.pitchViews} times`,
+                        `${data.investorInterest} investors have marked interest`,
+                        `${data.meetingsScheduled} meetings successfully scheduled`
+                    ]);
+                } else if (role === 'investor') {
+                    const { recommended, trending } = await analyticsAPI.getInvestorData();
+                    setStats([
+                        { label: 'Recommended', value: recommended.length.toString(), sub: 'Matches your interests', sparkVals: [2, 3, 2, 4, 3, 5, 4, recommended.length] },
+                        { label: 'Trending', value: trending.length.toString(), sub: 'High activity startups', sparkVals: [10, 12, 15, 18, 20, 25, 22, trending.length] },
+                        { label: 'Active Bets', value: '12', sub: 'In pipeline', sparkVals: [5, 6, 7, 8, 9, 10, 11, 12] },
+                        { label: 'Portfolio', value: '$2.4M', sub: 'Estimated value', sparkVals: [1.8, 2.0, 2.1, 2.2, 2.3, 2.35, 2.4, 2.4] },
+                    ]);
+                    setInsights([
+                        `Found ${recommended.length} potential matches for you`,
+                        `${trending[0]?.name || 'Top'} is currently trending`,
+                        'Market activity is up 15% this week'
+                    ]);
+                } else if (role === 'freelancer') {
+                    const { skillDemand } = await analyticsAPI.getFreelancerData();
+                    const top = skillDemand.slice(0, 4);
+                    setStats(top.map(s => ({
+                        label: `${s.name.toUpperCase()} Demand`,
+                        value: s.count.toString(),
+                        sub: 'Active requests',
+                        sparkVals: [1, 2, 1, 3, 2, s.count - 1, s.count, s.count]
+                    })));
+                    setInsights(skillDemand.slice(0, 3).map(s => 
+                        `${s.name.charAt(0).toUpperCase() + s.name.slice(1)} is a top trending skill right now`
+                    ));
+                }
+            } catch (err) {
+                console.error('Analytics load error:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadData();
+    }, [role]);
+
     const barVals = [30, 45, 42, 60, 55, 75];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+
+    if (loading) {
+        return (
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator size="large" color={accent} />
+                <Text style={{ marginTop: 10, color: THEME.textMuted }}>Loading analytics...</Text>
+            </View>
+        );
+    }
+
+    if (!stats) return null;
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -52,7 +118,7 @@ export default function AnalyticsScreen() {
 
             {/* KPI Grid */}
             <View style={styles.kpiGrid}>
-                {data.kpi.map((k, i) => (
+                {stats.map((k, i) => (
                     <View key={i} style={[styles.kpiCard, { borderTopColor: accent }]}>
                         <Text style={styles.kpiLabel}>{k.label}</Text>
                         <Text style={[styles.kpiValue, { color: accent }]}>{k.value}</Text>
@@ -72,7 +138,7 @@ export default function AnalyticsScreen() {
 
             {/* Monthly Growth */}
             <View style={styles.card}>
-                <Text style={styles.cardTitle}>Monthly Growth</Text>
+                <Text style={styles.cardTitle}>Activity Trend</Text>
                 {months.map((month, i) => (
                     <View key={month} style={styles.barRow}>
                         <Text style={styles.barLabel}>{month}</Text>
@@ -87,7 +153,7 @@ export default function AnalyticsScreen() {
             {/* Key Insights */}
             <View style={[styles.card, { borderLeftWidth: 3, borderLeftColor: accent }]}>
                 <Text style={styles.cardTitle}>Key Insights</Text>
-                {data.insights.map((ins, i) => (
+                {insights.map((ins, i) => (
                     <View key={i} style={styles.insightRow}>
                         <Text style={styles.insightIcon}>{INSIGHT_ICONS[i] || '📌'}</Text>
                         <Text style={styles.insightText}>{ins}</Text>

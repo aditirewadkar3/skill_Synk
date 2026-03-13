@@ -7,6 +7,8 @@ import authRoutes from './routes/auth.js';
 import chatRoutes from './routes/chat.js';
 import postsRoutes from './routes/posts.js';
 import meetingsRoutes from './routes/meetings.js';
+import analyticsRoutes from './routes/analytics.js';
+import communityRoutes from './routes/community.js';
 import newsRoutes from './routes/news.js';
 import { auth, db } from './config/firebase.js';
 
@@ -35,6 +37,8 @@ const io = new Server(httpServer, {
   },
 });
 
+app.set('io', io);
+
 const PORT = process.env.PORT || 3001;
 
 // Middleware
@@ -57,6 +61,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/posts', postsRoutes);
 app.use('/api/meetings', meetingsRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/community', communityRoutes);
 app.use('/api/news', newsRoutes);
 
 // Health check
@@ -97,43 +103,85 @@ io.on('connection', (socket) => {
         return;
       }
 
+      // Determine chatId and isCommunity
+      let chatId;
+      let isCommunity = false;
+      let members = [];
+      let communityName = '';
+      let senderName = 'Freelancer';
+
+      // Fetch sender info
+      const senderDoc = await db.collection('users').doc(senderId).get();
+      if (senderDoc.exists) {
+        senderName = senderDoc.data().name || 'Freelancer';
+      }
+
+      if (receiverId.startsWith('community_')) {
+        chatId = receiverId;
+        isCommunity = true;
+        const chatDoc = await db.collection('chats').doc(chatId).get();
+        if (chatDoc.exists) {
+          members = chatDoc.data().members || [];
+          communityName = chatDoc.data().name || 'Community';
+        }
+      } else {
+        chatId = [senderId, receiverId].sort().join('_');
+      }
+
       // Create message in Firestore
       const messageRef = db.collection('messages').doc();
       const messageData = {
         senderId,
-        receiverId,
+        senderName,
+        receiverId: isCommunity ? null : receiverId,
+        chatId,
         content: content.trim(),
         timestamp: new Date(),
         read: false,
+        isCommunity
       };
 
       await messageRef.set(messageData);
 
-      // Update chat list for both users (unified doc)
-      const chatId = [senderId, receiverId].sort().join('_');
-      const [p1, p2] = [senderId, receiverId].sort();
-      
-      await db.collection('chats').doc(chatId).set({
-        participant1: p1,
-        participant2: p2,
+      // Update chat list
+      const chatUpdate = {
         lastMessage: content,
         lastMessageTime: new Date(),
         updatedAt: new Date(),
-      }, { merge: true });
+      };
 
-      // Send message to receiver if online
+      if (!isCommunity) {
+        const [p1, p2] = [senderId, receiverId].sort();
+        chatUpdate.participant1 = p1;
+        chatUpdate.participant2 = p2;
+      }
+
+      await db.collection('chats').doc(chatId).set(chatUpdate, { merge: true });
+
+      // Send message to receiver(s) if online
       const message = {
         id: messageRef.id,
         ...messageData,
       };
 
-      io.to(receiverId).emit('message', message);
+      if (isCommunity) {
+        members.forEach(memberId => {
+          if (memberId !== senderId) {
+            io.to(memberId).emit('message', message);
+          }
+        });
+      } else {
+        io.to(receiverId).emit('message', message);
+      }
+      
       socket.emit('message-sent', message);
 
-      // Mark message as read if receiver is online
-      const receiverSocket = await io.in(receiverId).fetchSockets();
-      if (receiverSocket.length > 0) {
-        await messageRef.update({ read: true });
+      // Mark message as read if receiver is online (for 1-to-1)
+      if (!isCommunity) {
+        const receiverSockets = await io.in(receiverId).fetchSockets();
+        if (receiverSockets.length > 0) {
+          await messageRef.update({ read: true });
+        }
       }
     } catch (error) {
       console.error('Socket message error:', error);

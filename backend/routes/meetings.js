@@ -1,6 +1,6 @@
 import express from 'express';
 import { AccessToken } from 'livekit-server-sdk';
-import { auth } from '../config/firebase.js';
+import { auth, db } from '../config/firebase.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -58,6 +58,17 @@ router.post('/schedule', verifyToken, async (req, res) => {
     // Remove trailing slash if present in origin
     const baseUrl = origin.replace(/\/$/, '');
     const hostLink = `${baseUrl}/meeting/${roomName}?token=${hostJwt}`;
+
+    // Persist meeting to Firestore
+    await db.collection('meetings').add({
+      hostId,
+      hostName,
+      participantId,
+      participantName: participantName || 'Guest',
+      roomName,
+      timestamp: new Date(),
+      status: 'scheduled'
+    });
 
     res.json({
       success: true,

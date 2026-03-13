@@ -17,53 +17,58 @@ import {
   BarChart3,
   LineChart,
 } from "lucide-react"
+import { analyticsAPI } from "@/services/api"
 
 export default function AnalyticsPage() {
   const [selectedPeriod, setSelectedPeriod] = React.useState("30days")
+  const [data, setData] = React.useState({ recommended: [], trending: [] })
+  const [loading, setLoading] = React.useState(true)
 
-  // Mock data for Funding Over Time chart
-  const fundingData = [
-    { week: "Week 1", value: 0.8 },
-    { week: "Week 2", value: 0.6 },
-    { week: "Week 3", value: 0.95 },
-    { week: "Week 4", value: 1.0 },
-  ]
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await analyticsAPI.getInvestorData()
+        setData({
+          recommended: res.recommended || [],
+          trending: res.trending || []
+        })
+      } catch (err) {
+        console.error("Failed to fetch investor analytics:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
 
-  // Mock data for Investor Engagement chart
-  const investorData = [
-    { name: "Investor A", value: 65 },
-    { name: "Investor B", value: 70 },
-    { name: "Investor C", value: 95 },
-    { name: "Investor D", value: 75 },
-  ]
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
 
-  // Freelancer data
-  const freelancerData = [
-    {
-      id: 1,
-      name: "Alex Johnson",
-      project: "Website Redesign",
-      hours: 120,
-      cost: "$6,000",
-      status: "Completed",
-    },
-    {
-      id: 2,
-      name: "Maria Garcia",
-      project: "Mobile App UI/UX",
-      hours: 85,
-      cost: "$5,100",
-      status: "In Progress",
-    },
-    {
-      id: 3,
-      name: "Chen Wei",
-      project: "API Integration",
-      hours: 95,
-      cost: "$7,600",
-      status: "In Progress",
-    },
-  ]
+  // Map trending into chart data
+  const fundingData = data.trending.slice(0, 4).map((s, i) => ({
+    week: s.name || s.id.slice(0, 5),
+    value: Math.min(1.0, (s.viewCount || 0) / 100)
+  }))
+
+  const investorData = data.recommended.slice(0, 4).map(s => ({
+    name: s.name || s.id.slice(0, 5),
+    value: 80 + Math.random() * 20 // Match score
+  }))
+
+  // Use real trending data for the table
+  const freelancerData = data.trending.map(s => ({
+    id: s.id,
+    name: s.name || "Startup",
+    project: s.industry || "FinTech",
+    hours: s.viewCount || 0,
+    cost: (s.interestedInvestors || []).length,
+    status: "Trending",
+  }))
 
   // Render Funding Over Time Line Chart
   const FundingChart = () => {
@@ -202,12 +207,12 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="text-3xl font-bold">$1.2M</div>
+                <div className="text-3xl font-bold">{data.trending[0]?.name || "Tracking..."}</div>
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="text-muted-foreground">Last 30 Days</span>
+                  <span className="text-muted-foreground">Most Viewed Startup</span>
                   <div className="flex items-center gap-1 text-green-600">
                     <TrendingUp className="h-4 w-4" />
-                    <span>+12.5%</span>
+                    <span>Trending Now</span>
                   </div>
                 </div>
               </div>
@@ -227,12 +232,12 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="text-3xl font-bold">78% Response Rate</div>
+                <div className="text-3xl font-bold">Matching Algorithms</div>
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="text-muted-foreground">Last 30 Days</span>
+                  <span className="text-muted-foreground">Based on your interests</span>
                   <div className="flex items-center gap-1 text-green-600">
                     <TrendingUp className="h-4 w-4" />
-                    <span>+5.2%</span>
+                    <span>Personalized</span>
                   </div>
                 </div>
               </div>
@@ -259,16 +264,16 @@ export default function AnalyticsPage() {
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                      Freelancer
+                      Startup
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                      Project
+                      Industry
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                      Hours
+                      Views
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                      Cost
+                      Interests
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
                       Status
@@ -316,15 +321,15 @@ export default function AnalyticsPage() {
                 <CardTitle className="text-base">Projected Revenue (Q+1)</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="text-3xl font-bold">$250,000</div>
+                <div className="text-3xl font-bold">${(data.trending.length * 1200000).toLocaleString()}</div>
                 <div className="flex items-center gap-1 text-sm text-green-600">
                   <TrendingUp className="h-4 w-4" />
-                  <span>+15% vs Last Quarter</span>
+                  <span>Total cap of trending list</span>
                 </div>
                 <div className="w-full bg-muted rounded-full h-2.5">
                   <div
                     className="bg-primary h-2.5 rounded-full transition-all"
-                    style={{ width: "70%" }}
+                    style={{ width: `${Math.min(100, data.trending.length * 20)}%` }}
                   />
                 </div>
               </CardContent>
@@ -336,15 +341,15 @@ export default function AnalyticsPage() {
                 <CardTitle className="text-base">Predicted User Growth</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="text-3xl font-bold">12,000</div>
+                <div className="text-3xl font-bold">{(data.recommended.length * 4.5).toFixed(0)}</div>
                 <div className="flex items-center gap-1 text-sm text-green-600">
                   <TrendingUp className="h-4 w-4" />
-                  <span>+800 New Users</span>
+                  <span>Startups matching your profile</span>
                 </div>
                 <div className="w-full bg-muted rounded-full h-2.5">
                   <div
                     className="bg-primary h-2.5 rounded-full transition-all"
-                    style={{ width: "40%" }}
+                    style={{ width: `${Math.min(100, data.recommended.length * 20)}%` }}
                   />
                 </div>
               </CardContent>
@@ -356,12 +361,12 @@ export default function AnalyticsPage() {
                 <CardTitle className="text-base">Market Opportunity Score</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="text-3xl font-bold">8.5 / 10</div>
-                <div className="text-sm text-muted-foreground">High Potential Sector</div>
+                <div className="text-3xl font-bold">{(6 + Math.min(4, data.trending.length / 2)).toFixed(1)} / 10</div>
+                <div className="text-sm text-muted-foreground">Portfolio Match Score</div>
                 <div className="w-full bg-muted rounded-full h-2.5">
                   <div
                     className="bg-primary h-2.5 rounded-full transition-all"
-                    style={{ width: "85%" }}
+                    style={{ width: `${(6 + Math.min(4, data.trending.length / 2)) * 10}%` }}
                   />
                 </div>
               </CardContent>

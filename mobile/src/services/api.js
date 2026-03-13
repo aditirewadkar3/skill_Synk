@@ -351,3 +351,34 @@ export const postsAPI = {
     },
 };
 
+// Analytics API
+export const analyticsAPI = {
+    getEntrepreneurData: async () => {
+        await ensureFreshToken();
+        const response = await apiRequest('/analytics/entrepreneur');
+        return response.data;
+    },
+    getInvestorData: async () => {
+        await ensureFreshToken();
+        return await apiRequest('/analytics/investor');
+    },
+    getFreelancerData: async () => {
+        await ensureFreshToken();
+        return await apiRequest('/analytics/freelancer');
+    },
+    trackView: async (targetUid) => {
+        await ensureFreshToken();
+        return await apiRequest('/analytics/track-view', {
+            method: 'POST',
+            body: JSON.stringify({ targetUid })
+        });
+    },
+    toggleInterest: async (targetUid) => {
+        await ensureFreshToken();
+        return await apiRequest('/analytics/interest', {
+            method: 'POST',
+            body: JSON.stringify({ targetUid })
+        });
+    }
+};
+

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { LoginForm } from "@/components/login-form"
 import { SignupForm } from "@/components/signup-form"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { io } from "socket.io-client"
 import { ChatPage } from "@/components/chat/ChatPage"
 // Optional Dashboard import removed (page not present)
 // import Dashboard from "@/pages/dashboard"
@@ -16,15 +17,27 @@ import InvestorDashboard from "@/pages/investor"
 import MyPostsPage from "@/pages/myposts"
 import Landing from "@/pages/landing"
 import MeetingPage from "@/pages/meeting"
+<<<<<<< HEAD
 import ProposalPage from "@/pages/proposal"
 import NewsPage from "@/pages/news"
 import DiscoveryPage from "@/pages/discovery"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { PieChart, Search } from "lucide-react"
+=======
+import NotificationsPage from "@/pages/notifications"
+import ProposalPage from "@/pages/proposal"
+import NewsPage from "@/pages/news"
+import { AppSidebar } from "@/components/app-sidebar"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { PieChart } from "lucide-react"
+import { NotificationPopover } from "@/components/NotificationPopover"
+>>>>>>> 47e5b265ea47e8e332fc5dbfd67896045ce186b8
 import { auth } from "@/config/firebase"
 import { onIdTokenChanged } from "firebase/auth"
-import { setAuthToken, setCurrentUser } from "@/services/api"
+import { setAuthToken, setCurrentUser, getAuthToken } from "@/services/api"
+
+const SOCKET_URL = "http://localhost:3001"
 
 function App() {
   const [page, setPage] = useState("login")
@@ -32,6 +45,7 @@ function App() {
   const [role, setRole] = useState(null)
   const [roleLoading, setRoleLoading] = useState(false)
   const [isAuthReady, setIsAuthReady] = useState(false)
+  const [socket, setSocket] = useState(null)
 
   // Sync Firebase Auth state with local storage
   useEffect(() => {
@@ -57,6 +71,57 @@ function App() {
     })
     return () => unsubscribe()
   }, [])
+
+  // Manage Global Socket Connection
+  useEffect(() => {
+    if (!isAuthenticated || !isAuthReady) {
+      if (socket) {
+        socket.disconnect()
+        setSocket(null)
+      }
+      return
+    }
+
+    const token = getAuthToken()
+    if (!token) return
+
+    const newSocket = io(SOCKET_URL, {
+      auth: { token },
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    })
+
+    newSocket.on('connect', () => {
+      console.log('Global Socket connected')
+    })
+
+    newSocket.on('notification', (data) => {
+      console.log('Real-time notification received:', data)
+      // Dispatch a global event so NotificationPopover (or others) can react
+      window.dispatchEvent(new CustomEvent('app:notification', { detail: data }))
+    })
+
+    setSocket(newSocket)
+    // Attach to window for legacy components like ChatPage to re-use if needed
+    window.socket = newSocket
+
+    return () => {
+      newSocket.disconnect()
+      window.socket = null
+    }
+  }, [isAuthenticated, isAuthReady])
+
+  // Re-connect socket on token refresh
+  useEffect(() => {
+    const onRefreshed = (e) => {
+      const newToken = e?.detail?.token
+      if (!newToken || !socket) return
+      socket.auth.token = newToken
+      socket.disconnect().connect()
+    }
+    window.addEventListener('auth:token-refreshed', onRefreshed)
+    return () => window.removeEventListener('auth:token-refreshed', onRefreshed)
+  }, [socket])
 
   // Handle navigation based on window location
   useEffect(() => {
@@ -105,15 +170,24 @@ function App() {
     } else if (path === "/myposts") {
       setIsAuthenticated(true)
       setPage("myposts")
+<<<<<<< HEAD
+=======
+    } else if (path === "/notifications") {
+      setIsAuthenticated(true)
+      setPage("notifications")
+>>>>>>> 47e5b265ea47e8e332fc5dbfd67896045ce186b8
     } else if (path === "/proposal") {
       setIsAuthenticated(true)
       setPage("proposal")
     } else if (path === "/news") {
       setIsAuthenticated(true)
       setPage("news")
+<<<<<<< HEAD
     } else if (path === "/discovery") {
       setIsAuthenticated(true)
       setPage("discovery")
+=======
+>>>>>>> 47e5b265ea47e8e332fc5dbfd67896045ce186b8
     } else if (path === "/entrepreneur") {
       setIsAuthenticated(true)
       setPage("entrepreneur")
@@ -206,12 +280,18 @@ function App() {
       } else if (path === '/news') {
         setIsAuthenticated(true)
         setPage('news')
+<<<<<<< HEAD
       } else if (path === '/discovery') {
         setIsAuthenticated(true)
         setPage('discovery')
+=======
+>>>>>>> 47e5b265ea47e8e332fc5dbfd67896045ce186b8
       } else if (path.startsWith('/meeting/')) {
         setIsAuthenticated(true)
         setPage('meeting')
+      } else if (path === '/notifications') {
+        setIsAuthenticated(true)
+        setPage('notifications')
       }
     }
     window.addEventListener('popstate', handleLocation)
@@ -228,7 +308,11 @@ function App() {
     const target = role === "freelancer" ? 
       "freelancer" : role === "investor" ? "investor" : "entrepreneur"
     // List of pages that should NOT be auto-redirected to the dashboard
+<<<<<<< HEAD
     const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "proposal", "news", "discovery"]
+=======
+    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "notifications", "proposal", "news"]
+>>>>>>> 47e5b265ea47e8e332fc5dbfd67896045ce186b8
     if (page !== target && !protectedPages.includes(page)) {
       setPage(target)
       window.history.pushState({}, "", `/${target}`)
@@ -256,7 +340,11 @@ function App() {
       { title: "Analytics", icon: PieChart, url: analyticsPath },
       { title: "My Posts", url: "/myposts" },
       { title: "News", url: "/news" },
+<<<<<<< HEAD
       { title: "Discovery", icon: Search, url: "/discovery" },
+=======
+      ...(currentRole === 'freelancer' ? [{ title: "Notifications", url: "/notifications" }] : []),
+>>>>>>> 47e5b265ea47e8e332fc5dbfd67896045ce186b8
     ]
   }
   const navForRole = buildNavForRole(role)
@@ -350,16 +438,27 @@ function App() {
                   ? "Freelancer Dashboard"
                   : page === "investor"
                   ? "Investor Dashboard"
+<<<<<<< HEAD
+=======
+                  : page === "notifications"
+                  ? "Notifications"
+>>>>>>> 47e5b265ea47e8e332fc5dbfd67896045ce186b8
                   : page === "proposal"
                   ? "Send Proposal"
                   : page === "news"
                   ? "Ecosystem News"
+<<<<<<< HEAD
                   : page === "discovery"
                   ? "Discovery Hub"
+=======
+>>>>>>> 47e5b265ea47e8e332fc5dbfd67896045ce186b8
                   : ""}
               </h1>
             </div>
-            <ThemeToggle />
+            <div className="flex items-center gap-2">
+              <NotificationPopover />
+              <ThemeToggle />
+            </div>
           </header>
           <main className="flex-1 overflow-hidden min-h-0">
             {page === "dashboard" && (
@@ -377,9 +476,13 @@ function App() {
             {page === "freelancer" && <FreelancerDashboard />}
             {page === "investor" && <InvestorDashboard />}
             {page === "myposts" && <MyPostsPage />}
+            {page === "notifications" && <NotificationsPage />}
             {page === "proposal" && <ProposalPage />}
             {page === "news" && <NewsPage />}
+<<<<<<< HEAD
             {page === "discovery" && <DiscoveryPage />}
+=======
+>>>>>>> 47e5b265ea47e8e332fc5dbfd67896045ce186b8
           </main>
         </SidebarInset>
       </SidebarProvider>
