@@ -5,7 +5,7 @@ import {
     Linking, Share,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { postsAPI, getCurrentUser } from '../services/api';
+import { postsAPI, getCurrentUser, analyticsAPI } from '../services/api';
 import { getItem, getJSON } from '../services/storage';
 import { THEME, SHADOW } from '../theme';
 
@@ -173,11 +173,34 @@ function PostCard({ post }) {
             {/* Actions */}
             <View style={styles.actions}>
                 <TouchableOpacity style={styles.actionBtn} onPress={handleLike}>
-                    <Text style={[styles.actionText, isLiked && { color: '#2563eb', fontWeight: '700' }]}>
+                    <Text style={[styles.actionText, isLiked && { color: THEME.roles.entrepreneur.primary }]}>
                         {isLiked ? '❤️' : '🤍'} {likes.length || ""} Like
                     </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.actionBtn} onPress={() => setShowComments(!showComments)}>
+
+                {me?.role === 'investor' && (
+                    <TouchableOpacity 
+                        style={styles.actionBtn} 
+                        onPress={async () => {
+                            try {
+                                const res = await analyticsAPI.toggleInterest(post.authorId);
+                                if (res.success) Alert.alert('Interest', res.isInterested ? 'Marked as interested!' : 'Removed interest');
+                            } catch (err) { Alert.alert('Error', err.message); }
+                        }}
+                    >
+                        <Text style={styles.actionText}>🌟 Interested</Text>
+                    </TouchableOpacity>
+                )}
+
+                <TouchableOpacity 
+                    style={styles.actionBtn} 
+                    onPress={async () => {
+                        setShowComments(!showComments);
+                        if (me?.role === 'investor' && !showComments) {
+                            analyticsAPI.trackView(post.authorId).catch(() => {});
+                        }
+                    }}
+                >
                     <Text style={[styles.actionText, showComments && { color: THEME.text }]}>
                         💬 {comments.length || ""} Comment
                     </Text>

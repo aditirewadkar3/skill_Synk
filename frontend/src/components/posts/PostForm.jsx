@@ -11,8 +11,6 @@ export default function PostForm({ onSuccess, onClose }) {
   const [imageFile, setImageFile] = React.useState(null)
   const [imagePreview, setImagePreview] = React.useState(null)
   const [youtubeUrl, setYoutubeUrl] = React.useState("")
-  const [isProject, setIsProject] = React.useState(false)
-  const [budget, setBudget] = React.useState("")
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [error, setError] = React.useState("")
 
@@ -54,33 +52,34 @@ export default function PostForm({ onSuccess, onClose }) {
     setIsSubmitting(true)
     try {
       let res
-      const bodyData = {
-        authorId, authorName, role,
-        title: title.trim(),
-        description: description.trim(),
-        isProject,
-        budget: budget.trim() || null,
-        ...(mediaType === 'youtube' ? { mediaType: 'youtube', youtubeUrl: youtubeUrl.trim() } : {}),
-      }
-
       if (mediaType === 'image') {
         const fd = new FormData()
-        Object.keys(bodyData).forEach(key => fd.append(key, bodyData[key]))
+        fd.append('authorId', authorId)
+        fd.append('authorName', authorName)
+        fd.append('role', role)
+        fd.append('title', title.trim())
+        fd.append('description', description.trim())
         fd.append('mediaType', 'image')
         fd.append('image', imageFile)
         res = await fetch('http://localhost:3001/api/posts', { method: 'POST', body: fd })
       } else {
+        const body = {
+          authorId, authorName, role,
+          title: title.trim(),
+          description: description.trim(),
+          ...(mediaType === 'youtube' ? { mediaType: 'youtube', youtubeUrl: youtubeUrl.trim() } : {}),
+        }
         res = await fetch('http://localhost:3001/api/posts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(bodyData),
+          body: JSON.stringify(body),
         })
       }
       const data = await res.json()
       if (!res.ok || !data?.success) throw new Error(data?.error || data?.message || 'Failed to create post')
       onSuccess && onSuccess(data.post)
       onClose && onClose()
-      setTitle(""); setDescription(""); setImageFile(null); setImagePreview(null); setYoutubeUrl(""); setMediaType("none"); setIsProject(false); setBudget("")
+      setTitle(""); setDescription(""); setImageFile(null); setImagePreview(null); setYoutubeUrl(""); setMediaType("none")
     } catch (err) {
       console.error('Post submit error:', err)
       setError(err.message || 'Failed to create post. Check that the backend is running.')
@@ -98,32 +97,13 @@ export default function PostForm({ onSuccess, onClose }) {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="title">Project Title *</Label>
-        <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Project title" required />
+        <Label htmlFor="title">Title *</Label>
+        <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What's new?" required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="desc">Project Description *</Label>
-        <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Share project details..." rows={5} required />
+        <Label htmlFor="desc">Description *</Label>
+        <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Share more details..." rows={5} required />
       </div>
-
-      <div className="flex items-center space-x-2 py-2">
-        <input 
-          type="checkbox" 
-          id="isProject" 
-          checked={isProject} 
-          onChange={(e) => setIsProject(e.target.checked)}
-          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-        />
-        <Label htmlFor="isProject" className="cursor-pointer">Post as a Project/Gig</Label>
-      </div>
-
-      {isProject && (
-        <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
-          <Label htmlFor="budget">Budget / Monthly Burn ($)</Label>
-          <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="e.g. 5000" />
-          <p className="text-xs text-muted-foreground">Estimated spend or monthly burn for this project.</p>
-        </div>
-      )}
 
       <div className="space-y-2">
         <Label>Attachment</Label>
@@ -168,9 +148,9 @@ export default function PostForm({ onSuccess, onClose }) {
           {isSubmitting ? (
             <span className="flex items-center gap-2">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              Uploading…
+              Posting…
             </span>
-          ) : 'Upload Post Now'}
+          ) : 'Post'}
         </Button>
       </div>
     </form>
