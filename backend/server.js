@@ -7,12 +7,9 @@ import authRoutes from './routes/auth.js';
 import chatRoutes from './routes/chat.js';
 import postsRoutes from './routes/posts.js';
 import meetingsRoutes from './routes/meetings.js';
-<<<<<<< HEAD
 import analyticsRoutes from './routes/analytics.js';
-=======
 import communityRoutes from './routes/community.js';
 import newsRoutes from './routes/news.js';
->>>>>>> 40edbe6eeafc0a7fe563331f32b3f90d12c5bb47
 import { auth, db } from './config/firebase.js';
 
 dotenv.config();
@@ -63,13 +60,10 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/posts', postsRoutes);
-<<<<<<< HEAD
 app.use('/api/meetings', meetingsRoutes);
 app.use('/api/analytics', analyticsRoutes);
-=======
 app.use('/api/community', communityRoutes);
 app.use('/api/news', newsRoutes);
->>>>>>> 40edbe6eeafc0a7fe563331f32b3f90d12c5bb47
 
 // Health check
 app.get('/health', (req, res) => {
