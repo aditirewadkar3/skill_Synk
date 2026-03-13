@@ -158,16 +158,18 @@ export function ChatSidebar({
                                   </Badge>
                                 )}
                               </div>
-                              {user.isCommunity && (
-                                <span className="text-[10px] bg-muted px-1 rounded text-muted-foreground ml-1">
-                                  {user.memberCount || 2} members
+                            <div className="flex flex-col items-end gap-1 overflow-visible">
+                              {user.lastMessageTime && (
+                                <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                                  {formatTime(user.lastMessageTime)}
                                 </span>
                               )}
-                            {user.lastMessageTime && (
-                              <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                {formatTime(user.lastMessageTime)}
-                              </span>
-                            )}
+                              {user.isCommunity && (
+                                <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 shrink-0 font-medium">
+                                  {user.memberCount || 2} members
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                           <div className="flex items-center justify-between gap-2">
                             {user.lastMessage 

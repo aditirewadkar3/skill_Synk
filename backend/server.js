@@ -14,6 +14,7 @@ import newsRoutes from './routes/news.js';
 import pitchPracticeRoutes from './routes/pitchPractice.js';
 import projectsRoutes from './routes/projects.js';
 import uploadRoutes from './routes/upload.js';
+import { initMeetingCron } from './cron.js';
 import { auth, db } from './config/firebase.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -73,6 +74,7 @@ app.use('/api/news', newsRoutes);
 app.use('/api/pitch-practice', pitchPracticeRoutes);
 app.use('/api/projects', projectsRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/meetings', meetingsRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

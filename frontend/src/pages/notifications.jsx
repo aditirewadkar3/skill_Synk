@@ -57,11 +57,11 @@ export default function NotificationsPage() {
         <Card className="premium-card border-none overflow-hidden">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Community Requests
+              <Bell className="h-5 w-5" />
+              Your Notifications
             </CardTitle>
             <CardDescription>
-              Other freelancers wanting to join your professional circle.
+              Community requests and meeting alerts.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -70,9 +70,9 @@ export default function NotificationsPage() {
             ) : notifications.length === 0 ? (
               <div className="py-12 text-center space-y-3">
                 <div className="inline-flex p-3 bg-muted rounded-full">
-                  <Users className="h-6 w-6 text-muted-foreground" />
+                  <Bell className="h-6 w-6 text-muted-foreground" />
                 </div>
-                <p className="text-muted-foreground">No pending community requests.</p>
+                <p className="text-muted-foreground">You have no new notifications.</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -85,7 +85,11 @@ export default function NotificationsPage() {
                       </Avatar>
                       <div className="space-y-1">
                         <p className="text-sm font-medium">
-                          <span className="font-bold">{notification.senderName}</span> sent you a community request
+                          {notification.type === 'meeting' ? (
+                            <>{notification.title}</>
+                          ) : (
+                            <><span className="font-bold">{notification.senderName || notification.targetName}</span> sent you a community request</>
+                          )}
                         </p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Clock className="h-3 w-3" />
@@ -94,26 +98,59 @@ export default function NotificationsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button 
-                        size="sm" 
-                        variant="default"
-                        className="h-8 gap-1"
-                        disabled={actionLoading === notification.id}
-                        onClick={() => handleRespond(notification.id, 'accept')}
-                      >
-                        <Check className="h-4 w-4" />
-                        Accept
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="h-8 gap-1"
-                        disabled={actionLoading === notification.id}
-                        onClick={() => handleRespond(notification.id, 'decline')}
-                      >
-                        <X className="h-4 w-4" />
-                        Decline
-                      </Button>
+                      {notification.isRequest ? (
+                        <>
+                          <Button 
+                            size="sm" 
+                            variant="default"
+                            className="h-8 gap-1"
+                            disabled={actionLoading === notification.id}
+                            onClick={() => handleRespond(notification.id, 'accept')}
+                          >
+                            <Check className="h-4 w-4" />
+                            Accept
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="h-8 gap-1"
+                            disabled={actionLoading === notification.id}
+                            onClick={() => handleRespond(notification.id, 'decline')}
+                          >
+                            <X className="h-4 w-4" />
+                            Decline
+                          </Button>
+                        </>
+                      ) : notification.type === 'meeting' && notification.link ? (
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            className="h-8 gap-1 bg-gradient-to-r from-primary to-primary/80"
+                            onClick={() => window.open(notification.link, '_blank')}
+                          >
+                            Join Meeting
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            className="h-8 gap-1"
+                            disabled={actionLoading === notification.id}
+                            onClick={async () => {
+                              try {
+                                setActionLoading(notification.id)
+                                const res = await communityAPI.markRead(notification.id)
+                                if (res.success) {
+                                  setNotifications(prev => prev.filter(n => n.id !== notification.id))
+                                }
+                              } finally {
+                                setActionLoading(null)
+                              }
+                            }}
+                          >
+                            Dismiss
+                          </Button>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 ))}

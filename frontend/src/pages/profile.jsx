@@ -34,10 +34,10 @@ import {
   Link2,
   Linkedin,
   Github,
-  X,
   FileText,
   Download,
   ExternalLink,
+  X,
 } from "lucide-react"
 
 export default function ProfilePage() {
@@ -93,6 +93,7 @@ export default function ProfilePage() {
 
   // Load user from local storage and Firestore
   React.useEffect(() => {
+    // 1. Try to get user from local session
     try {
       const cu = getCurrentUser()
       if (cu) {
@@ -102,8 +103,10 @@ export default function ProfilePage() {
           email: cu.email || prev.email || "",
         }))
       }
-    } catch { }
-    ; (async () => {
+    } catch {}
+
+    // 2. Fetch latest data from backend
+    const fetchUserData = async () => {
       try {
         const uid = localStorage.getItem('uid')
         if (!uid) return
@@ -129,8 +132,11 @@ export default function ProfilePage() {
           portfolio: u.portfolio || "",
           resume: u.resume || "",
         })
-      } catch { }
-    })()
+      } catch (err) {
+        console.error("Error fetching user data:", err)
+      }
+    }
+    fetchUserData()
   }, [])
 
   const handlePersonalChange = (e) => {
@@ -320,6 +326,28 @@ export default function ProfilePage() {
                           className="text-muted-foreground hover:text-primary transition-colors break-all"
                         >
                           {socialLinks.github}
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm">
+                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <a
+                          href={`https://${socialLinks.resume}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-primary transition-colors break-all"
+                        >
+                          {socialLinks.resume || "Resume Link"}
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm">
+                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <a
+                          href={socialLinks.resume?.startsWith('http') ? socialLinks.resume : `https://${socialLinks.resume}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-primary transition-colors break-all"
+                        >
+                          {socialLinks.resume || "Resume Link"}
                         </a>
                       </div>
                       <div className="flex items-center gap-3 text-sm">
@@ -781,6 +809,7 @@ export default function ProfilePage() {
                             )}
                           </CardContent>
                         </Card>
+
                       </div>
                     </div>
                   </TabsContent>
