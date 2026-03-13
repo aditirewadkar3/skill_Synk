@@ -372,6 +372,66 @@ export const meetingsAPI = {
   },
 };
 
+// Community API
+export const communityAPI = {
+  request: async (targetUid) => {
+    return await apiRequest('/community/request', {
+      method: 'POST',
+      body: JSON.stringify({ targetUid }),
+    });
+  },
+  getNotifications: async () => {
+    const response = await apiRequest('/community/notifications');
+    return response.notifications || [];
+  },
+  respond: async (requestId, action) => {
+    return await apiRequest('/community/respond', {
+      method: 'POST',
+      body: JSON.stringify({ requestId, action }),
+    });
+  },
+  markRead: async (notificationId) => {
+    return await apiRequest('/community/mark-read', {
+      method: 'POST',
+      body: JSON.stringify({ notificationId }),
+    });
+  },
+  getMembers: async (chatId) => {
+    const response = await apiRequest(`/community/${chatId}/members`);
+    return response.members || [];
+  },
+  updateName: async (chatId, name) => {
+    return await apiRequest(`/community/${chatId}/name`, {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    });
+  },
+  leave: async (chatId) => {
+    return await apiRequest(`/community/${chatId}/leave`, {
+      method: 'POST',
+    });
+  },
+  removeMember: async (chatId, targetUid) => {
+    return await apiRequest(`/community/${chatId}/remove`, {
+      method: 'POST',
+      body: JSON.stringify({ targetUid }),
+    });
+  },
+  invite: async (chatId, targetUid) => {
+    return await apiRequest(`/community/${chatId}/invite`, {
+      method: 'POST',
+      body: JSON.stringify({ targetUid }),
+    });
+  },
+};
+
+// News API
+export const newsAPI = {
+  getNews: async () => {
+    return await apiRequest('/news');
+  },
+};
+
 // Posts API
 export const postsAPI = {
   // Get all posts
@@ -423,4 +483,3 @@ export const analyticsAPI = {
 };
 
 export { getAuthToken, setAuthToken, getCurrentUser, setCurrentUser };
-

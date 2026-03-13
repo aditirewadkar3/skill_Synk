@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ArrowLeft, Video } from "lucide-react"
+import { ArrowLeft, Video, Settings } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,7 @@ import { MessageInput } from "./MessageInput"
 import { TypingIndicator } from "./TypingIndicator"
 import { cn } from "@/lib/utils"
 import { getCurrentUser, meetingsAPI } from "@/services/api"
+import { CommunityManagement } from "./CommunityManagement"
 
 export function ChatWindow({
   user,
@@ -20,11 +21,13 @@ export function ChatWindow({
   onBack,
   isTyping = false,
   connectionStatus = "connected",
+  onUpdateCommunityName,
   className,
 }) {
   const [scheduleOpen, setScheduleOpen] = React.useState(false)
   const [meetingLoading, setMeetingLoading] = React.useState(false)
   const [meetingLink, setMeetingLink] = React.useState(null)
+  const [communitySettingsOpen, setCommunitySettingsOpen] = React.useState(false)
   const getUserRole = React.useCallback(() => {
     try {
       const cuStr = localStorage.getItem("currentUser")
@@ -108,6 +111,16 @@ export function ChatWindow({
         <Button variant="ghost" size="icon" aria-label="Start video call" onClick={() => setScheduleOpen(true)}>
           <Video className="h-5 w-5" />
         </Button>
+        {user.isCommunity && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            aria-label="Community settings" 
+            onClick={() => setCommunitySettingsOpen(true)}
+          >
+            <Settings className="h-5 w-5" />
+          </Button>
+        )}
         <Badge
           variant={connectionStatus === "connected" ? "default" : "secondary"}
           className="text-xs">
@@ -174,6 +187,27 @@ export function ChatWindow({
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Community Settings */}
+      {user.isCommunity && (
+        <CommunityManagement
+          chatId={user.id}
+          communityName={user.name}
+          open={communitySettingsOpen}
+          onOpenChange={setCommunitySettingsOpen}
+          onUpdateName={(newName) => {
+             // Update the current user object in state and global state
+             if (onUpdateCommunityName) {
+               onUpdateCommunityName(user.id, newName);
+             }
+             setCommunitySettingsOpen(false);
+          }}
+          onLeave={() => {
+            onBack();
+            if (window.location) window.location.reload();
+          }}
+        />
+      )}
 
       {/* Messages Area */}
       <ScrollArea className="flex-1 min-h-0" ref={scrollAreaRef}>
