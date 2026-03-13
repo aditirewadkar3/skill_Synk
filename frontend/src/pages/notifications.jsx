@@ -49,12 +49,12 @@ export default function NotificationsPage() {
             <Bell className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Notifications</h1>
-            <p className="text-muted-foreground">Manage your community requests and alerts.</p>
+            <h1 className="text-4xl font-extrabold tracking-tight gradient-text">Notifications</h1>
+            <p className="text-sm text-muted-foreground italic">Manage your community requests and alerts.</p>
           </div>
         </div>
 
-        <Card className="rounded-2xl border shadow-sm">
+        <Card className="premium-card border-none overflow-hidden">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Users className="h-5 w-5" />
@@ -75,9 +75,9 @@ export default function NotificationsPage() {
                 <p className="text-muted-foreground">No pending community requests.</p>
               </div>
             ) : (
-              <div className="divide-y border rounded-xl overflow-hidden">
+              <div className="space-y-2">
                 {notifications.map((notification) => (
-                  <div key={notification.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
+                  <div key={notification.id} className="flex items-center justify-between p-4 rounded-xl transition-all duration-300 interactive-item group hover:bg-primary/5">
                     <div className="flex items-center gap-4">
                       <Avatar className="h-10 w-10 border">
                         <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${notification.senderUid}`} />

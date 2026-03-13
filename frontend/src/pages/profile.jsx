@@ -187,7 +187,7 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Sidebar - Profile Summary */}
           <div className="lg:col-span-1">
-            <Card className="rounded-2xl shadow-sm border sticky top-6">
+            <Card className="premium-card border-none sticky top-6 shadow-xl">
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center text-center space-y-6">
                   {/* Avatar with Edit Icon */}
@@ -211,7 +211,7 @@ export default function ProfilePage() {
 
                   {/* Name and Title */}
                   <div className="space-y-1">
-                    <h2 className="text-xl font-bold">{personalData.fullName || 'User'}</h2>
+                    <h2 className="text-2xl font-extrabold gradient-text">{personalData.fullName || 'User'}</h2>
                     <p className="text-sm text-muted-foreground">
                       Founder & CEO at {businessData.companyName}
                     </p>
@@ -280,7 +280,7 @@ export default function ProfilePage() {
 
           {/* Main Content Area - Tabs */}
           <div className="lg:col-span-2">
-            <Card className="rounded-2xl shadow-sm border">
+            <Card className="premium-card border-none shadow-xl min-h-[600px]">
               <CardContent className="pt-6">
                 <Tabs defaultValue="personal" className="w-full">
                   <TabsList className="grid w-full grid-cols-3 mb-6">
@@ -306,7 +306,7 @@ export default function ProfilePage() {
                       </div>
 
                       {isEditingPersonal ? (
-                        <Card className="rounded-xl border">
+                        <Card className="rounded-2xl border bg-background/50 backdrop-blur-sm shadow-md">
                           <CardContent className="pt-6 space-y-4">
                             <div className="space-y-2">
                               <Label htmlFor="fullName">Full Name</Label>
@@ -363,7 +363,7 @@ export default function ProfilePage() {
                           </CardContent>
                         </Card>
                       ) : (
-                        <Card className="rounded-xl border">
+                        <Card className="rounded-2xl border bg-background/50 backdrop-blur-sm shadow-md transition-all hover:shadow-lg">
                           <CardContent className="pt-6 space-y-3">
                             <div className="flex justify-between items-start">
                               <div>
@@ -426,7 +426,7 @@ export default function ProfilePage() {
                       </div>
 
                       {isEditingBusiness ? (
-                        <Card className="rounded-xl border">
+                        <Card className="rounded-2xl border bg-background/50 backdrop-blur-sm shadow-md">
                           <CardContent className="pt-6 space-y-4">
                             <div className="space-y-2">
                               <Label htmlFor="companyName">Company Name</Label>
@@ -483,7 +483,7 @@ export default function ProfilePage() {
                           </CardContent>
                         </Card>
                       ) : (
-                        <Card className="rounded-xl border">
+                        <Card className="rounded-2xl border bg-background/50 backdrop-blur-sm shadow-md transition-all hover:shadow-lg">
                           <CardContent className="pt-6 space-y-3">
                             <div className="flex justify-between items-start">
                               <div>

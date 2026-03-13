@@ -8,9 +8,11 @@ export default function MyPostsPage() {
   const uid = currentUser?.uid || localStorage.getItem('uid') || null
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-semibold mb-4">My Posts</h1>
-      <Feed filterAuthorId={uid} filterMode="only" />
+    <div className="h-full overflow-y-auto p-8 bg-background/50">
+      <div className="max-w-6xl mx-auto space-y-8">
+        <h1 className="text-4xl font-extrabold tracking-tight gradient-text">My Posts</h1>
+        <Feed filterAuthorId={uid} filterMode="only" />
+      </div>
     </div>
   )
 }

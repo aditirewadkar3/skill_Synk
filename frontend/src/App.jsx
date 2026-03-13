@@ -4,8 +4,6 @@ import { SignupForm } from "@/components/signup-form"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { io } from "socket.io-client"
 import { ChatPage } from "@/components/chat/ChatPage"
-// Optional Dashboard import removed (page not present)
-// import Dashboard from "@/pages/dashboard"
 import ProfilePage from "@/pages/profile"
 import ClientProfilePage from "@/pages/client-profile"
 import FreelancerAnalytics from "@/pages/freelanceranalytics"
@@ -20,11 +18,25 @@ import MeetingPage from "@/pages/meeting"
 import NotificationsPage from "@/pages/notifications"
 import ProposalPage from "@/pages/proposal"
 import NewsPage from "@/pages/news"
+<<<<<<< HEAD
 import PitchPractice from "@/pages/PitchPractice"
+=======
+import DiscoveryPage from "@/pages/discovery"
+<<<<<<< HEAD
+>>>>>>> d48ffe07c439f352a2204664a724a0b883834ee9
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { PieChart } from "lucide-react"
+import { PieChart, Search } from "lucide-react"
 import { NotificationPopover } from "@/components/NotificationPopover"
+=======
+import PostForm from "@/components/posts/PostForm"
+import { AppSidebar } from "@/components/app-sidebar"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { PieChart, Search, Rocket } from "lucide-react"
+import { NotificationPopover } from "@/components/NotificationPopover"
+import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+>>>>>>> c4fed67257d4be5662eacad5837884b53dec1538
 import { auth } from "@/config/firebase"
 import { onIdTokenChanged } from "firebase/auth"
 import { setAuthToken, setCurrentUser, getAuthToken } from "@/services/api"
@@ -38,6 +50,7 @@ function App() {
   const [roleLoading, setRoleLoading] = useState(false)
   const [isAuthReady, setIsAuthReady] = useState(false)
   const [socket, setSocket] = useState(null)
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false)
 
   // Sync Firebase Auth state with local storage
   useEffect(() => {
@@ -46,7 +59,6 @@ function App() {
         try {
           const token = await user.getIdToken()
           setAuthToken(token)
-          // Also sync uid to localStorage if missing
           if (!localStorage.getItem('uid')) {
             localStorage.setItem('uid', user.uid)
           }
@@ -55,8 +67,6 @@ function App() {
           console.error("Error updating ID token:", error)
         }
       } else {
-        // Only clear if we explicitly logged out or session is truly gone
-        // Keep isAuthenticated as false if no user
         setAuthToken(null)
       }
       setIsAuthReady(true)
@@ -89,12 +99,10 @@ function App() {
 
     newSocket.on('notification', (data) => {
       console.log('Real-time notification received:', data)
-      // Dispatch a global event so NotificationPopover (or others) can react
       window.dispatchEvent(new CustomEvent('app:notification', { detail: data }))
     })
 
     setSocket(newSocket)
-    // Attach to window for legacy components like ChatPage to re-use if needed
     window.socket = newSocket
 
     return () => {
@@ -125,12 +133,10 @@ function App() {
       setPage("login")
       setIsAuthenticated(false)
     } else if (path === "/") {
-      // Landing page for unauthenticated users
       setIsAuthenticated(false)
       setPage("landing")
     } else if (path === "/dashboard") {
       setIsAuthenticated(true)
-      // Map generic dashboard to current role-specific page
       const target = role === "freelancer" ? "/freelancer" : role === "investor" ? "/investor" : "/entrepreneur"
       window.history.replaceState({}, "", target)
       setPage(target.slice(1))
@@ -156,7 +162,6 @@ function App() {
       setIsAuthenticated(true)
       setPage("entrepreneuranalytics")
     } else if (path === "/analytics") {
-      // Back-compat: route old analytics path to entrepreneur analytics
       setIsAuthenticated(true)
       setPage("entrepreneuranalytics")
     } else if (path === "/myposts") {
@@ -171,9 +176,21 @@ function App() {
     } else if (path === "/news") {
       setIsAuthenticated(true)
       setPage("news")
+<<<<<<< HEAD
     } else if (path === "/pitch-practice") {
       setIsAuthenticated(true)
       setPage("pitch-practice")
+=======
+<<<<<<< HEAD
+=======
+    } else if (path === "/myprojects") {
+      setIsAuthenticated(true)
+      setPage("myprojects")
+>>>>>>> c4fed67257d4be5662eacad5837884b53dec1538
+    } else if (path === "/discovery") {
+      setIsAuthenticated(true)
+      setPage("discovery")
+>>>>>>> d48ffe07c439f352a2204664a724a0b883834ee9
     } else if (path === "/entrepreneur") {
       setIsAuthenticated(true)
       setPage("entrepreneur")
@@ -187,18 +204,17 @@ function App() {
       setPage("investor")
       setRole("investor")
     } else if (path === "/" && isAuthenticated) {
-      // Redirect authenticated users from root to dashboard
       const target = role === "freelancer" ? "/freelancer" : role === "investor" ? "/investor" : "/entrepreneur"
       window.history.pushState({}, "", target)
       setPage(target.slice(1))
     }
   }, [isAuthenticated, role])
 
-  // Persist role changes (DB remains source of truth)
+  // Persist role changes
   useEffect(() => {
     try {
       if (role) window.localStorage.setItem("role", role)
-    } catch {}
+    } catch { }
   }, [role])
 
   // Fetch role from backend (Firestore) once authenticated
@@ -217,7 +233,7 @@ function App() {
         const data = await res.json()
         const fetchedRole = data?.user?.role
         if (fetchedRole) setRole(fetchedRole)
-      } catch {}
+      } catch { }
       finally { setRoleLoading(false) }
     }
     if (isAuthenticated) {
@@ -225,7 +241,7 @@ function App() {
     }
   }, [isAuthenticated])
 
-  // Optimistic route after signup using pendingRole hint, while DB role loads
+  // Optimistic route after signup using pendingRole hint
   useEffect(() => {
     if (!isAuthenticated || role) return
     try {
@@ -237,17 +253,17 @@ function App() {
           window.history.pushState({}, '', target)
         }
       }
-    } catch {}
+    } catch { }
   }, [isAuthenticated, role])
 
   // Clear pendingRole once real role is loaded
   useEffect(() => {
     if (role) {
-      try { sessionStorage.removeItem('pendingRole') } catch {}
+      try { sessionStorage.removeItem('pendingRole') } catch { }
     }
   }, [role])
 
-  // Listen to history/navigation events to handle in-app link navigation
+  // Listen to history/navigation events
   useEffect(() => {
     const handleLocation = () => {
       const path = window.location.pathname
@@ -266,15 +282,24 @@ function App() {
       } else if (path === '/news') {
         setIsAuthenticated(true)
         setPage('news')
+      } else if (path === '/discovery') {
+        setIsAuthenticated(true)
+        setPage('discovery')
       } else if (path.startsWith('/meeting/')) {
         setIsAuthenticated(true)
         setPage('meeting')
       } else if (path === '/notifications') {
         setIsAuthenticated(true)
         setPage('notifications')
+<<<<<<< HEAD
       } else if (path === '/pitch-practice') {
         setIsAuthenticated(true)
         setPage('pitch-practice')
+=======
+      } else if (path === '/myprojects') {
+        setIsAuthenticated(true)
+        setPage('myprojects')
+>>>>>>> d48ffe07c439f352a2204664a724a0b883834ee9
       }
     }
     window.addEventListener('popstate', handleLocation)
@@ -288,57 +313,72 @@ function App() {
   // When role changes while authenticated, route to its dashboard
   useEffect(() => {
     if (!isAuthenticated || !role) return
-    const target = role === "freelancer" ? 
+    const target = role === "freelancer" ?
       "freelancer" : role === "investor" ? "investor" : "entrepreneur"
+<<<<<<< HEAD
+    const protectedPages = [
+      "meeting", "chat", "profile", "client-profile",
+      "freelanceranalytics", "investoranalytics", "entrepreneuranalytics",
+      "myposts", "notifications", "proposal", "news", "discovery"
+    ]
+=======
     // List of pages that should NOT be auto-redirected to the dashboard
+<<<<<<< HEAD
     const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "notifications", "proposal", "news", "pitch-practice"]
+=======
+    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "myprojects", "notifications", "proposal", "news", "discovery"]
+>>>>>>> c4fed67257d4be5662eacad5837884b53dec1538
+>>>>>>> d48ffe07c439f352a2204664a724a0b883834ee9
     if (page !== target && !protectedPages.includes(page)) {
       setPage(target)
       window.history.pushState({}, "", `/${target}`)
     }
   }, [role, isAuthenticated])
 
-  // Handle login - wait for role fetch to route
-  const handleLogin = () => {
-    setIsAuthenticated(true)
-  }
+  const handleLogin = () => { setIsAuthenticated(true) }
+  const handleSignup = () => { setIsAuthenticated(true) }
 
-  // Handle signup - wait for role fetch to route
-  const handleSignup = () => {
-    setIsAuthenticated(true)
-  }
-
-  // Build sidebar items based on role
+  // Build sidebar nav based on role
   const buildNavForRole = (currentRole) => {
     const roleTitle = currentRole === "freelancer" ? "Freelancer" : currentRole === "investor" ? "Investor" : "Entrepreneur"
     const rolePath = currentRole === "freelancer" ? "/freelancer" : currentRole === "investor" ? "/investor" : "/entrepreneur"
     const analyticsPath = currentRole === "freelancer" ? "/freelanceranalytics" : currentRole === "investor" ? "/investoranalytics" : "/entrepreneuranalytics"
     return [
-      { title: `${roleTitle}`, icon: PieChart, url: rolePath, isActive: true },
-      { title: "Messages", icon: PieChart , url: "/chat" },
+<<<<<<< HEAD
+      { title: roleTitle, icon: PieChart, url: rolePath, isActive: true },
+      { title: "Messages", icon: PieChart, url: "/chat" },
       { title: "Analytics", icon: PieChart, url: analyticsPath },
       { title: "My Posts", url: "/myposts" },
       { title: "News", url: "/news" },
+<<<<<<< HEAD
       ...(currentRole === 'entrepreneur' ? [{ title: "AI Pitch Practice", url: "/pitch-practice" }] : []),
+=======
+      { title: "Discovery", icon: Search, url: "/discovery" },
+=======
+      { title: `${roleTitle}`, icon: PieChart, url: rolePath, isActive: true },
+      { title: "Messages", icon: PieChart, url: "/chat" },
+      { title: "Discovery", icon: Search, url: "/discovery" },
+      { title: "Analytics", icon: PieChart, url: analyticsPath },
+      { title: "My Posts", url: "/myposts" },
+      { title: "News", url: "/news" },
+      ...(currentRole === 'entrepreneur' ? [{ title: "My Projects", url: "/myprojects" }] : []),
+>>>>>>> c4fed67257d4be5662eacad5837884b53dec1538
+>>>>>>> d48ffe07c439f352a2204664a724a0b883834ee9
       ...(currentRole === 'freelancer' ? [{ title: "Notifications", url: "/notifications" }] : []),
     ]
   }
   const navForRole = buildNavForRole(role)
 
-  // ---------- LOGIN PAGE ----------
+  // ── Landing ─────────────────────────────────────────────────────────────
   if (!isAuthenticated && page === "landing") {
-    return (
-      <Landing />
-    )
+    return <Landing />
   }
 
-  // ---------- LOGIN PAGE ----------
+  // ── Login ────────────────────────────────────────────────────────────────
   if (!isAuthenticated && page === "login") {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm relative">
-        <div className="absolute top-4 right-4 z-10">
-          <ThemeToggle />
-        </div>
+        <div className="absolute top-4 right-4 z-10"><ThemeToggle /></div>
         <div className="max-w-4xl w-full relative z-10">
           <LoginForm onLogin={handleLogin} />
         </div>
@@ -346,13 +386,11 @@ function App() {
     )
   }
 
-  // ---------- SIGNUP PAGE ----------
+  // ── Signup ───────────────────────────────────────────────────────────────
   if (!isAuthenticated && page === "signup") {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm relative">
-        <div className="absolute top-4 right-4 z-10">
-          <ThemeToggle />
-        </div>
+        <div className="absolute top-4 right-4 z-10"><ThemeToggle /></div>
         <div className="max-w-4xl w-full relative z-10">
           <SignupForm onSignup={handleSignup} />
         </div>
@@ -360,22 +398,37 @@ function App() {
     )
   }
 
-  // ---------- AUTHENTICATED PAGES (With Sidebar) ----------
+  // ── Authenticated ────────────────────────────────────────────────────────
   if (isAuthenticated) {
-    if (page === "meeting") {
-      return <MeetingPage />
+    if (page === "meeting") return <MeetingPage />
+
+    const pageTitle = {
+      dashboard: "Dashboard",
+      chat: "Chat",
+      profile: "Profile",
+      "client-profile": "Client Profile",
+      entrepreneuranalytics: "Entrepreneur Analytics",
+      freelanceranalytics: "Freelancer Analytics",
+      investoranalytics: "Investor Analytics",
+      entrepreneur: "Entrepreneur Dashboard",
+      freelancer: "Freelancer Dashboard",
+      investor: "Investor Dashboard",
+      notifications: "Notifications",
+      proposal: "Send Proposal",
+      news: "Ecosystem News",
+      discovery: "Discovery Hub",
     }
+
+<<<<<<< HEAD
     return (
       <SidebarProvider>
         <AppSidebar navMain={navForRole} onNavigate={(path) => {
-          // Normalize common aliases
           if (path === '/account') path = '/profile'
           if (path === '/dashboard') {
             const roleTarget = role === 'freelancer' ? '/freelancer' : (role === 'investor' ? '/investor' : '/entrepreneur')
             path = roleTarget
           }
           if (path === '/login') {
-            // Logout: clear auth and route to login
             try {
               window.localStorage.removeItem('uid')
               sessionStorage.removeItem('pendingRole')
@@ -393,6 +446,7 @@ function App() {
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
             <SidebarTrigger />
             <div className="flex-1">
+<<<<<<< HEAD
               <h1 className="text-lg font-semibold">
                 {page === "dashboard"
                   ? "Dashboard"
@@ -424,6 +478,9 @@ function App() {
                   ? "AI Pitch Practice"
                   : ""}
               </h1>
+=======
+              <h1 className="text-lg font-semibold">{pageTitle[page] || ""}</h1>
+>>>>>>> d48ffe07c439f352a2204664a724a0b883834ee9
             </div>
             <div className="flex items-center gap-2">
               <NotificationPopover />
@@ -449,10 +506,131 @@ function App() {
             {page === "notifications" && <NotificationsPage />}
             {page === "proposal" && <ProposalPage />}
             {page === "news" && <NewsPage />}
+<<<<<<< HEAD
             {page === "pitch-practice" && <PitchPractice />}
+=======
+            {page === "discovery" && <DiscoveryPage />}
+>>>>>>> d48ffe07c439f352a2204664a724a0b883834ee9
           </main>
         </SidebarInset>
       </SidebarProvider>
+=======
+    const themeClass = role ? `theme-${role}` : ""
+
+    return (
+      <div className={`h-full w-full ${themeClass}`}>
+        <SidebarProvider>
+          <AppSidebar navMain={navForRole} onNavigate={(path) => {
+            // Normalize common aliases
+            if (path === '/account') path = '/profile'
+            if (path === '/dashboard') {
+              const roleTarget = role === 'freelancer' ? '/freelancer' : (role === 'investor' ? '/investor' : '/entrepreneur')
+              path = roleTarget
+            }
+            if (path === '/login') {
+              // Logout: clear auth and route to login
+              try {
+                window.localStorage.removeItem('uid')
+                sessionStorage.removeItem('pendingRole')
+              } catch { }
+              setIsAuthenticated(false)
+              setPage('login')
+              window.history.pushState({}, '', '/login')
+              return
+            }
+            const pageName = path.replace(/^\//, '')
+            setPage(pageName)
+            window.history.pushState({}, '', path)
+          }} />
+          <SidebarInset>
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
+              <SidebarTrigger />
+              <div className="flex-1">
+                <h1 className="text-lg font-semibold">
+                  {page === "dashboard"
+                    ? "Dashboard"
+                    : page === "chat"
+                      ? "Chat"
+                      : page === "profile"
+                        ? "Profile"
+                        : page === "client-profile"
+                          ? "Client Profile"
+                          : page === "entrepreneuranalytics"
+                            ? "Entrepreneur Analytics"
+                            : page === "freelanceranalytics"
+                              ? "Freelancer Analytics"
+                              : page === "investoranalytics"
+                                ? "Investor Analytics"
+                                : page === "entrepreneur"
+                                  ? "Entrepreneur Dashboard"
+                                  : page === "freelancer"
+                                    ? "Freelancer Dashboard"
+                                    : page === "investor"
+                                      ? "Investor Dashboard"
+                                      : page === "notifications"
+                                        ? "Notifications"
+                                        : page === "proposal"
+                                          ? "Send Proposal"
+                                          : page === "news"
+                                            ? "Ecosystem News"
+                                            : page === "myprojects"
+                                              ? "My Projects"
+                                              : page === "discovery"
+                                                ? "Discovery Hub"
+                                                : ""}
+                </h1>
+              </div>
+              <div className="flex items-center gap-2">
+                {page === "entrepreneur" && (
+                  <Sheet open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
+                    <SheetTrigger asChild>
+                      <Button variant="premium" size="sm" className="gap-2">
+                        <Rocket className="h-4 w-4" /> New Post
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="w-[400px] sm:w-[540px]">
+                      <SheetHeader>
+                        <SheetTitle>Create a New Post</SheetTitle>
+                      </SheetHeader>
+                      <div className="py-6">
+                        <PostForm onClose={() => setIsPostModalOpen(false)} onSuccess={() => {
+                          setIsPostModalOpen(false);
+                          window.dispatchEvent(new CustomEvent('app:post-created'));
+                        }} />
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                )}
+                <NotificationPopover />
+                <ThemeToggle />
+              </div>
+            </header>
+            <main className="flex-1 overflow-hidden min-h-0">
+              {page === "dashboard" && (
+                role === 'freelancer' ? <FreelancerDashboard /> :
+                  role === 'investor' ? <InvestorDashboard /> :
+                    <EntrepreneurDashboard />
+              )}
+              {page === "chat" && <ChatPage />}
+              {page === "profile" && <ProfilePage />}
+              {page === "client-profile" && <ClientProfilePage />}
+              {page === "entrepreneuranalytics" && <EntrepreneurAnalytics />}
+              {page === "freelanceranalytics" && <FreelancerAnalytics />}
+              {page === "investoranalytics" && <InvestorAnalytics />}
+              {page === "entrepreneur" && <EntrepreneurDashboard />}
+              {page === "freelancer" && <FreelancerDashboard />}
+              {page === "investor" && <InvestorDashboard />}
+              {page === "myposts" && <MyPostsPage />}
+              {page === "myprojects" && <MyProjectsPage />}
+              {page === "notifications" && <NotificationsPage />}
+              {page === "proposal" && <ProposalPage />}
+              {page === "news" && <NewsPage />}
+              {page === "discovery" && <DiscoveryPage />}
+            </main>
+          </SidebarInset>
+        </SidebarProvider>
+      </div>
+>>>>>>> c4fed67257d4be5662eacad5837884b53dec1538
     )
   }
 

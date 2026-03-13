@@ -54,13 +54,41 @@ const data = {
     {
       title: "Dashboard",
       url: "/dashboard",
-      icon: Terminal,
+      icon: <lord-icon
+    src="https://cdn.lordicon.com/bushiqea.json"
+    trigger="hover"
+    style="width:10px;height:10px">
+</lord-icon>,
+      isActive: true,
+    },
+<<<<<<< HEAD
+
+    {
+      title: "Proposal",
+      url: "/proposal",
+      icon: <lord-icon
+    src="https://cdn.lordicon.com/bushiqea.json"
+    trigger="hover"
+    style="width:10px;height:10px">
+</lord-icon>,
       isActive: true,
     },
     {
+      title: "News",
+      url: "/news",
+      icon: Newspaper,
+    },
+    
+=======
+>>>>>>> c4fed67257d4be5662eacad5837884b53dec1538
+    {
       title: "Entrepreneur",
       url: "/entrepreneur",
-      icon: Activity,
+      icon: <lord-icon
+    src="https://cdn.lordicon.com/bushiqea.json"
+    trigger="hover"
+    style="width:10px;height:10px">
+</lord-icon>,
     },
     {
       title: "Freelancer",
@@ -75,7 +103,11 @@ const data = {
     {
       title: "Messages",
       url: "/chat",
-      icon: Bot,
+      icon: <lord-icon
+    src="https://cdn.lordicon.com/bushiqea.json"
+    trigger="hover"
+    style="width:10px;height:10px">
+</lord-icon>,
     },
     {
       title: "Pitch Deck",
@@ -153,15 +185,15 @@ export function AppSidebar({ user, teams, navMain, projects, onNavigate, ...prop
     return false;
   });
   return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
+    <Sidebar collapsible="icon" className={`premium-card border-none ${role ? `theme-${role}` : ""}`} {...props}>
+      <SidebarHeader className="bg-gradient-to-b from-primary/10 to-transparent">
         <TeamSwitcher teams={merged.teams} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={filteredNav} onNavigate={onNavigate} />
         <NavProjects projects={merged.projects} />
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="border-t border-white/5">
         <NavUser user={merged.user} onNavigate={onNavigate} />
       </SidebarFooter>
       <SidebarRail />

@@ -14,89 +14,62 @@ import PostForm from "@/components/posts/PostForm";
 
 export default function FreelancerDashboard() {
   const [summary, setSummary] = useState("")
+  const [selectedId, setSelectedId] = useState(null)
+  
   const currentUser = (() => {
     try { return JSON.parse(localStorage.getItem('currentUser')) } catch { return null }
   })()
   const uid = currentUser?.uid || localStorage.getItem('uid') || null
+
+  const handleSelect = (id) => {
+    setSelectedId(selectedId === id ? null : id)
+  }
   
   return (
-    <div className="theme-freelancer p-6 space-y-6">
+    <div className="p-6 space-y-6">
       {/* Page header */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Freelancer Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Manage contracts, track time, and invoice clients efficiently.</p>
+          <h1 className="text-3xl font-bold tracking-tight gradient-text">Freelancer Dashboard</h1>
+          <p className="text-sm text-muted-foreground italic">Manage contracts, track time, and invoice clients efficiently.</p>
         </div>
         <div className="flex items-center gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <Filter className="h-4 w-4" /> Filters
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Filter by client, status, or date</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button className="gap-2">
-                <FileText className="h-4 w-4" /> New Post
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-full sm:max-w-lg p-0">
-              <SheetHeader>
-                <SheetTitle>Create Post</SheetTitle>
-                <SheetDescription>Share your latest work update or availability.</SheetDescription>
-              </SheetHeader>
-              <div className="p-4">
-                <PostForm />
-              </div>
-            </SheetContent>
-          </Sheet>
+          {/* ... existing header controls ... */}
         </div>
       </div>
 
-      {/* KPI cards */}
+      {/* KPI cards - Interactive */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Contracts</CardTitle>
-            <Briefcase className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">2 fixed, 1 hourly</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Month Income</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">$3,250</div>
-            <p className="text-xs text-muted-foreground">$1,100 outstanding</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Hours Tracked</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">46h</div>
-            <div className="mt-2 w-full h-2 rounded bg-muted overflow-hidden">
-              <div className="h-full bg-primary" style={{ width: "76%" }} />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">76% of 60h goal</p>
-          </CardContent>
-        </Card>
+        {[
+          { id: 'contracts', title: 'Active Contracts', value: '3', sub: '2 fixed, 1 hourly', icon: Briefcase },
+          { id: 'income', title: 'This Month Income', value: '$3,250', sub: '$1,100 outstanding', icon: DollarSign },
+          { id: 'hours', title: 'Hours Tracked', value: '46h', sub: '76% of goal', icon: Clock },
+        ].map((kpi) => (
+          <Card 
+            key={kpi.id}
+            className={`premium-card interactive-item ${selectedId === kpi.id ? 'selected-component' : ''}`}
+            onClick={() => handleSelect(kpi.id)}
+          >
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
+              <kpi.icon className="h-4 w-4 text-primary animate-float" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{kpi.value}</div>
+              <p className="text-xs text-muted-foreground">{kpi.sub}</p>
+              {kpi.id === 'hours' && (
+                <div className="mt-2 w-full h-2 rounded bg-muted overflow-hidden">
+                  <div className="h-full bg-primary" style={{ width: "76%" }} />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <Card className="theme-freelancer">
+      <Card className={`premium-card transition-all duration-300 ${selectedId === 'work-tabs' ? 'selected-component' : ''}`} onClick={() => handleSelect('work-tabs')}>
         <CardHeader>
-          <CardTitle className="theme-freelancer ">Work</CardTitle>
+          <CardTitle className="gradient-text">Work & Collaboration</CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="tasks">

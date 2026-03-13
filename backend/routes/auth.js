@@ -345,9 +345,17 @@ router.post('/get-user', async (req, res) => {
       success: true,
       user: {
         uid,
-        email: userData.email || null,
-        name: userData.name || (userData.email ? userData.email.split('@')[0] : 'User'),
-        role: userData.role || ROLES.FREELANCER,
+        email:     userData.email     || null,
+        name:      userData.name      || (userData.email ? userData.email.split('@')[0] : 'User'),
+        role:      userData.role      || ROLES.FREELANCER,
+        bio:       userData.bio       || '',
+        skills:    Array.isArray(userData.skills) ? userData.skills : [],
+        rate:      userData.rate      || '',
+        phone:     userData.phone     || '',
+        location:  userData.location  || '',
+        linkedin:  userData.linkedin  || '',
+        github:    userData.github    || '',
+        portfolio: userData.portfolio || '',
       },
     });
   } catch (error) {
@@ -488,5 +496,40 @@ router.get('/test-email', async (req, res) => {
   }
 });
 
+/**
+ * PUT /api/auth/update-profile
+ * Update profile fields (name, bio, skills, rate, etc.) for authenticated user
+ */
+router.put('/update-profile', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split('Bearer ')[1];
+    if (!token) return res.status(401).json({ error: 'No token provided' });
+
+    const decodedToken = await auth.verifyIdToken(token);
+    const uid = decodedToken.uid;
+
+    const allowedFields = ['name', 'bio', 'skills', 'rate', 'phone', 'location', 'linkedin', 'github', 'portfolio'];
+    const updates = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
+
+    updates.updatedAt = new Date();
+    await db.collection('users').doc(uid).set(updates, { merge: true });
+
+    res.json({ success: true, message: 'Profile updated', updates });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Failed to update profile', message: error.message });
+  }
+});
+
 export default router;
+
 

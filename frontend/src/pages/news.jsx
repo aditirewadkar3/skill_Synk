@@ -56,7 +56,7 @@ export default function NewsPage() {
   return (
     <div className="container mx-auto p-6 space-y-8 overflow-y-auto h-full">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Ecosystem News</h1>
+        <h1 className="text-4xl font-extrabold tracking-tight gradient-text">Ecosystem News</h1>
         <p className="text-muted-foreground">
           Latest updates from the world of startups, investment, and freelancing.
         </p>
@@ -68,9 +68,9 @@ export default function NewsPage() {
           <p className="text-muted-foreground">No news articles found for today yet.</p>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 pb-8">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 pb-12">
           {news.map((article) => (
-            <Card key={article.id} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow border-muted/60 bg-card/50 backdrop-blur-sm">
+            <Card key={article.id} className="premium-card interactive-item border-none flex flex-col overflow-hidden">
               {article.urlToImage && (
                 <div className="h-48 w-full overflow-hidden border-b">
                   <img 
@@ -102,11 +102,11 @@ export default function NewsPage() {
               <CardFooter className="p-4 pt-0">
                 <Button 
                   variant="outline" 
-                  className="w-full gap-2 group hover:bg-primary hover:text-primary-foreground transition-colors"
+                  className="w-full h-10 gap-2 group glass-button"
                   onClick={() => window.open(article.url, '_blank')}
                 >
                   Read More
-                  <ExternalLink className="h-3 w-3 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                  <ExternalLink className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
                 </Button>
               </CardFooter>
             </Card>

@@ -376,9 +376,12 @@ router.get('/users', verifyToken, async (req, res) => {
     const users = [];
     usersSnapshot.forEach(doc => {
       if (doc.id !== currentUserId) {
+        const data = doc.data();
         users.push({
           id: doc.id,
-          ...doc.data(),
+          ...data,
+          // Always guarantee skills is a proper array
+          skills: Array.isArray(data.skills) ? data.skills : [],
         });
       }
     });
