@@ -38,7 +38,7 @@ export default function EntrepreneurDashboard() {
           <Sheet open={isUpdateSheetOpen} onOpenChange={setIsUpdateSheetOpen}>
             <SheetTrigger asChild>
               <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-md">
-                <Rocket className="h-4 w-4" /> Share Update
+                <Rocket className="h-4 w-4" /> New Post
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-full sm:max-w-lg p-0">
