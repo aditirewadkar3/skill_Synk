@@ -72,11 +72,11 @@ const data = {
 </lord-icon>,
       isActive: true,
     },
-    {
-      title: "News",
-      url: "/news",
-      icon: Newspaper,
-    },
+    // {
+    //   title: "News",
+    //   url: "/news",
+    //   icon: Newspaper,
+    // },
     {
       title: "Entrepreneur",
       url: "/entrepreneur",

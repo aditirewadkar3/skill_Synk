@@ -68,17 +68,21 @@
 
   /* Scoped theme for Entrepreneur page (Green) */
   .theme-entrepreneur {
-    --primary: oklch(0.648 0.2 131.684);
+    --primary: #059669;
     --primary-foreground: oklch(0.986 0.031 120.757);
     --ring: oklch(0.841 0.238 128.85);
     --sidebar-primary: oklch(0.648 0.2 131.684);
+    --sidebar-background: oklch(0.986 0.031 120.757 / 0.05);
+    --sidebar-foreground: oklch(0.141 0.005 285.823);
   }
 
   .dark .theme-entrepreneur {
-    --primary: oklch(0.648 0.2 131.684);
+    --primary: #059669;
     --primary-foreground: oklch(0.986 0.031 120.757);
     --ring: oklch(0.405 0.101 131.063);
     --sidebar-primary: oklch(0.768 0.233 130.85);
+    --sidebar-background: oklch(0.141 0.005 285.823 / 0.95);
+    --sidebar-foreground: oklch(0.985 0 0);
   }
 
   /* Scoped theme for Freelancer page (Blue) */
