@@ -396,5 +396,31 @@ export const postsAPI = {
   },
 };
 
+// Analytics API
+export const analyticsAPI = {
+  getEntrepreneurData: async () => {
+    const res = await apiRequest('/analytics/entrepreneur');
+    return res.data;
+  },
+  getInvestorData: async () => {
+    return await apiRequest('/analytics/investor');
+  },
+  getFreelancerData: async () => {
+    return await apiRequest('/analytics/freelancer');
+  },
+  trackView: async (targetUid) => {
+    return await apiRequest('/analytics/track-view', {
+      method: 'POST',
+      body: JSON.stringify({ targetUid }),
+    });
+  },
+  interest: async (targetUid) => {
+    return await apiRequest('/analytics/interest', {
+      method: 'POST',
+      body: JSON.stringify({ targetUid }),
+    });
+  },
+};
+
 export { getAuthToken, setAuthToken, getCurrentUser, setCurrentUser };
 
