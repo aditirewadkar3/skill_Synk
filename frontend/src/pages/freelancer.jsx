@@ -67,6 +67,7 @@ export default function FreelancerDashboard() {
         ))}
       </div>
 
+{/* 
       <Card className={`premium-card transition-all duration-300 ${selectedId === 'work-tabs' ? 'selected-component' : ''}`} onClick={() => handleSelect('work-tabs')}>
         <CardHeader>
           <CardTitle className="gradient-text">Work & Collaboration</CardTitle>
@@ -156,6 +157,7 @@ export default function FreelancerDashboard() {
           </Tabs>
         </CardContent>
       </Card>
+      */}
 
       {/* Feed + Right Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

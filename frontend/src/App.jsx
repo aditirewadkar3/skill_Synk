@@ -450,7 +450,7 @@ function App() {
                 </h1>
               </div>
               <div className="flex items-center gap-2">
-                {page === "entrepreneur" && (
+                {(page === "entrepreneur" || page === "myposts") && (
                   <Sheet open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
                     <SheetTrigger asChild>
                       <Button variant="premium" size="sm" className="gap-2">

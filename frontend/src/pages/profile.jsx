@@ -38,6 +38,7 @@ import {
 } from "lucide-react"
 
 export default function ProfilePage() {
+  const role = localStorage.getItem("role")
   const [isEditingPersonal, setIsEditingPersonal] = React.useState(false)
   const [isEditingBusiness, setIsEditingBusiness] = React.useState(false)
   const [personalData, setPersonalData] = React.useState({
@@ -54,11 +55,11 @@ export default function ProfilePage() {
     businessAddress: "123 Innovation Drive, Silicon Valley, CA",
   })
 
-  const [socialLinks, setSocialLinks] = React.useState({
-    linkedin: "linkedin.com/in/alexdoe",
-    github: "github.com/alexdoe",
-    portfolio: "innovateinc.com/portfolio",
-  })
+  /*const [socialLinks, setSocialLinks] = React.useState({
+     linkedin: "linkedin.com/in/alexdoe",
+     github: "github.com/alexdoe",
+     portfolio: "innovateinc.com/portfolio",
+   })*/
 
   const [skills, setSkills] = React.useState([
     "Product Management",
@@ -95,8 +96,8 @@ export default function ProfilePage() {
           email: cu.email || prev.email || "",
         }))
       }
-    } catch {}
-    ;(async () => {
+    } catch { }
+    ; (async () => {
       try {
         const uid = localStorage.getItem('uid')
         if (!uid) return
@@ -113,7 +114,7 @@ export default function ProfilePage() {
           fullName: u.name || prev.fullName || "",
           email: u.email || prev.email || "",
         }))
-      } catch {}
+      } catch { }
     })()
   }, [])
 
@@ -212,9 +213,11 @@ export default function ProfilePage() {
                   {/* Name and Title */}
                   <div className="space-y-1">
                     <h2 className="text-2xl font-extrabold gradient-text">{personalData.fullName || 'User'}</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Founder & CEO at {businessData.companyName}
-                    </p>
+                    {role !== 'freelancer' && (
+                      <p className="text-sm text-muted-foreground">
+                        Founder & CEO at {businessData.companyName}
+                      </p>
+                    )}
                   </div>
 
                   <Separator />
@@ -237,42 +240,44 @@ export default function ProfilePage() {
 
                   <Separator />
 
-                  {/* Social & Portfolio Links */}
-                  <div className="w-full space-y-4">
-                    <div className="flex items-center gap-3 text-sm">
-                      <Linkedin className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <a
-                        href={`https://${socialLinks.linkedin}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-primary transition-colors break-all"
-                      >
-                        {socialLinks.linkedin}
-                      </a>
+                  {/* Social & Portfolio Links - Hidden for Freelancers or if state is missing */}
+                  {role !== 'freelancer' && typeof socialLinks !== 'undefined' && (
+                    <div className="w-full space-y-4">
+                      <div className="flex items-center gap-3 text-sm">
+                        <Linkedin className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <a
+                          href={`https://${socialLinks.linkedin}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-primary transition-colors break-all"
+                        >
+                          {socialLinks.linkedin}
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm">
+                        <Github className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <a
+                          href={`https://${socialLinks.github}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-primary transition-colors break-all"
+                        >
+                          {socialLinks.github}
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm">
+                        <Link2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <a
+                          href={`https://${socialLinks.portfolio}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-primary transition-colors break-all"
+                        >
+                          {socialLinks.portfolio}
+                        </a>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <Github className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <a
-                        href={`https://${socialLinks.github}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-primary transition-colors break-all"
-                      >
-                        {socialLinks.github}
-                      </a>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <Link2 className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <a
-                        href={`https://${socialLinks.portfolio}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-primary transition-colors break-all"
-                      >
-                        {socialLinks.portfolio}
-                      </a>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -283,10 +288,12 @@ export default function ProfilePage() {
             <Card className="premium-card border-none shadow-xl min-h-[600px]">
               <CardContent className="pt-6">
                 <Tabs defaultValue="personal" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 mb-6">
-                    <TabsTrigger value="personal">Personal & Business</TabsTrigger>
+                  <TabsList className={`grid w-full ${role === 'freelancer' ? 'grid-cols-2' : 'grid-cols-3'} mb-6`}>
+                    <TabsTrigger value="personal">
+                      {role === 'freelancer' ? 'Personal Information' : 'Personal & Business'}
+                    </TabsTrigger>
                     <TabsTrigger value="verification">Verification & KYC</TabsTrigger>
-                    <TabsTrigger value="skills">Skills & Focus</TabsTrigger>
+                    {role !== 'freelancer' && <TabsTrigger value="skills">Skills & Focus</TabsTrigger>}
                   </TabsList>
 
                   {/* Personal & Business Tab */}
@@ -412,124 +419,128 @@ export default function ProfilePage() {
                         </Card>
                       )}
 
-                      {/* Business Information Section */}
-                      <div className="flex items-center justify-between mt-6">
-                        <h3 className="text-lg font-semibold">Business Information</h3>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setIsEditingBusiness(!isEditingBusiness)}
-                        >
-                          <Edit2 className="h-4 w-4 mr-2" />
-                          Edit
-                        </Button>
-                      </div>
+                      {/* Business Information Section - Hidden for Freelancers */}
+                      {role !== 'freelancer' && (
+                        <>
+                          <div className="flex items-center justify-between mt-6">
+                            <h3 className="text-lg font-semibold">Business Information</h3>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setIsEditingBusiness(!isEditingBusiness)}
+                            >
+                              <Edit2 className="h-4 w-4 mr-2" />
+                              Edit
+                            </Button>
+                          </div>
 
-                      {isEditingBusiness ? (
-                        <Card className="rounded-2xl border bg-background/50 backdrop-blur-sm shadow-md">
-                          <CardContent className="pt-6 space-y-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="companyName">Company Name</Label>
-                              <Input
-                                id="companyName"
-                                name="companyName"
-                                value={businessData.companyName}
-                                onChange={handleBusinessChange}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="industry">Industry</Label>
-                              <Input
-                                id="industry"
-                                name="industry"
-                                value={businessData.industry}
-                                onChange={handleBusinessChange}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="registrationNo">Registration No.</Label>
-                              <Input
-                                id="registrationNo"
-                                name="registrationNo"
-                                value={businessData.registrationNo}
-                                onChange={handleBusinessChange}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="businessAddress">Business Address</Label>
-                              <Textarea
-                                id="businessAddress"
-                                name="businessAddress"
-                                value={businessData.businessAddress}
-                                onChange={handleBusinessChange}
-                                rows={3}
-                              />
-                            </div>
-                            <div className="flex gap-3 pt-2">
-                              <Button
-                                onClick={() => setIsEditingBusiness(false)}
-                                className="flex-1"
-                              >
-                                Save Changes
-                              </Button>
-                              <Button
-                                variant="outline"
-                                onClick={() => setIsEditingBusiness(false)}
-                                className="flex-1"
-                              >
-                                Cancel
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ) : (
-                        <Card className="rounded-2xl border bg-background/50 backdrop-blur-sm shadow-md transition-all hover:shadow-lg">
-                          <CardContent className="pt-6 space-y-3">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="text-sm text-muted-foreground mb-1">
-                                  Company Name
-                                </p>
-                                <p className="text-sm font-medium">
-                                  {businessData.companyName}
-                                </p>
-                              </div>
-                            </div>
-                            <Separator />
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="text-sm text-muted-foreground mb-1">
-                                  Industry
-                                </p>
-                                <p className="text-sm font-medium">
-                                  {businessData.industry}
-                                </p>
-                              </div>
-                            </div>
-                            <Separator />
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="text-sm text-muted-foreground mb-1">
-                                  Registration No.
-                                </p>
-                                <p className="text-sm font-medium">
-                                  {businessData.registrationNo}
-                                </p>
-                              </div>
-                            </div>
-                            <Separator />
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="text-sm text-muted-foreground mb-1">
-                                  Business Address
-                                </p>
-                                <p className="text-sm font-medium">
-                                  {businessData.businessAddress}
-                                </p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
+                          {isEditingBusiness ? (
+                            <Card className="rounded-2xl border bg-background/50 backdrop-blur-sm shadow-md">
+                              <CardContent className="pt-6 space-y-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="companyName">Company Name</Label>
+                                  <Input
+                                    id="companyName"
+                                    name="companyName"
+                                    value={businessData.companyName}
+                                    onChange={handleBusinessChange}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="industry">Industry</Label>
+                                  <Input
+                                    id="industry"
+                                    name="industry"
+                                    value={businessData.industry}
+                                    onChange={handleBusinessChange}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="registrationNo">Registration No.</Label>
+                                  <Input
+                                    id="registrationNo"
+                                    name="registrationNo"
+                                    value={businessData.registrationNo}
+                                    onChange={handleBusinessChange}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="businessAddress">Business Address</Label>
+                                  <Textarea
+                                    id="businessAddress"
+                                    name="businessAddress"
+                                    value={businessData.businessAddress}
+                                    onChange={handleBusinessChange}
+                                    rows={3}
+                                  />
+                                </div>
+                                <div className="flex gap-3 pt-2">
+                                  <Button
+                                    onClick={() => setIsEditingBusiness(false)}
+                                    className="flex-1"
+                                  >
+                                    Save Changes
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => setIsEditingBusiness(false)}
+                                    className="flex-1"
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ) : (
+                            <Card className="rounded-2xl border bg-background/50 backdrop-blur-sm shadow-md transition-all hover:shadow-lg">
+                              <CardContent className="pt-6 space-y-3">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <p className="text-sm text-muted-foreground mb-1">
+                                      Company Name
+                                    </p>
+                                    <p className="text-sm font-medium">
+                                      {businessData.companyName}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <p className="text-sm text-muted-foreground mb-1">
+                                      Industry
+                                    </p>
+                                    <p className="text-sm font-medium">
+                                      {businessData.industry}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <p className="text-sm text-muted-foreground mb-1">
+                                      Registration No.
+                                    </p>
+                                    <p className="text-sm font-medium">
+                                      {businessData.registrationNo}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <p className="text-sm text-muted-foreground mb-1">
+                                      Business Address
+                                    </p>
+                                    <p className="text-sm font-medium">
+                                      {businessData.businessAddress}
+                                    </p>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          )}
+                        </>
                       )}
                     </div>
                   </TabsContent>

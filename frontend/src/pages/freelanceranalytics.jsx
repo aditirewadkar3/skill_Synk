@@ -6,37 +6,30 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
   TrendingUp,
-  Download,
-  Calendar,
-  HelpCircle,
-  LogOut,
-  BarChart3,
-  LineChart,
+  DollarSign,
+  Briefcase,
+  Layers,
 } from "lucide-react"
-import { analyticsAPI } from "@/services/api"
 
 export default function AnalyticsPage() {
-  const [selectedPeriod, setSelectedPeriod] = React.useState("30days")
-  const [skillDemand, setSkillDemand] = React.useState([])
-  const [loading, setLoading] = React.useState(true)
+  const [loading, setLoading] = React.useState(false)
 
-  React.useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await analyticsAPI.getFreelancerData()
-        setSkillDemand(res.skillDemand || [])
-      } catch (err) {
-        console.error("Failed to fetch freelancer analytics:", err)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchData()
-  }, [])
+  // Demo data reflecting the requirements
+  const kpiData = [
+    { title: "Trending Skills", value: "React, Node.js, AI", sub: "Top in-demand now", icon: Layers, color: "text-blue-500" },
+    { title: "Total Earnings", value: "$12,450", sub: "+12% from last month", icon: DollarSign, color: "text-green-500" },
+    { title: "No. of Projects", value: "14", sub: "8 active, 6 completed", icon: Briefcase, color: "text-purple-500" },
+  ]
+
+  const projectList = [
+    { id: 1, entrepreneur: "Alice Johnson", project: "E-commerce Platform", cost: "$4,500", status: "Active" },
+    { id: 2, entrepreneur: "Bob Smith", project: "AI Chatbot Integration", cost: "$3,200", status: "Completed" },
+    { id: 3, entrepreneur: "Charlie Davis", project: "Mobile App UI/UX", cost: "$2,800", status: "Active" },
+    { id: 4, entrepreneur: "Diana Prince", project: "Backend Refactoring", cost: "$1,950", status: "Completed" },
+  ]
 
   if (loading) {
     return (
@@ -46,268 +39,83 @@ export default function AnalyticsPage() {
     )
   }
 
-  // Map skillDemand into chart data formats
-  const fundingData = skillDemand.slice(0, 4).map((s, i) => ({
-    week: s.name,
-    value: s.count / (skillDemand[0]?.count || 1)
-  }))
-
-  const investorData = skillDemand.slice(0, 4).map(s => ({
-    name: s.name,
-    value: Math.round((s.count / (skillDemand[0]?.count || 1)) * 100)
-  }))
-
-  // Placeholder for collaboration table (could be real projects)
-  const freelancerData = [
-    {
-      id: 1,
-      name: "React Developer",
-      project: "Web App",
-      hours: "High",
-      cost: "Trending",
-      status: "Hot",
-    },
-    {
-      id: 2,
-      name: "AI Engineer",
-      project: "Agent Logic",
-      hours: "High",
-      cost: "Emerging",
-      status: "In Demand",
-    },
-  ]
-
-  // Render Funding Over Time Line Chart
-  const FundingChart = () => {
-    const width = 100
-    const height = 60
-    const padding = 10
-    const chartWidth = width - padding * 2
-    const chartHeight = height - padding * 2
-
-    const maxValue = Math.max(...fundingData.map((d) => d.value))
-    const points = fundingData.map((d, i) => {
-      const x = (i / (fundingData.length - 1)) * chartWidth + padding
-      const y = height - (d.value / maxValue) * chartHeight - padding
-      return { x, y }
-    })
-
-    const pathData = `M ${points.map((p) => `${p.x},${p.y}`).join(" L ")}`
-
-    const areaPath = `M ${padding},${height - padding} ${pathData.replace(
-      "M",
-      "L"
-    )} L ${width - padding},${height - padding} Z`
-
-    return (
-      <div className="w-full h-20 mt-4">
-        <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
-          <defs>
-            <linearGradient id="fundingGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="rgb(59, 130, 246)" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="rgb(59, 130, 246)" stopOpacity="0.05" />
-            </linearGradient>
-          </defs>
-          <path d={areaPath} fill="url(#fundingGradient)" />
-          <path
-            d={pathData}
-            fill="none"
-            stroke="rgb(59, 130, 246)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </div>
-    )
-  }
-
-  // Render Investor Engagement Bar Chart
-  const InvestorChart = () => {
-    const width = 100
-    const height = 60
-    const padding = 10
-    const chartWidth = width - padding * 2
-    const chartHeight = height - padding * 2
-    const barWidth = chartWidth / investorData.length - 4
-
-    const maxValue = 100
-
-    return (
-      <div className="w-full h-20 mt-4">
-        <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
-          {investorData.map((investor, i) => {
-            const barHeight = (investor.value / maxValue) * chartHeight
-            const x = padding + i * (chartWidth / investorData.length)
-            const y = height - padding - barHeight
-            const isHighest = investor.value === Math.max(...investorData.map((d) => d.value))
-
-            return (
-              <rect
-                key={i}
-                x={x}
-                y={y}
-                width={barWidth}
-                height={barHeight}
-                fill={isHighest ? "rgb(30, 64, 175)" : "rgb(59, 130, 246)"}
-                rx="2"
-              />
-            )
-          })}
-        </svg>
-      </div>
-    )
-  }
-
   return (
     <div className="h-full overflow-y-auto bg-background">
-      <div className="container max-w-7xl mx-auto px-4 py-6 sm:py-8 ">
+      <div className="container max-w-7xl mx-auto px-4 py-6 sm:py-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-4xl font-extrabold tracking-tight gradient-text">Analytics & Insights</h1>
-            <p className="text-muted-foreground mt-1 font-medium italic">
-              View key metrics and predictions for your business.
-            </p>
-          </div>
-          <Button className="shrink-0">
-            <Download className="h-4 w-4 mr-2" />
-            Export Report
-          </Button>
+        <div className="mb-8 text-center sm:text-left">
+          <h1 className="text-4xl font-extrabold tracking-tight gradient-text">Freelancer Analytics</h1>
+          <p className="text-muted-foreground mt-2 font-medium">
+            A snapshot of your performance and ongoing projects.
+          </p>
         </div>
 
-        {/* Date Range Filters */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          <Button
-            variant={selectedPeriod === "30days" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedPeriod("30days")}
-          >
-            Last 30 Days
-          </Button>
-          <Button
-            variant={selectedPeriod === "90days" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedPeriod("90days")}
-          >
-            Last 90 Days
-          </Button>
-          <Button
-            variant={selectedPeriod === "year" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedPeriod("year")}
-          >
-            This Year
-          </Button>
-          <Button variant="outline" size="sm">
-            <Calendar className="h-4 w-4 mr-2" />
-            Custom Range
-          </Button>
+        {/* Top KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          {kpiData.map((kpi, i) => (
+            <Card key={i} className="premium-card border-none shadow-lg overflow-hidden relative">
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                <kpi.icon className="h-16 w-16" />
+              </div>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <kpi.icon className={`h-4 w-4 ${kpi.color}`} />
+                  {kpi.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{kpi.value}</div>
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  {kpi.title === "Total Earnings" && <TrendingUp className="h-3 w-3 text-green-500" />}
+                  {kpi.sub}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
-        {/* Top Section - Charts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* Funding Over Time Card */}
-          <Card className="premium-card border-none shadow-xl">
-            <CardHeader>
-              <CardTitle>Funding Over Time</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="text-3xl font-bold">{skillDemand[0]?.name || "None"}</div>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-muted-foreground">Most Requested Skill</span>
-                  <div className="flex items-center gap-1 text-green-600">
-                    <TrendingUp className="h-4 w-4" />
-                    <span>Top Demand</span>
-                  </div>
-                </div>
-              </div>
-              <FundingChart />
-              <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                {fundingData.map((d, i) => (
-                  <span key={i}>{d.week}</span>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Investor Engagement Card */}
-          <Card className="rounded-2xl shadow-sm border">
-            <CardHeader>
-              <CardTitle>Investor Engagement</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="text-3xl font-bold">Skill Demand Matrix</div>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-muted-foreground">Market Pulse</span>
-                  <div className="flex items-center gap-1 text-green-600">
-                    <TrendingUp className="h-4 w-4" />
-                    <span>Active Projects</span>
-                  </div>
-                </div>
-              </div>
-              <InvestorChart />
-              <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                {investorData.map((d, i) => (
-                  <span key={i} className="truncate">
-                    {d.name}
-                  </span>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Freelancer Collaboration Table */}
-        <Card className="rounded-2xl shadow-sm border mb-6">
-          <CardHeader>
-            <CardTitle>Freelancer Collaboration</CardTitle>
+        {/* Project List Section */}
+        <Card className="rounded-2xl shadow-xl border-none overflow-hidden bg-card/50 backdrop-blur-sm">
+          <CardHeader className="border-b bg-muted/30">
+            <CardTitle className="text-xl font-bold">Project List</CardTitle>
+            <CardDescription>Detailed overview of your current and past engagements.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                      Freelancer
+                  <tr className="bg-muted/10">
+                    <th className="text-left py-4 px-6 text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                      Entrepreneur Name
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                      Project
+                    <th className="text-left py-4 px-6 text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                      Project Name
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                      Hours
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
+                    <th className="text-left py-4 px-6 text-sm font-bold text-muted-foreground uppercase tracking-wider">
                       Cost
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
+                    <th className="text-left py-4 px-6 text-sm font-bold text-muted-foreground uppercase tracking-wider">
                       Status
                     </th>
                   </tr>
                 </thead>
-                <tbody>
-                  {freelancerData.map((freelancer) => (
-                    <tr key={freelancer.id} className="border-b hover:bg-muted/50 transition-colors">
-                      <td className="py-3 px-4 text-sm font-medium">{freelancer.name}</td>
-                      <td className="py-3 px-4 text-sm text-muted-foreground">
-                        {freelancer.project}
-                      </td>
-                      <td className="py-3 px-4 text-sm">{freelancer.hours}</td>
-                      <td className="py-3 px-4 text-sm font-medium">{freelancer.cost}</td>
-                      <td className="py-3 px-4">
+                <tbody className="divide-y divide-border">
+                  {projectList.map((item) => (
+                    <tr key={item.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="py-4 px-6 text-sm font-semibold">{item.entrepreneur}</td>
+                      <td className="py-4 px-6 text-sm text-foreground/80">{item.project}</td>
+                      <td className="py-4 px-6 text-sm font-mono text-primary font-bold">{item.cost}</td>
+                      <td className="py-4 px-6 text-sm">
                         <Badge
-                          variant={
-                            freelancer.status === "Completed" ? "default" : "secondary"
-                          }
-                          className={
-                            freelancer.status === "Completed"
-                              ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-                              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
-                          }
+                          variant={item.status === "Completed" ? "default" : "secondary"}
+                          className={`
+                            ${item.status === "Completed" 
+                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" 
+                              : "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"}
+                            font-medium px-3 py-1 rounded-full
+                          `}
                         >
-                          {freelancer.status}
+                          {item.status}
                         </Badge>
                       </td>
                     </tr>
@@ -317,69 +125,6 @@ export default function AnalyticsPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* AI Growth Predictions Section */}
-        <div>
-          <h2 className="text-2xl font-bold mb-4">AI Growth Predictions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Projected Revenue Card */}
-            <Card className="rounded-2xl shadow-sm border">
-              <CardHeader>
-                <CardTitle className="text-base">Projected Revenue (Q+1)</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-3xl font-bold">${(skillDemand.length * 1500).toLocaleString()}</div>
-                <div className="flex items-center gap-1 text-sm text-green-600">
-                  <TrendingUp className="h-4 w-4" />
-                  <span>Avg rate for top skills</span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2.5">
-                  <div
-                    className="bg-primary h-2.5 rounded-full transition-all"
-                    style={{ width: `${Math.min(100, skillDemand.length * 10)}%` }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Predicted User Growth Card */}
-            <Card className="rounded-2xl shadow-sm border">
-              <CardHeader>
-                <CardTitle className="text-base">Predicted User Growth</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-3xl font-bold">{(skillDemand[0]?.count * 5 || 0)}</div>
-                <div className="flex items-center gap-1 text-sm text-green-600">
-                  <TrendingUp className="h-4 w-4" />
-                  <span>New projects for {skillDemand[0]?.name}</span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2.5">
-                  <div
-                    className="bg-primary h-2.5 rounded-full transition-all"
-                    style={{ width: `${Math.min(100, (skillDemand[0]?.count || 0) * 10)}%` }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Market Opportunity Score Card */}
-            <Card className="rounded-2xl shadow-sm border">
-              <CardHeader>
-                <CardTitle className="text-base">Market Opportunity Score</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-3xl font-bold">{(7 + Math.min(3, skillDemand.length / 5)).toFixed(1)} / 10</div>
-                <div className="text-sm text-muted-foreground">Market Liquidity Score</div>
-                <div className="w-full bg-muted rounded-full h-2.5">
-                  <div
-                    className="bg-primary h-2.5 rounded-full transition-all"
-                    style={{ width: `${(7 + Math.min(3, skillDemand.length / 5)) * 10}%` }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
       </div>
     </div>
   )
