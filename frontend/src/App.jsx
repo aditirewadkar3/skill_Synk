@@ -457,11 +457,7 @@ function App() {
                                                 : ""}
                 </h1>
               </div>
-<<<<<<< HEAD
-<div className="flex items-center gap-4">
-=======
-              <div className="flex items-center gap-4">
->>>>>>> 80f122bfae6f77d6868cd6bceba79cc7f4d6a54a
+                <div className="flex items-center gap-4">
                 {role === "entrepreneur" && (
                   <Button 
                     variant="ghost" 
@@ -476,11 +472,7 @@ function App() {
                     <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary border-2 border-background" />
                   </Button>
                 )}
-<<<<<<< HEAD
-                {page === "entrepreneur" && (
-=======
                 {(page === "entrepreneur" || page === "myposts") && (
->>>>>>> 80f122bfae6f77d6868cd6bceba79cc7f4d6a54a
                   <Sheet open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
                     <SheetTrigger asChild>
                       <Button variant="premium" size="sm" className="gap-2">
