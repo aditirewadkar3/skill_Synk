@@ -20,6 +20,7 @@ import MeetingPage from "@/pages/meeting"
 import NotificationsPage from "@/pages/notifications"
 import ProposalPage from "@/pages/proposal"
 import NewsPage from "@/pages/news"
+import PitchPractice from "@/pages/PitchPractice"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { PieChart } from "lucide-react"
@@ -170,6 +171,9 @@ function App() {
     } else if (path === "/news") {
       setIsAuthenticated(true)
       setPage("news")
+    } else if (path === "/pitch-practice") {
+      setIsAuthenticated(true)
+      setPage("pitch-practice")
     } else if (path === "/entrepreneur") {
       setIsAuthenticated(true)
       setPage("entrepreneur")
@@ -268,6 +272,9 @@ function App() {
       } else if (path === '/notifications') {
         setIsAuthenticated(true)
         setPage('notifications')
+      } else if (path === '/pitch-practice') {
+        setIsAuthenticated(true)
+        setPage('pitch-practice')
       }
     }
     window.addEventListener('popstate', handleLocation)
@@ -284,7 +291,7 @@ function App() {
     const target = role === "freelancer" ? 
       "freelancer" : role === "investor" ? "investor" : "entrepreneur"
     // List of pages that should NOT be auto-redirected to the dashboard
-    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "notifications", "proposal", "news"]
+    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "notifications", "proposal", "news", "pitch-practice"]
     if (page !== target && !protectedPages.includes(page)) {
       setPage(target)
       window.history.pushState({}, "", `/${target}`)
@@ -312,6 +319,7 @@ function App() {
       { title: "Analytics", icon: PieChart, url: analyticsPath },
       { title: "My Posts", url: "/myposts" },
       { title: "News", url: "/news" },
+      ...(currentRole === 'entrepreneur' ? [{ title: "AI Pitch Practice", url: "/pitch-practice" }] : []),
       ...(currentRole === 'freelancer' ? [{ title: "Notifications", url: "/notifications" }] : []),
     ]
   }
@@ -412,6 +420,8 @@ function App() {
                   ? "Send Proposal"
                   : page === "news"
                   ? "Ecosystem News"
+                  : page === "pitch-practice"
+                  ? "AI Pitch Practice"
                   : ""}
               </h1>
             </div>
@@ -439,6 +449,7 @@ function App() {
             {page === "notifications" && <NotificationsPage />}
             {page === "proposal" && <ProposalPage />}
             {page === "news" && <NewsPage />}
+            {page === "pitch-practice" && <PitchPractice />}
           </main>
         </SidebarInset>
       </SidebarProvider>
