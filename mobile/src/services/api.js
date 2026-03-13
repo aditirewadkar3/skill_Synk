@@ -270,6 +270,7 @@ export const postsAPI = {
                     timestamp: p.createdAt ? new Date(p.createdAt).toLocaleString() : 'now',
                     title: p.title,
                     description: p.description,
+                    summary: p.summary, // Added summary field
                     mediaType: p.mediaType,
                     mediaUrl: p.mediaUrl,
                     authorId: p.authorId,

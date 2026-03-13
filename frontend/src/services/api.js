@@ -1,5 +1,5 @@
 // API service for backend communication
-import { getAuth } from 'firebase/auth'
+import { auth } from '@/config/firebase';
 const API_BASE_URL = 'http://localhost:3001/api';
 
 // Get auth token from localStorage
@@ -33,16 +33,23 @@ const setCurrentUser = (user) => {
 
 // Refresh Firebase ID token and persist
 const refreshAuthToken = async () => {
-  const auth = getAuth()
+  // Use the imported auth instance directly
   const user = auth.currentUser
   if (!user) {
+    // If currentUser is null, it might be that Auth is still initializing. 
+    // We can wait for it briefly or just fail.
     setAuthToken(null)
     throw new Error('No authenticated user')
   }
-  const newToken = await user.getIdToken(true)
-  setAuthToken(newToken)
-  try { window.dispatchEvent(new CustomEvent('auth:token-refreshed', { detail: { token: newToken } })) } catch {}
-  return newToken
+  try {
+    const newToken = await user.getIdToken(true) // Force refresh
+    setAuthToken(newToken)
+    try { window.dispatchEvent(new CustomEvent('auth:token-refreshed', { detail: { token: newToken } })) } catch {}
+    return newToken
+  } catch (error) {
+    console.error('Failed to refresh Firebase token:', error)
+    throw error
+  }
 }
 
 // API request helper
@@ -68,13 +75,22 @@ const apiRequest = async (endpoint, options = {}, retry = true) => {
 
     if (!response.ok) {
       const unauthorized = response.status === 401
-      const tokenErrorText = (data?.message || data?.error || '').toString()
-      const tokenError = tokenErrorText.includes('id-token') || tokenErrorText.includes('Invalid token')
+      const tokenErrorText = (data?.message || data?.error || '').toString().toLowerCase()
+      // More robust check for token expiration/errors
+      const tokenError = tokenErrorText.includes('id-token') || 
+                         tokenErrorText.includes('expired') || 
+                         tokenErrorText.includes('invalid token') ||
+                         tokenErrorText.includes('id token')
+      
       if (unauthorized && tokenError && retry) {
         try {
+          console.log('🔄 Token expired, attempting refresh...');
           await refreshAuthToken()
+          // Retry the request with the new token and retry=false to avoid loops
           return await apiRequest(endpoint, options, false)
-        } catch (e) {}
+        } catch (e) {
+          console.error('❌ Token refresh failed:', e.message);
+        }
       }
 
       console.error('API Error Details:', {

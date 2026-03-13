@@ -19,12 +19,41 @@ import MeetingPage from "@/pages/meeting"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { PieChart } from "lucide-react"
+import { auth } from "@/config/firebase"
+import { onIdTokenChanged } from "firebase/auth"
+import { setAuthToken, setCurrentUser } from "@/services/api"
 
 function App() {
   const [page, setPage] = useState("login")
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [role, setRole] = useState(null)
   const [roleLoading, setRoleLoading] = useState(false)
+  const [isAuthReady, setIsAuthReady] = useState(false)
+
+  // Sync Firebase Auth state with local storage
+  useEffect(() => {
+    const unsubscribe = onIdTokenChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const token = await user.getIdToken()
+          setAuthToken(token)
+          // Also sync uid to localStorage if missing
+          if (!localStorage.getItem('uid')) {
+            localStorage.setItem('uid', user.uid)
+          }
+          setIsAuthenticated(true)
+        } catch (error) {
+          console.error("Error updating ID token:", error)
+        }
+      } else {
+        // Only clear if we explicitly logged out or session is truly gone
+        // Keep isAuthenticated as false if no user
+        setAuthToken(null)
+      }
+      setIsAuthReady(true)
+    })
+    return () => unsubscribe()
+  }, [])
 
   // Handle navigation based on window location
   useEffect(() => {
