@@ -34,8 +34,8 @@ import {
   Link2,
   Linkedin,
   Github,
-  X,
   FileText,
+  X,
 } from "lucide-react"
 
 export default function ProfilePage() {
@@ -89,6 +89,7 @@ export default function ProfilePage() {
 
   // Load user from local storage and Firestore
   React.useEffect(() => {
+    // 1. Try to get user from local session
     try {
       const cu = getCurrentUser()
       if (cu) {
@@ -98,8 +99,10 @@ export default function ProfilePage() {
           email: cu.email || prev.email || "",
         }))
       }
-    } catch { }
-    ; (async () => {
+    } catch {}
+
+    // 2. Fetch latest data from backend
+    const fetchUserData = async () => {
       try {
         const uid = localStorage.getItem('uid')
         if (!uid) return
@@ -124,8 +127,11 @@ export default function ProfilePage() {
           portfolio: u.portfolio || "",
           resume: u.resume || "",
         })
-      } catch { }
-    })()
+      } catch (err) {
+        console.error("Error fetching user data:", err)
+      }
+    }
+    fetchUserData()
   }, [])
 
   const handlePersonalChange = (e) => {
@@ -273,6 +279,28 @@ export default function ProfilePage() {
                           className="text-muted-foreground hover:text-primary transition-colors break-all"
                         >
                           {socialLinks.github}
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm">
+                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <a
+                          href={`https://${socialLinks.resume}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-primary transition-colors break-all"
+                        >
+                          {socialLinks.resume || "Resume Link"}
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm">
+                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <a
+                          href={socialLinks.resume?.startsWith('http') ? socialLinks.resume : `https://${socialLinks.resume}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-primary transition-colors break-all"
+                        >
+                          {socialLinks.resume || "Resume Link"}
                         </a>
                       </div>
                       <div className="flex items-center gap-3 text-sm">
@@ -616,7 +644,107 @@ export default function ProfilePage() {
                     </div>
                   </TabsContent>
 
+                  {/* Verification & KYC Tab */}
+                  <TabsContent value="verification" className="space-y-6">
+                    {/* PAN Verification Status */}
+                    <Card className="rounded-xl border">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="rounded-full bg-green-100 dark:bg-green-900/20 p-2">
+                              <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">
+                                PAN Verification Status: Verified
+                              </p>
+                            </div>
+                          </div>
+                          <Button variant="outline" size="sm">
+                            Re-verify
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
 
+                    {/* KYC & Business Documents */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">KYC & Business Documents</h3>
+
+                      {/* File Upload Area */}
+                      <Card className="rounded-xl border border-dashed">
+                        <CardContent className="pt-6">
+                          <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                            <div className="rounded-full bg-muted p-4">
+                              <Upload className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                            <div className="text-center space-y-2">
+                              <p className="text-sm font-medium">
+                                Drag & drop files or click to upload
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Supported formats: PDF, JPG, PNG (Max 5MB)
+                              </p>
+                            </div>
+                            <input
+                              type="file"
+                              id="file-upload"
+                              className="hidden"
+                              accept=".pdf,.jpg,.png"
+                              onChange={handleFileUpload}
+                            />
+                            <Button
+                              variant="outline"
+                              onClick={() =>
+                                document.getElementById("file-upload").click()
+                              }
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Upload Files
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Uploaded Files List */}
+                      <div className="space-y-3">
+                        {uploadedFiles.map((file) => (
+                          <Card key={file.id} className="rounded-xl border">
+                            <CardContent className="pt-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                  <div className="rounded-full bg-muted p-2 shrink-0">
+                                    <Upload className="h-4 w-4 text-muted-foreground" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium truncate">
+                                      {file.name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      Uploaded on {file.date}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => handleDeleteFile(file.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  </TabsContent>
 
                   {/* Skills & Focus Tab */}
                   <TabsContent value="skills" className="space-y-6">

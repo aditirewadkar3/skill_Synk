@@ -37,6 +37,31 @@ router.get('/', verifyToken, async (req, res) => {
     const snap = await query.get();
     let projects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     
+    // Legacy migration: ensure all projects have a community chat
+    for (const project of projects) {
+      if (!project.communityChatId) {
+        const communityChatId = `community_${db.collection('chats').doc().id}`;
+        await db.collection('projects').doc(project.id).update({ communityChatId });
+        project.communityChatId = communityChatId;
+        
+        const ownerUid = project.ownerId || 'admin';
+        
+        // Create the community chat if it doesn't exist
+        await db.collection('chats').doc(communityChatId).set({
+          id: communityChatId,
+          name: `${project.name || 'Project'} Community`,
+          isCommunity: true,
+          members: [ownerUid],
+          lastMessage: 'Project community initialized.',
+          lastMessageTime: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          ownerUid: ownerUid,
+          projectId: project.id
+        });
+      }
+    }
+    
     // Sort descending by createdAt
     projects.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     
@@ -57,19 +82,128 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'name and details are required' });
     }
 
+    const communityChatId = `community_${db.collection('chats').doc().id}`;
+    
     const projectDoc = {
       ownerId,
       name,
       details,
       applicants: [],
       createdAt: new Date().toISOString(),
+      communityChatId
     };
 
     const docRef = await db.collection('projects').add(projectDoc);
+
+    // Create the community chat entries
+    await db.collection('chats').doc(communityChatId).set({
+      id: communityChatId,
+      name: `${name} Community`,
+      isCommunity: true,
+      members: [ownerId],
+      lastMessage: 'Project community created! Recruitment in progress.',
+      lastMessageTime: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ownerUid: ownerId,
+      projectId: docRef.id
+    });
+
     return res.json({ success: true, project: { id: docRef.id, ...projectDoc } });
   } catch (err) {
     console.error('Create project error:', err);
     return res.status(500).json({ error: 'Failed to create project', message: err.message });
+  }
+});
+
+// GET /api/projects/applications
+router.get('/applications', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.uid;
+    const snap = await db.collection('projects').where('ownerId', '==', userId).get();
+    
+    let applications = [];
+    snap.docs.forEach(doc => {
+      const projectData = doc.data();
+      const applicants = projectData.applicants || [];
+      
+      applicants.forEach(app => {
+        applications.push({
+          id: `${doc.id}_${app.applicantId}`, // Unique application ID
+          projectId: doc.id,
+          projectName: projectData.name,
+          applicantId: app.applicantId,
+          freelancerName: app.freelancerName,
+          freelancerEmail: app.freelancerEmail,
+          status: app.status || 'pending',
+          createdAt: app.appliedAt || projectData.createdAt
+        });
+      });
+    });
+
+    // Sort descending by date
+    applications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    return res.json({ success: true, applications });
+  } catch (err) {
+    console.error('Fetch applications error:', err);
+    return res.status(500).json({ error: 'Failed to fetch applications', message: err.message });
+  }
+});
+
+// POST /api/projects/applications/:id/respond
+router.post('/applications/:id/respond', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action } = req.body;
+    const ownerId = req.user.uid;
+
+    const [projectId, applicantId] = id.split('_');
+    if (!projectId || !applicantId) {
+       return res.status(400).json({ error: 'Invalid application ID format' });
+    }
+
+    const projectRef = db.collection('projects').doc(projectId);
+    const projectDoc = await projectRef.get();
+
+    if (!projectDoc.exists) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    const projectData = projectDoc.data();
+    if (projectData.ownerId !== ownerId) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const applicants = projectData.applicants || [];
+    const appIndex = applicants.findIndex(a => a.applicantId === applicantId);
+
+    if (appIndex === -1) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+
+    applicants[appIndex].status = action; // 'accepted' or 'rejected'
+
+    await projectRef.update({ applicants });
+
+    // If accepted, add applicant to community chat
+    if (action === 'accepted' && projectData.communityChatId) {
+      const chatRef = db.collection('chats').doc(projectData.communityChatId);
+      const chatDoc = await chatRef.get();
+      if (chatDoc.exists) {
+        const chatData = chatDoc.data();
+        const members = chatData.members || [];
+        if (!members.includes(applicantId)) {
+          members.push(applicantId);
+          await chatRef.update({ members });
+        }
+      }
+    }
+
+    return res.json({ success: true, message: `Application ${action}` });
+  } catch (err) {
+    console.error('Respond to application error:', err);
+    return res.status(500).json({ error: 'Failed to respond', message: err.message });
   }
 });
 
@@ -96,6 +230,7 @@ router.post('/:id/apply', verifyToken, async (req, res) => {
       applicantId,
       freelancerName,
       freelancerEmail,
+      status: 'pending',
       appliedAt: new Date().toISOString(),
     };
 

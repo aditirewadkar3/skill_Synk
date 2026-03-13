@@ -287,13 +287,12 @@ export function ChatWindow({
         </div>
       </ScrollArea>
 
-      <Separator />
-
-      {/* Input Area */}
-      <MessageInput
-        onSend={onSendMessage}
-        disabled={connectionStatus !== "connected"}
-      />
+      <div className="mt-auto border-t bg-background">
+        <MessageInput
+          onSend={onSendMessage}
+          disabled={connectionStatus !== "connected"}
+        />
+      </div>
     </div>
   )
 }
