@@ -35,6 +35,7 @@ import {
   Linkedin,
   Github,
   X,
+  FileText,
 } from "lucide-react"
 
 export default function ProfilePage() {
@@ -55,20 +56,12 @@ export default function ProfilePage() {
     businessAddress: "123 Innovation Drive, Silicon Valley, CA",
   })
 
-<<<<<<< HEAD
-  /*const [socialLinks, setSocialLinks] = React.useState({
-     linkedin: "linkedin.com/in/alexdoe",
-     github: "github.com/alexdoe",
-     portfolio: "innovateinc.com/portfolio",
-   })*/
-=======
   const [socialLinks, setSocialLinks] = React.useState({
     linkedin: "linkedin.com/in/alexdoe",
     github: "github.com/alexdoe",
     portfolio: "innovateinc.com/portfolio",
     resume: "",
   })
->>>>>>> b581a71a2b63fc4adc3b9b8f72eb657a891b6632
 
   const [skills, setSkills] = React.useState([
     "Product Management",
@@ -125,9 +118,6 @@ export default function ProfilePage() {
           phone: u.phone || prev.phone || "",
           location: u.location || prev.location || "",
         }))
-<<<<<<< HEAD
-      } catch { }
-=======
         setSocialLinks({
           linkedin: u.linkedin || "",
           github: u.github || "",
@@ -135,7 +125,6 @@ export default function ProfilePage() {
           resume: u.resume || "",
         })
       } catch {}
->>>>>>> b581a71a2b63fc4adc3b9b8f72eb657a891b6632
     })()
   }, [])
 
@@ -297,34 +286,19 @@ export default function ProfilePage() {
                           {socialLinks.portfolio}
                         </a>
                       </div>
+                      <div className="flex items-center gap-3 text-sm">
+                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <a
+                          href={socialLinks.resume?.startsWith('http') ? socialLinks.resume : `https://${socialLinks.resume}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-primary transition-colors break-all"
+                        >
+                          {socialLinks.resume || "Resume Link"}
+                        </a>
+                      </div>
                     </div>
-<<<<<<< HEAD
                   )}
-=======
-                    <div className="flex items-center gap-3 text-sm">
-                      <Github className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <a
-                        href={`https://${socialLinks.github}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-primary transition-colors break-all"
-                      >
-                        {socialLinks.github}
-                      </a>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <a
-                        href={`https://${socialLinks.resume}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-primary transition-colors break-all"
-                      >
-                        {socialLinks.resume || "Resume Link"}
-                      </a>
-                    </div>
-                  </div>
->>>>>>> b581a71a2b63fc4adc3b9b8f72eb657a891b6632
                 </div>
               </CardContent>
             </Card>
