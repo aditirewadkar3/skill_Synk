@@ -16,6 +16,7 @@ import InvestorDashboard from "@/pages/investor"
 import MyPostsPage from "@/pages/myposts"
 import Landing from "@/pages/landing"
 import MeetingPage from "@/pages/meeting"
+import ProposalPage from "@/pages/proposal"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { PieChart } from "lucide-react"
@@ -102,6 +103,9 @@ function App() {
     } else if (path === "/myposts") {
       setIsAuthenticated(true)
       setPage("myposts")
+    } else if (path === "/proposal") {
+      setIsAuthenticated(true)
+      setPage("proposal")
     } else if (path === "/entrepreneur") {
       setIsAuthenticated(true)
       setPage("entrepreneur")
@@ -185,9 +189,12 @@ function App() {
       } else if (path === '/chat') {
         setIsAuthenticated(true)
         setPage('chat')
-      } else if (path === '/myposts') {
+      } else if (path === "/myposts") {
         setIsAuthenticated(true)
-        setPage('myposts')
+        setPage("myposts")
+      } else if (path === "/proposal") {
+        setIsAuthenticated(true)
+        setPage("proposal")
       } else if (path.startsWith('/meeting/')) {
         setIsAuthenticated(true)
         setPage('meeting')
@@ -207,7 +214,7 @@ function App() {
     const target = role === "freelancer" ? 
       "freelancer" : role === "investor" ? "investor" : "entrepreneur"
     // List of pages that should NOT be auto-redirected to the dashboard
-    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts"]
+    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "proposal"]
     if (page !== target && !protectedPages.includes(page)) {
       setPage(target)
       window.history.pushState({}, "", `/${target}`)
@@ -327,6 +334,8 @@ function App() {
                   ? "Freelancer Dashboard"
                   : page === "investor"
                   ? "Investor Dashboard"
+                  : page === "proposal"
+                  ? "Send Proposal"
                   : ""}
               </h1>
             </div>
@@ -348,6 +357,7 @@ function App() {
             {page === "freelancer" && <FreelancerDashboard />}
             {page === "investor" && <InvestorDashboard />}
             {page === "myposts" && <MyPostsPage />}
+            {page === "proposal" && <ProposalPage />}
           </main>
         </SidebarInset>
       </SidebarProvider>

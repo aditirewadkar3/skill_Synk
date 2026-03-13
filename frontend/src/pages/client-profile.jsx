@@ -26,7 +26,12 @@ import {
   CheckCircle2,
   Upload,
   Eye,
+  Briefcase,
+  TrendingUp,
+  MessageSquare,
+  ShieldCheck,
 } from "lucide-react"
+import Feed from "@/components/feed/Feed"
 
 export default function ClientProfilePage() {
   const [personalData, setPersonalData] = React.useState({
@@ -34,6 +39,7 @@ export default function ClientProfilePage() {
     email: "",
     phone: "",
     location: "",
+    role: "",
   })
 
   const [businessData] = React.useState({
@@ -63,13 +69,16 @@ export default function ClientProfilePage() {
     { id: 2, name: "Aadhaar_Card_Alex_Doe.pdf", date: "10 Jan 2024" },
   ])
 
+  const [targetUid, setTargetUid] = React.useState(null)
+
   React.useEffect(() => {
     // Read other user's uid from query string
     const params = new URLSearchParams(window.location.search)
-    const targetUid = params.get("uid")
+    const uid = params.get("uid")
+    setTargetUid(uid)
 
     // Fallback: if no uid provided, do nothing
-    if (!targetUid) {
+    if (!uid) {
       try {
         const cu = getCurrentUser()
         if (cu) {
@@ -77,6 +86,7 @@ export default function ClientProfilePage() {
             ...prev,
             fullName: cu.name || prev.fullName || "",
             email: cu.email || prev.email || "",
+            role: cu.role || "",
           }))
         }
       } catch {}
@@ -88,7 +98,7 @@ export default function ClientProfilePage() {
         const res = await fetch("http://localhost:3001/api/auth/get-user", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ uid: targetUid }),
+          body: JSON.stringify({ uid: uid }),
         })
         if (!res.ok) return
         const data = await res.json()
@@ -97,22 +107,27 @@ export default function ClientProfilePage() {
           ...prev,
           fullName: u.name || prev.fullName || "",
           email: u.email || prev.email || "",
+          role: u.role || "",
         }))
       } catch {}
     })()
   }, [])
 
   const handleStartChat = () => {
-    const params = new URLSearchParams(window.location.search)
-    const targetUid = params.get("uid")
     if (!targetUid) return
     try { localStorage.setItem('chatTargetUid', targetUid) } catch {}
     window.history.pushState({}, '', `/chat?with=${targetUid}`)
     window.dispatchEvent(new Event('app:navigate'))
   }
 
+  const handleHireOrFund = () => {
+    if (!targetUid) return
+    window.history.pushState({}, '', `/proposal?uid=${targetUid}`)
+    window.dispatchEvent(new Event('app:navigate'))
+  }
+
   const getInitials = (name) => {
-    return name
+    return (name || "U")
       .split(" ")
       .map((n) => n[0])
       .join("")
@@ -120,253 +135,204 @@ export default function ClientProfilePage() {
       .slice(0, 2)
   }
 
+  const getActionButtonLabel = () => {
+    const r = (personalData.role || "").toLowerCase()
+    if (r === "freelancer") return "Hire Me"
+    if (r === "entrepreneur") return "Fund This Project"
+    if (r === "investor") return "Request Funding"
+    return "Partner With Me"
+  }
+
+  const getActionIcon = () => {
+    const r = (personalData.role || "").toLowerCase()
+    if (r === "freelancer") return <Briefcase className="h-4 w-4 mr-2" />
+    if (r === "entrepreneur") return <TrendingUp className="h-4 w-4 mr-2" />
+    return <MessageSquare className="h-4 w-4 mr-2" />
+  }
+
   return (
-    <div className="h-full overflow-y-auto bg-background">
-      <div className="container max-w-7xl mx-auto px-4 py-6 sm:py-8">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-semibold">Profile</h1>
-          <Button onClick={handleStartChat}>Message</Button>
+    <div className="h-full overflow-y-auto bg-background/50">
+      <div className="container max-w-7xl mx-auto px-4 py-8">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 bg-card p-6 rounded-2xl border shadow-sm">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+            <div className="relative">
+              <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
+                <AvatarImage
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(personalData.fullName || personalData.email || 'User')}`}
+                  alt={personalData.fullName || 'User'}
+                />
+                <AvatarFallback className="text-4xl bg-primary/10 text-primary">
+                  {getInitials(personalData.fullName)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute -bottom-2 -right-2 bg-green-500 h-6 w-6 rounded-full border-4 border-card" title="Online" />
+            </div>
+
+            <div className="text-center md:text-left space-y-2">
+              <div className="flex items-center justify-center md:justify-start gap-2">
+                <h1 className="text-3xl font-bold tracking-tight">{personalData.fullName || 'User'}</h1>
+                <ShieldCheck className="h-6 w-6 text-blue-500" title="Verified Professional" />
+              </div>
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                <Badge variant="outline" className="text-sm px-3 py-1 font-medium bg-primary/5">
+                  {personalData.role ? personalData.role.charAt(0).toUpperCase() + personalData.role.slice(1) : "Professional"}
+                </Badge>
+                <span className="text-muted-foreground text-sm">•</span>
+                <span className="text-muted-foreground text-sm flex items-center gap-1">
+                  12 Connected Project
+                </span>
+              </div>
+              <p className="text-muted-foreground text-sm max-w-md">
+                Building the future of {businessData.industry} with scalable solutions and innovative design.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="lg" className="rounded-xl px-6" onClick={handleStartChat}>
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Message
+            </Button>
+            <Button size="lg" className="rounded-xl px-8 font-semibold shadow-lg shadow-primary/20 transition-all hover:scale-105" onClick={handleHireOrFund}>
+              {getActionIcon()}
+              {getActionButtonLabel()}
+            </Button>
+          </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Sidebar - Profile Summary */}
-          <div className="lg:col-span-1">
-            <Card className="rounded-2xl shadow-sm border sticky top-6">
-              <CardContent className="pt-6">
-                <div className="flex flex-col items-center text-center space-y-6">
-                  {/* Avatar */}
-                  <div className="relative">
-                    <Avatar className="h-28 w-28 border-4 border-background shadow-md">
-                      <AvatarImage
-                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(personalData.fullName || personalData.email || 'User')}`}
-                        alt={personalData.fullName || 'User'}
-                      />
-                      <AvatarFallback className="text-3xl bg-primary/10 text-primary">
-                        {getInitials(personalData.fullName || 'U')}
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
 
-                  {/* Name and Title */}
-                  <div className="space-y-1">
-                    <h2 className="text-xl font-bold">{personalData.fullName || 'User'}</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Founder & CEO at {businessData.companyName}
-                    </p>
-                  </div>
-
-                  <Separator />
-
-                  {/* Contact Information */}
-                  <div className="w-full space-y-4">
-                    <div className="flex items-center gap-3 text-sm">
-                      <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <span className="text-muted-foreground break-all">
-                        {personalData.email}
-                      </span>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Sidebar - Quick Info */}
+          <div className="lg:col-span-1 space-y-6">
+            <Card className="rounded-2xl shadow-sm border overflow-hidden">
+              <CardContent className="p-6 space-y-6">
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  Contact Details
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 text-sm group">
+                    <div className="p-2 rounded-lg bg-muted group-hover:bg-primary/10 transition-colors">
+                      <Mail className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
                     </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <span className="text-muted-foreground">
-                        {personalData.phone}
-                      </span>
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Email</p>
+                      <p className="text-sm font-medium truncate">{personalData.email}</p>
                     </div>
                   </div>
-
-                  <Separator />
-
-                  {/* Social & Portfolio Links */}
-                  <div className="w-full space-y-4">
-                    <div className="flex items-center gap-3 text-sm">
-                      <Linkedin className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <a
-                        href={`https://${socialLinks.linkedin}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-primary transition-colors break-all"
-                      >
-                        {socialLinks.linkedin}
-                      </a>
+                  <div className="flex items-center gap-3 text-sm group">
+                    <div className="p-2 rounded-lg bg-muted group-hover:bg-primary/10 transition-colors">
+                      <Phone className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
                     </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <Github className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <a
-                        href={`https://${socialLinks.github}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-primary transition-colors break-all"
-                      >
-                        {socialLinks.github}
-                      </a>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <Link2 className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <a
-                        href={`https://${socialLinks.portfolio}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-primary transition-colors break-all"
-                      >
-                        {socialLinks.portfolio}
-                      </a>
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Phone</p>
+                      <p className="text-sm font-medium">{personalData.phone || "Not shared"}</p>
                     </div>
                   </div>
                 </div>
+
+                <Separator />
+
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  Social Presence
+                </h3>
+                <div className="grid grid-cols-3 gap-3">
+                  <a href={`https://${socialLinks.linkedin}`} target="_blank" className="flex flex-col items-center justify-center p-3 rounded-xl border bg-card hover:bg-muted transition-colors gap-2 group">
+                    <Linkedin className="h-5 w-5 text-muted-foreground group-hover:text-blue-600" />
+                  </a>
+                  <a href={`https://${socialLinks.github}`} target="_blank" className="flex flex-col items-center justify-center p-3 rounded-xl border bg-card hover:bg-muted transition-colors gap-2 group">
+                    <Github className="h-5 w-5 text-muted-foreground group-hover:text-foreground" />
+                  </a>
+                  <a href={`https://${socialLinks.portfolio}`} target="_blank" className="flex flex-col items-center justify-center p-3 rounded-xl border bg-card hover:bg-muted transition-colors gap-2 group">
+                    <Link2 className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
+                  </a>
+                </div>
               </CardContent>
+            </Card>
+
+            <Card className="rounded-2xl shadow-sm border p-6">
+              <h3 className="font-semibold text-lg mb-4">Skills & Focus</h3>
+              <div className="flex flex-wrap gap-2">
+                {skills.map((skill, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="px-3 py-1 text-xs rounded-full hover:bg-primary hover:text-primary-foreground transition-colors cursor-default"
+                  >
+                    {skill}
+                  </Badge>
+                ))}
+              </div>
             </Card>
           </div>
 
           {/* Main Content Area - Tabs */}
           <div className="lg:col-span-2">
-            <Card className="rounded-2xl shadow-sm border">
-              <CardContent className="pt-6">
-                <Tabs defaultValue="personal" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 mb-6">
-                    <TabsTrigger value="personal">Personal & Business</TabsTrigger>
-                    <TabsTrigger value="verification">Verification & KYC</TabsTrigger>
-                    <TabsTrigger value="skills">Skills & Focus</TabsTrigger>
+            <Card className="rounded-2xl shadow-sm border bg-card/100">
+              <CardContent className="p-6">
+                <Tabs defaultValue="posts" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3 mb-8 bg-muted/50 p-1 rounded-xl">
+                    <TabsTrigger value="posts" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Posts</TabsTrigger>
+                    <TabsTrigger value="experience" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Business</TabsTrigger>
+                    <TabsTrigger value="documents" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Verification</TabsTrigger>
                   </TabsList>
 
-                  {/* Personal & Business Tab */}
-                  <TabsContent value="personal" className="space-y-6">
-                    {/* Personal Information Section */}
+                  <TabsContent value="posts" className="space-y-6 focus-visible:outline-none">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-xl font-bold">Recent Updates</h3>
+                    </div>
+                    {targetUid ? (
+                      <Feed filterAuthorId={targetUid} filterMode="only" />
+                    ) : (
+                      <div className="text-center py-12 text-muted-foreground">
+                        No activity found.
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="experience" className="space-y-6 focus-visible:outline-none">
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold">Personal Information</h3>
+                      <h3 className="text-xl font-bold">Business Information</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 rounded-xl border bg-muted/30">
+                          <p className="text-xs text-muted-foreground font-bold uppercase mb-1">Company</p>
+                          <p className="font-semibold text-lg">{businessData.companyName}</p>
+                        </div>
+                        <div className="p-4 rounded-xl border bg-muted/30">
+                          <p className="text-xs text-muted-foreground font-bold uppercase mb-1">Industry</p>
+                          <p className="font-semibold text-lg">{businessData.industry}</p>
+                        </div>
                       </div>
-
-                      <Card className="rounded-xl border">
-                        <CardContent className="pt-6 space-y-3">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-sm text-muted-foreground mb-1">Full Name</p>
-                              <p className="text-sm font-medium">{personalData.fullName}</p>
-                            </div>
-                          </div>
-                          <Separator />
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-sm text-muted-foreground mb-1">Email Address</p>
-                              <p className="text-sm font-medium">{personalData.email}</p>
-                            </div>
-                          </div>
-                          <Separator />
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-sm text-muted-foreground mb-1">Phone Number</p>
-                              <p className="text-sm font-medium">{personalData.phone}</p>
-                            </div>
-                          </div>
-                          <Separator />
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-sm text-muted-foreground mb-1">Location</p>
-                              <p className="text-sm font-medium">{personalData.location}</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* Business Information Section */}
-                      <div className="flex items-center justify-between mt-6">
-                        <h3 className="text-lg font-semibold">Business Information</h3>
+                      <div className="p-4 rounded-xl border bg-muted/30">
+                          <p className="text-xs text-muted-foreground font-bold uppercase mb-1">Business Address</p>
+                          <p className="font-medium">{businessData.businessAddress}</p>
                       </div>
-
-                      <Card className="rounded-xl border">
-                        <CardContent className="pt-6 space-y-3">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-sm text-muted-foreground mb-1">Company Name</p>
-                              <p className="text-sm font-medium">{businessData.companyName}</p>
-                            </div>
-                          </div>
-                          <Separator />
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-sm text-muted-foreground mb-1">Industry</p>
-                              <p className="text-sm font-medium">{businessData.industry}</p>
-                            </div>
-                          </div>
-                          <Separator />
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-sm text-muted-foreground mb-1">Registration No.</p>
-                              <p className="text-sm font-medium">{businessData.registrationNo}</p>
-                            </div>
-                          </div>
-                          <Separator />
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-sm text-muted-foreground mb-1">Business Address</p>
-                              <p className="text-sm font-medium">{businessData.businessAddress}</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
                     </div>
                   </TabsContent>
 
-                  {/* Verification & KYC Tab */}
-                  <TabsContent value="verification" className="space-y-6">
-                    {/* PAN Verification Status */}
-                    <Card className="rounded-xl border">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="rounded-full bg-green-100 dark:bg-green-900/20 p-2">
-                              <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium">PAN Verification Status: Verified</p>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Uploaded Files List */}
+                  <TabsContent value="documents" className="space-y-6 focus-visible:outline-none">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xl font-bold">Verified Documents</h3>
+                      <Badge variant="default" className="bg-green-500 hover:bg-green-600">
+                        <CheckCircle2 className="h-4 w-4 mr-2" /> Verified
+                      </Badge>
+                    </div>
                     <div className="space-y-3">
                       {uploadedFiles.map((file) => (
-                        <Card key={file.id} className="rounded-xl border">
-                          <CardContent className="pt-4">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3 flex-1 min-w-0">
-                                <div className="rounded-full bg-muted p-2 shrink-0">
-                                  <Upload className="h-4 w-4 text-muted-foreground" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium truncate">{file.name}</p>
-                                  <p className="text-xs text-muted-foreground">Uploaded on {file.date}</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </div>
+                        <div key={file.id} className="flex items-center justify-between p-4 rounded-xl border hover:bg-muted/30 transition-colors">
+                          <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 flex items-center justify-center rounded-lg bg-primary/10 text-primary">
+                              <ShieldCheck className="h-5 w-5" />
                             </div>
-                          </CardContent>
-                        </Card>
+                            <div>
+                              <p className="text-sm font-semibold truncate max-w-[200px] sm:max-w-xs">{file.name}</p>
+                              <p className="text-xs text-muted-foreground">Verified on {file.date}</p>
+                            </div>
+                          </div>
+                          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
                       ))}
-                    </div>
-                  </TabsContent>
-
-                  {/* Skills & Focus Tab */}
-                  <TabsContent value="skills" className="space-y-6">
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">Skills & Focus</h3>
-
-                      {/* Skills Tags */}
-                      <div className="flex flex-wrap gap-2">
-                        {skills.map((skill, index) => (
-                          <Badge
-                            key={index}
-                            variant="default"
-                            className="px-3 py-1.5 text-sm rounded-full"
-                          >
-                            {skill}
-                          </Badge>
-                        ))}
-                      </div>
                     </div>
                   </TabsContent>
                 </Tabs>
