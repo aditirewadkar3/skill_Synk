@@ -35,7 +35,6 @@ export default function EntrepreneurDashboard() {
           <p className="text-sm text-muted-foreground italic">Track product, team, and fundraising progress at a glance.</p>
         </div>
         <div className="flex items-center gap-2">
-<<<<<<< HEAD
           <Sheet open={isUpdateSheetOpen} onOpenChange={setIsUpdateSheetOpen}>
             <SheetTrigger asChild>
               <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-md">
@@ -54,9 +53,6 @@ export default function EntrepreneurDashboard() {
               </div>
             </SheetContent>
           </Sheet>
-=======
-          {/* ... existing header controls ... */}
->>>>>>> c4fed67257d4be5662eacad5837884b53dec1538
         </div>
       </div>
 

@@ -17,18 +17,8 @@ import Landing from "@/pages/landing"
 import MeetingPage from "@/pages/meeting"
 import NotificationsPage from "@/pages/notifications"
 import ProposalPage from "@/pages/proposal"
-import NewsPage from "@/pages/news"
-<<<<<<< HEAD
 import PitchPractice from "@/pages/PitchPractice"
-=======
 import DiscoveryPage from "@/pages/discovery"
-<<<<<<< HEAD
->>>>>>> d48ffe07c439f352a2204664a724a0b883834ee9
-import { AppSidebar } from "@/components/app-sidebar"
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { PieChart, Search } from "lucide-react"
-import { NotificationPopover } from "@/components/NotificationPopover"
-=======
 import PostForm from "@/components/posts/PostForm"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -36,7 +26,6 @@ import { PieChart, Search, Rocket } from "lucide-react"
 import { NotificationPopover } from "@/components/NotificationPopover"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
->>>>>>> c4fed67257d4be5662eacad5837884b53dec1538
 import { auth } from "@/config/firebase"
 import { onIdTokenChanged } from "firebase/auth"
 import { setAuthToken, setCurrentUser, getAuthToken } from "@/services/api"
@@ -176,21 +165,15 @@ function App() {
     } else if (path === "/news") {
       setIsAuthenticated(true)
       setPage("news")
-<<<<<<< HEAD
     } else if (path === "/pitch-practice") {
       setIsAuthenticated(true)
       setPage("pitch-practice")
-=======
-<<<<<<< HEAD
-=======
     } else if (path === "/myprojects") {
       setIsAuthenticated(true)
       setPage("myprojects")
->>>>>>> c4fed67257d4be5662eacad5837884b53dec1538
     } else if (path === "/discovery") {
       setIsAuthenticated(true)
       setPage("discovery")
->>>>>>> d48ffe07c439f352a2204664a724a0b883834ee9
     } else if (path === "/entrepreneur") {
       setIsAuthenticated(true)
       setPage("entrepreneur")
@@ -291,15 +274,12 @@ function App() {
       } else if (path === '/notifications') {
         setIsAuthenticated(true)
         setPage('notifications')
-<<<<<<< HEAD
       } else if (path === '/pitch-practice') {
         setIsAuthenticated(true)
         setPage('pitch-practice')
-=======
       } else if (path === '/myprojects') {
         setIsAuthenticated(true)
         setPage('myprojects')
->>>>>>> d48ffe07c439f352a2204664a724a0b883834ee9
       }
     }
     window.addEventListener('popstate', handleLocation)
@@ -315,20 +295,11 @@ function App() {
     if (!isAuthenticated || !role) return
     const target = role === "freelancer" ?
       "freelancer" : role === "investor" ? "investor" : "entrepreneur"
-<<<<<<< HEAD
     const protectedPages = [
       "meeting", "chat", "profile", "client-profile",
       "freelanceranalytics", "investoranalytics", "entrepreneuranalytics",
-      "myposts", "notifications", "proposal", "news", "discovery"
+      "myposts", "myprojects", "notifications", "proposal", "news", "discovery", "pitch-practice"
     ]
-=======
-    // List of pages that should NOT be auto-redirected to the dashboard
-<<<<<<< HEAD
-    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "notifications", "proposal", "news", "pitch-practice"]
-=======
-    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "myprojects", "notifications", "proposal", "news", "discovery"]
->>>>>>> c4fed67257d4be5662eacad5837884b53dec1538
->>>>>>> d48ffe07c439f352a2204664a724a0b883834ee9
     if (page !== target && !protectedPages.includes(page)) {
       setPage(target)
       window.history.pushState({}, "", `/${target}`)
@@ -344,26 +315,16 @@ function App() {
     const rolePath = currentRole === "freelancer" ? "/freelancer" : currentRole === "investor" ? "/investor" : "/entrepreneur"
     const analyticsPath = currentRole === "freelancer" ? "/freelanceranalytics" : currentRole === "investor" ? "/investoranalytics" : "/entrepreneuranalytics"
     return [
-<<<<<<< HEAD
       { title: roleTitle, icon: PieChart, url: rolePath, isActive: true },
       { title: "Messages", icon: PieChart, url: "/chat" },
-      { title: "Analytics", icon: PieChart, url: analyticsPath },
-      { title: "My Posts", url: "/myposts" },
-      { title: "News", url: "/news" },
-<<<<<<< HEAD
-      ...(currentRole === 'entrepreneur' ? [{ title: "AI Pitch Practice", url: "/pitch-practice" }] : []),
-=======
-      { title: "Discovery", icon: Search, url: "/discovery" },
-=======
-      { title: `${roleTitle}`, icon: PieChart, url: rolePath, isActive: true },
-      { title: "Messages", icon: PieChart, url: "/chat" },
       { title: "Discovery", icon: Search, url: "/discovery" },
       { title: "Analytics", icon: PieChart, url: analyticsPath },
       { title: "My Posts", url: "/myposts" },
       { title: "News", url: "/news" },
-      ...(currentRole === 'entrepreneur' ? [{ title: "My Projects", url: "/myprojects" }] : []),
->>>>>>> c4fed67257d4be5662eacad5837884b53dec1538
->>>>>>> d48ffe07c439f352a2204664a724a0b883834ee9
+      ...(currentRole === 'entrepreneur' ? [
+        { title: "My Projects", url: "/myprojects" },
+        { title: "AI Pitch Practice", url: "/pitch-practice" }
+      ] : []),
       ...(currentRole === 'freelancer' ? [{ title: "Notifications", url: "/notifications" }] : []),
     ]
   }
@@ -419,102 +380,6 @@ function App() {
       discovery: "Discovery Hub",
     }
 
-<<<<<<< HEAD
-    return (
-      <SidebarProvider>
-        <AppSidebar navMain={navForRole} onNavigate={(path) => {
-          if (path === '/account') path = '/profile'
-          if (path === '/dashboard') {
-            const roleTarget = role === 'freelancer' ? '/freelancer' : (role === 'investor' ? '/investor' : '/entrepreneur')
-            path = roleTarget
-          }
-          if (path === '/login') {
-            try {
-              window.localStorage.removeItem('uid')
-              sessionStorage.removeItem('pendingRole')
-            } catch {}
-            setIsAuthenticated(false)
-            setPage('login')
-            window.history.pushState({}, '', '/login')
-            return
-          }
-          const pageName = path.replace(/^\//, '')
-          setPage(pageName)
-          window.history.pushState({}, '', path)
-        }} />
-        <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
-            <SidebarTrigger />
-            <div className="flex-1">
-<<<<<<< HEAD
-              <h1 className="text-lg font-semibold">
-                {page === "dashboard"
-                  ? "Dashboard"
-                  : page === "chat"
-                  ? "Chat"
-                  : page === "profile"
-                  ? "Profile"
-                  : page === "client-profile"
-                  ? "Client Profile"
-                  : page === "entrepreneuranalytics"
-                  ? "Entrepreneur Analytics"
-                  : page === "freelanceranalytics"
-                  ? "Freelancer Analytics"
-                  : page === "investoranalytics"
-                  ? "Investor Analytics"
-                  : page === "entrepreneur"
-                  ? "Entrepreneur Dashboard"
-                  : page === "freelancer"
-                  ? "Freelancer Dashboard"
-                  : page === "investor"
-                  ? "Investor Dashboard"
-                  : page === "notifications"
-                  ? "Notifications"
-                  : page === "proposal"
-                  ? "Send Proposal"
-                  : page === "news"
-                  ? "Ecosystem News"
-                  : page === "pitch-practice"
-                  ? "AI Pitch Practice"
-                  : ""}
-              </h1>
-=======
-              <h1 className="text-lg font-semibold">{pageTitle[page] || ""}</h1>
->>>>>>> d48ffe07c439f352a2204664a724a0b883834ee9
-            </div>
-            <div className="flex items-center gap-2">
-              <NotificationPopover />
-              <ThemeToggle />
-            </div>
-          </header>
-          <main className="flex-1 overflow-hidden min-h-0">
-            {page === "dashboard" && (
-              role === 'freelancer' ? <FreelancerDashboard /> :
-              role === 'investor' ? <InvestorDashboard /> :
-              <EntrepreneurDashboard />
-            )}
-            {page === "chat" && <ChatPage />}
-            {page === "profile" && <ProfilePage />}
-            {page === "client-profile" && <ClientProfilePage />}
-            {page === "entrepreneuranalytics" && <EntrepreneurAnalytics />}
-            {page === "freelanceranalytics" && <FreelancerAnalytics />}
-            {page === "investoranalytics" && <InvestorAnalytics />}
-            {page === "entrepreneur" && <EntrepreneurDashboard />}
-            {page === "freelancer" && <FreelancerDashboard />}
-            {page === "investor" && <InvestorDashboard />}
-            {page === "myposts" && <MyPostsPage />}
-            {page === "notifications" && <NotificationsPage />}
-            {page === "proposal" && <ProposalPage />}
-            {page === "news" && <NewsPage />}
-<<<<<<< HEAD
-            {page === "pitch-practice" && <PitchPractice />}
-=======
-            {page === "discovery" && <DiscoveryPage />}
->>>>>>> d48ffe07c439f352a2204664a724a0b883834ee9
-          </main>
-        </SidebarInset>
-      </SidebarProvider>
-=======
     const themeClass = role ? `theme-${role}` : ""
 
     return (
@@ -575,9 +440,11 @@ function App() {
                                             ? "Ecosystem News"
                                             : page === "myprojects"
                                               ? "My Projects"
-                                              : page === "discovery"
-                                                ? "Discovery Hub"
-                                                : ""}
+                                              : page === "pitch-practice"
+                                                ? "AI Pitch Practice"
+                                                : page === "discovery"
+                                                  ? "Discovery Hub"
+                                                  : ""}
                 </h1>
               </div>
               <div className="flex items-center gap-2">
@@ -626,11 +493,11 @@ function App() {
               {page === "proposal" && <ProposalPage />}
               {page === "news" && <NewsPage />}
               {page === "discovery" && <DiscoveryPage />}
+              {page === "pitch-practice" && <PitchPractice />}
             </main>
           </SidebarInset>
         </SidebarProvider>
       </div>
->>>>>>> c4fed67257d4be5662eacad5837884b53dec1538
     )
   }
 

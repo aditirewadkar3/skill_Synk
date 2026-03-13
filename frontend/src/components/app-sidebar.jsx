@@ -12,6 +12,7 @@ import {
   PieChart,
   Settings2,
   Terminal,
+  Newspaper,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -61,8 +62,6 @@ const data = {
 </lord-icon>,
       isActive: true,
     },
-<<<<<<< HEAD
-
     {
       title: "Proposal",
       url: "/proposal",
@@ -78,9 +77,6 @@ const data = {
       url: "/news",
       icon: Newspaper,
     },
-    
-=======
->>>>>>> c4fed67257d4be5662eacad5837884b53dec1538
     {
       title: "Entrepreneur",
       url: "/entrepreneur",
