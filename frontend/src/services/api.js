@@ -325,6 +325,14 @@ export const authAPI = {
 
   // Get current user
   getCurrentUser,
+
+  // Update profile fields (name, bio, skills, rate, etc.)
+  updateProfile: async (fields) => {
+    return await apiRequest('/auth/update-profile', {
+      method: 'PUT',
+      body: JSON.stringify(fields),
+    });
+  },
 };
 
 // Chat API

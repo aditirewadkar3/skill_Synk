@@ -12,12 +12,16 @@ import {
   PieChart,
   Settings2,
   Terminal,
+  Newspaper,
+  FileText,
+  Search,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavProjects } from "@/components/nav-projects";
 import { NavUser } from "@/components/nav-user";
 import { TeamSwitcher } from "@/components/team-switcher";
+
 import {
   Sidebar,
   SidebarContent,
@@ -57,6 +61,19 @@ const data = {
       icon: Terminal,
       isActive: true,
     },
+
+    {
+      title: "Proposal",
+      url: "/proposal",
+      icon: FileText,
+      isActive: true,
+    },
+    {
+      title: "News",
+      url: "/news",
+      icon: Newspaper,
+    },
+    
     {
       title: "Entrepreneur",
       url: "/entrepreneur",
@@ -86,6 +103,16 @@ const data = {
       title: "Analytics",
       url: "/analytics",
       icon: Frame,
+    },
+    {
+      title: "Proposal",
+      url: "/proposal",
+      icon: FileText,
+    },
+    {
+      title: "Discovery",
+      url: "/discovery",
+      icon: Search,
     },
   ],
   projects: [
@@ -146,7 +173,7 @@ export function AppSidebar({ user, teams, navMain, projects, onNavigate, ...prop
   }
   const role = getUserRole();
   const filteredNav = (merged.navMain || []).filter((item) => {
-    if (["Dashboard", "Messages", "Analytics", "Pitch Deck", "My Posts", "News"].includes(item.title)) return true;
+    if (["Dashboard", "Messages", "Analytics", "Pitch Deck", "My Posts", "News", "Proposal", "Discovery"].includes(item.title)) return true;
     if (item.title === "Entrepreneur") return role === "entrepreneur";
     if (item.title === "Freelancer") return role === "freelancer";
     if (item.title === "Investor") return role === "investor";

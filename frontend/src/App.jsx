@@ -16,14 +16,12 @@ import InvestorDashboard from "@/pages/investor"
 import MyPostsPage from "@/pages/myposts"
 import Landing from "@/pages/landing"
 import MeetingPage from "@/pages/meeting"
-<<<<<<< HEAD
 import ProposalPage from "@/pages/proposal"
-=======
 import NewsPage from "@/pages/news"
->>>>>>> 1a05c955d01909ac63f1b27d6c408ee86b2dfb27
+import DiscoveryPage from "@/pages/discovery"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { PieChart } from "lucide-react"
+import { PieChart, Search } from "lucide-react"
 import { auth } from "@/config/firebase"
 import { onIdTokenChanged } from "firebase/auth"
 import { setAuthToken, setCurrentUser } from "@/services/api"
@@ -107,15 +105,15 @@ function App() {
     } else if (path === "/myposts") {
       setIsAuthenticated(true)
       setPage("myposts")
-<<<<<<< HEAD
     } else if (path === "/proposal") {
       setIsAuthenticated(true)
       setPage("proposal")
-=======
     } else if (path === "/news") {
       setIsAuthenticated(true)
       setPage("news")
->>>>>>> 1a05c955d01909ac63f1b27d6c408ee86b2dfb27
+    } else if (path === "/discovery") {
+      setIsAuthenticated(true)
+      setPage("discovery")
     } else if (path === "/entrepreneur") {
       setIsAuthenticated(true)
       setPage("entrepreneur")
@@ -201,17 +199,16 @@ function App() {
         setPage('chat')
       } else if (path === "/myposts") {
         setIsAuthenticated(true)
-<<<<<<< HEAD
         setPage("myposts")
       } else if (path === "/proposal") {
         setIsAuthenticated(true)
         setPage("proposal")
-=======
-        setPage('myposts')
       } else if (path === '/news') {
         setIsAuthenticated(true)
         setPage('news')
->>>>>>> 1a05c955d01909ac63f1b27d6c408ee86b2dfb27
+      } else if (path === '/discovery') {
+        setIsAuthenticated(true)
+        setPage('discovery')
       } else if (path.startsWith('/meeting/')) {
         setIsAuthenticated(true)
         setPage('meeting')
@@ -231,11 +228,7 @@ function App() {
     const target = role === "freelancer" ? 
       "freelancer" : role === "investor" ? "investor" : "entrepreneur"
     // List of pages that should NOT be auto-redirected to the dashboard
-<<<<<<< HEAD
-    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "proposal"]
-=======
-    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "news"]
->>>>>>> 1a05c955d01909ac63f1b27d6c408ee86b2dfb27
+    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "proposal", "news", "discovery"]
     if (page !== target && !protectedPages.includes(page)) {
       setPage(target)
       window.history.pushState({}, "", `/${target}`)
@@ -263,6 +256,7 @@ function App() {
       { title: "Analytics", icon: PieChart, url: analyticsPath },
       { title: "My Posts", url: "/myposts" },
       { title: "News", url: "/news" },
+      { title: "Discovery", icon: Search, url: "/discovery" },
     ]
   }
   const navForRole = buildNavForRole(role)
@@ -356,13 +350,12 @@ function App() {
                   ? "Freelancer Dashboard"
                   : page === "investor"
                   ? "Investor Dashboard"
-<<<<<<< HEAD
                   : page === "proposal"
                   ? "Send Proposal"
-=======
                   : page === "news"
                   ? "Ecosystem News"
->>>>>>> 1a05c955d01909ac63f1b27d6c408ee86b2dfb27
+                  : page === "discovery"
+                  ? "Discovery Hub"
                   : ""}
               </h1>
             </div>
@@ -382,15 +375,11 @@ function App() {
             {page === "investoranalytics" && <InvestorAnalytics />}
             {page === "entrepreneur" && <EntrepreneurDashboard />}
             {page === "freelancer" && <FreelancerDashboard />}
-<<<<<<< HEAD
             {page === "investor" && <InvestorDashboard />}
             {page === "myposts" && <MyPostsPage />}
             {page === "proposal" && <ProposalPage />}
-=======
-            { page === "investor" && <InvestorDashboard />}
-            { page === "myposts" && <MyPostsPage />}
-            { page === "news" && <NewsPage />}
->>>>>>> 1a05c955d01909ac63f1b27d6c408ee86b2dfb27
+            {page === "news" && <NewsPage />}
+            {page === "discovery" && <DiscoveryPage />}
           </main>
         </SidebarInset>
       </SidebarProvider>
