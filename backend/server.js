@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.js';
 import chatRoutes from './routes/chat.js';
 import postsRoutes from './routes/posts.js';
 import meetingsRoutes from './routes/meetings.js';
+import newsRoutes from './routes/news.js';
 import { auth, db } from './config/firebase.js';
 
 dotenv.config();
@@ -56,6 +57,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/posts', postsRoutes);
 app.use('/api/meetings', meetingsRoutes);
+app.use('/api/news', newsRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

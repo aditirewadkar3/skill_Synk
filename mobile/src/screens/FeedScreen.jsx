@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import {
     View, Text, StyleSheet, FlatList, Image, TouchableOpacity,
     ActivityIndicator, RefreshControl, TextInput, Modal, Alert, StatusBar,
-    Linking,
+    Linking, Share,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { postsAPI } from '../services/api';
-import { getItem } from '../services/storage';
+import { postsAPI, getCurrentUser } from '../services/api';
+import { getItem, getJSON } from '../services/storage';
 import { THEME, SHADOW } from '../theme';
 
 // ───── Rich fallback posts (same as web) ─────
@@ -61,9 +61,67 @@ function PostCard({ post }) {
     const roleColors = THEME.roleBadgeColors[post.role] || { bg: '#f1f5f9', text: THEME.textMuted };
     const initials = (post.author || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
     const [summary, setSummary] = useState('');
+    const [likes, setLikes] = useState(post.likes || []);
+    const [comments, setComments] = useState(post.comments || []);
+    const [showComments, setShowComments] = useState(false);
+    const [commentText, setCommentText] = useState("");
+    const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+    const [me, setMe] = useState(null);
 
+    useEffect(() => {
+        (async () => {
+            const user = await getCurrentUser();
+            setMe(user);
+        })();
+    }, []);
+
+    const isLiked = me && likes.includes(me.uid);
     const isYoutube = post.mediaType === 'youtube' || post.mediaType === 'video';
     const isImage = post.mediaType === 'image';
+
+    const handleLike = async () => {
+        if (!me) return;
+        try {
+            const res = await postsAPI.likePost(post.id);
+            if (res.success) {
+                if (res.isLiked) {
+                    setLikes([...likes, me.uid]);
+                } else {
+                    setLikes(likes.filter(id => id !== me.uid));
+                }
+            }
+        } catch (err) {
+            console.error('Like error:', err);
+        }
+    };
+
+    const handleComment = async () => {
+        if (!me || !commentText.trim()) return;
+        try {
+            setIsSubmittingComment(true);
+            const res = await postsAPI.addComment(post.id, commentText, me.name);
+            if (res.success) {
+                setComments([...comments, res.comment]);
+                setCommentText("");
+            }
+        } catch (err) {
+            console.error('Comment error:', err);
+        } finally {
+            setIsSubmittingComment(false);
+        }
+    };
+
+    const handleShare = async () => {
+        try {
+            await Share.share({
+                title: post.title,
+                message: `Check out this post by ${post.author} on SkillSync: ${post.title}\n\n${post.description.substring(0, 100)}...`,
+                url: `https://skillsync.app/post/${post.id}` // Placeholder URL
+            });
+        } catch (error) {
+            console.error('Share error:', error.message);
+        }
+    };
 
     return (
         <View style={styles.post}>
@@ -86,7 +144,7 @@ function PostCard({ post }) {
             {/* Title */}
             <Text style={styles.postTitle}>{post.title}</Text>
 
-            {/* Full description — no truncation, whitespace preserved (same as web's whitespace-pre-line) */}
+            {/* Full description */}
             <Text style={styles.postDesc}>{post.description}</Text>
 
             {/* Image */}
@@ -114,13 +172,59 @@ function PostCard({ post }) {
 
             {/* Actions */}
             <View style={styles.actions}>
-                <TouchableOpacity style={styles.actionBtn}><Text style={styles.actionText}>👍 Like</Text></TouchableOpacity>
-                <TouchableOpacity style={styles.actionBtn}><Text style={styles.actionText}>💬 Comment</Text></TouchableOpacity>
-                <TouchableOpacity style={styles.actionBtn}><Text style={styles.actionText}>↗️ Share</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.actionBtn} onPress={handleLike}>
+                    <Text style={[styles.actionText, isLiked && { color: '#2563eb', fontWeight: '700' }]}>
+                        {isLiked ? '❤️' : '🤍'} {likes.length || ""} Like
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionBtn} onPress={() => setShowComments(!showComments)}>
+                    <Text style={[styles.actionText, showComments && { color: THEME.text }]}>
+                        💬 {comments.length || ""} Comment
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionBtn} onPress={handleShare}><Text style={styles.actionText}>↗️ Share</Text></TouchableOpacity>
                 <TouchableOpacity style={[styles.actionBtn, { marginLeft: 'auto' }]} onPress={() => setSummary(summarizeText(post.description, post.title))}>
                     <Text style={styles.summarizeBtn}>📝 Summarize</Text>
                 </TouchableOpacity>
             </View>
+
+            {/* Comments Section */}
+            {showComments && (
+                <View style={styles.commentSection}>
+                    <View style={styles.commentInputRow}>
+                        <TextInput
+                            style={styles.commentInput}
+                            placeholder="Add a comment..."
+                            placeholderTextColor={THEME.textSecondary}
+                            value={commentText}
+                            onChangeText={setCommentText}
+                            disabled={isSubmittingComment}
+                        />
+                        <TouchableOpacity 
+                            onPress={handleComment} 
+                            disabled={isSubmittingComment || !commentText.trim()}
+                            style={[styles.commentSubmit, (!commentText.trim() || isSubmittingComment) && { opacity: 0.5 }]}
+                        >
+                            <Text style={styles.commentSubmitText}>Post</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {comments.map((c) => (
+                        <View key={c.id} style={styles.commentItem}>
+                            <View style={styles.commentAvatar}>
+                                <Text style={styles.commentAvatarText}>{(c.authorName || 'U')[0].toUpperCase()}</Text>
+                            </View>
+                            <View style={styles.commentBubble}>
+                                <Text style={styles.commentAuthor}>{c.authorName}</Text>
+                                <Text style={styles.commentContent}>{c.content}</Text>
+                            </View>
+                        </View>
+                    ))}
+                    {comments.length === 0 && (
+                        <Text style={styles.noComments}>No comments yet.</Text>
+                    )}
+                </View>
+            )}
         </View>
     );
 }
@@ -315,6 +419,19 @@ const styles = StyleSheet.create({
     actionBtn: { paddingVertical: 4 },
     actionText: { color: THEME.textMuted, fontSize: 13 },
     summarizeBtn: { color: '#2563eb', fontSize: 13 },
+
+    commentSection: { marginTop: 12, borderTopWidth: 1, borderTopColor: THEME.cardBorder, paddingTop: 12 },
+    commentInputRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+    commentInput: { flex: 1, backgroundColor: THEME.backgroundMuted, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, fontSize: 14, color: THEME.text, borderWidth: 1, borderColor: THEME.cardBorder },
+    commentSubmit: { backgroundColor: THEME.primary, borderRadius: 8, paddingHorizontal: 12, justifyContent: 'center' },
+    commentSubmitText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+    commentItem: { flexDirection: 'row', gap: 10, marginBottom: 10 },
+    commentAvatar: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center' },
+    commentAvatarText: { fontSize: 10, fontWeight: '700', color: THEME.textMuted },
+    commentBubble: { flex: 1, backgroundColor: '#f8fafc', borderRadius: 12, padding: 8 },
+    commentAuthor: { fontSize: 12, fontWeight: '700', color: THEME.text, marginBottom: 2 },
+    commentContent: { fontSize: 13, color: '#334155' },
+    noComments: { textAlign: 'center', color: THEME.textMuted, fontSize: 12, fontStyle: 'italic', paddingVertical: 8 },
 
     modalOverlay: { flex: 1, backgroundColor: '#00000066', justifyContent: 'flex-end' },
     modalCard: { backgroundColor: THEME.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, borderTopWidth: 1, borderColor: THEME.cardBorder },

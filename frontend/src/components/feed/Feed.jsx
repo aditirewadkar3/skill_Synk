@@ -1,4 +1,5 @@
 import React from "react"
+import { postsAPI } from "@/services/api"
 
 const roleBadgeClasses = {
 	Investor: "bg-indigo-100 text-indigo-700",
@@ -26,8 +27,69 @@ function summarizeText(text) {
 
 function PostCard({ post, onSummarize }) {
     const [localSummary, setLocalSummary] = React.useState("");
+    const [likes, setLikes] = React.useState(post.likes || []);
+    const [comments, setComments] = React.useState(post.comments || []);
+    const [showComments, setShowComments] = React.useState(false);
+    const [commentText, setCommentText] = React.useState("");
+    const [isSubmittingComment, setIsSubmittingComment] = React.useState(false);
+
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const isLiked = likes.includes(currentUser.uid);
+
+    const handleLike = async () => {
+        try {
+            const res = await postsAPI.likePost(post.id);
+            if (res.success) {
+                if (res.isLiked) {
+                    setLikes([...likes, currentUser.uid]);
+                } else {
+                    setLikes(likes.filter(id => id !== currentUser.uid));
+                }
+            }
+        } catch (err) {
+            console.error('Like error:', err);
+        }
+    };
+
+    const handleComment = async (e) => {
+        e.preventDefault();
+        if (!commentText.trim()) return;
+
+        try {
+            setIsSubmittingComment(true);
+            const res = await postsAPI.addComment(post.id, commentText, currentUser.name);
+            if (res.success) {
+                setComments([...comments, res.comment]);
+                setCommentText("");
+            }
+        } catch (err) {
+            console.error('Comment error:', err);
+        } finally {
+            setIsSubmittingComment(false);
+        }
+    };
+
+    const handleShare = async () => {
+        const shareData = {
+            title: post.title,
+            text: `Check out this post by ${post.author} on SkillSync: ${post.title}`,
+            url: `${window.location.origin}/post/${post.id}`
+        };
+
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                await navigator.clipboard.writeText(`${shareData.text}\n${shareData.url}`);
+                alert('Link copied to clipboard! 📋');
+            }
+        } catch (err) {
+            console.error('Share error:', err);
+        }
+    };
+
     return (
-		<div className="bg-white rounded-xl shadow-md p-4 md:p-5 mb-5">
+		<div className="bg-white rounded-xl shadow-md p-4 md:p-5 mb-5 border border-gray-100">
             <div className="flex items-start gap-3">
                 <button
                     type="button"
@@ -68,13 +130,33 @@ function PostCard({ post, onSummarize }) {
                             </a>
                         </div>
                     )}
-            <div className="mt-4 pt-3 border-t flex items-center gap-6 text-sm text-gray-600">
-				<button type="button" className="hover:text-gray-900">👍 Like</button>
-				<button type="button" className="hover:text-gray-900">💬 Comment</button>
-				<button type="button" className="hover:text-gray-900">↗️ Share</button>
+            <div className="mt-4 pt-3 border-t flex items-center justify-between text-sm text-gray-500">
+                <div className="flex items-center gap-6">
+                    <button 
+                        type="button" 
+                        onClick={handleLike}
+                        className={`flex items-center gap-1.5 transition-colors ${isLiked ? 'text-blue-600 font-medium' : 'hover:text-gray-900'}`}
+                    >
+                        {isLiked ? '❤️' : '🤍'} {likes.length || ""} Like
+                    </button>
+                    <button 
+                        type="button" 
+                        onClick={() => setShowComments(!showComments)}
+                        className={`flex items-center gap-1.5 hover:text-gray-900 ${showComments ? 'text-gray-900' : ''}`}
+                    >
+                        💬 {comments.length || ""} Comment
+                    </button>
+                    <button 
+                        type="button" 
+                        onClick={handleShare}
+                        className="flex items-center gap-1.5 hover:text-gray-900"
+                    >
+                        ↗️ Share
+                    </button>
+                </div>
                 <button
 					type="button"
-					className="ml-auto text-blue-600 hover:text-blue-800"
+					className="text-blue-600 hover:text-blue-800 font-medium"
                     onClick={() => {
                         const text = post.summary || summarizeText(post.description)
                         const prefix = post.summary ? "✨ AI Summary: " : `${post.title} — `
@@ -88,14 +170,54 @@ function PostCard({ post, onSummarize }) {
                         })
                     }}
 				>
-					📝 Summarize pitch deck
+					📝 Summarize
 				</button>
 			</div>
             {localSummary && (
-                <div className="mt-3 border rounded-lg p-3 bg-gray-50">
-                    <p className="text-sm text-gray-800 whitespace-pre-line">{localSummary}</p>
+                <div className="mt-3 border rounded-lg p-3 bg-indigo-50/50 border-indigo-100">
+                    <p className="text-sm text-indigo-900 whitespace-pre-line">{localSummary}</p>
                     <div className="mt-2 text-right">
-                        <button className="text-xs text-gray-500 hover:text-gray-700" onClick={() => setLocalSummary("")}>Clear summary</button>
+                        <button className="text-xs text-indigo-400 hover:text-indigo-600" onClick={() => setLocalSummary("")}>Clear</button>
+                    </div>
+                </div>
+            )}
+
+            {showComments && (
+                <div className="mt-4 pt-4 border-t space-y-4">
+                    <form onSubmit={handleComment} className="flex gap-2">
+                        <input
+                            type="text"
+                            placeholder="Add a comment..."
+                            className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                            value={commentText}
+                            onChange={(e) => setCommentText(e.target.value)}
+                            disabled={isSubmittingComment}
+                        />
+                        <button
+                            type="submit"
+                            disabled={isSubmittingComment || !commentText.trim()}
+                            className="bg-blue-600 text-white rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                        >
+                            Post
+                        </button>
+                    </form>
+                    
+                    <div className="space-y-3">
+                        {comments.length > 0 ? (
+                            comments.map((comment) => (
+                                <div key={comment.id} className="flex gap-2.5">
+                                    <div className="h-7 w-7 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-400 shrink-0">
+                                        {(comment.authorName || 'U').charAt(0).toUpperCase()}
+                                    </div>
+                                    <div className="flex-1 bg-gray-50 rounded-2xl px-3 py-2 text-sm shadow-sm">
+                                        <div className="font-semibold text-gray-900 text-xs mb-0.5">{comment.authorName}</div>
+                                        <div className="text-gray-700 leading-relaxed">{comment.content}</div>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-center text-gray-400 text-xs py-2 italic font-light">No comments yet. Be the first!</p>
+                        )}
                     </div>
                 </div>
             )}
@@ -108,19 +230,20 @@ export default function Feed({ onSummarize, filterAuthorId, filterMode = 'exclud
     React.useEffect(() => {
         (async () => {
             try {
-                const res = await fetch('http://localhost:3001/api/posts');
-                const data = await res.json();
-                if (data?.success && Array.isArray(data.posts)) {
+                const fetchedPosts = await postsAPI.getAll();
+                if (Array.isArray(fetchedPosts)) {
                     // Map backend fields to Feed shape
-                    const mapped = data.posts.map(p => ({
+                    const mapped = fetchedPosts.map(p => ({
                         id: p.id,
                         author: p.authorName,
                         role: p.role,
-                        timestamp: p.createdAt?.toDate ? 'now' : 'now',
+                        timestamp: p.createdAt ? new Date(p.createdAt).toLocaleString() : 'now',
                         title: p.title,
                         description: p.description,
-                        summary: p.summary, // Added summary field
-                        mediaType: p.mediaType, // 'image' or 'youtube'
+                        summary: p.summary,
+                        likes: p.likes || [],
+                        comments: p.comments || [],
+                        mediaType: p.mediaType,
                         mediaUrl: p.mediaUrl,
                         authorId: p.authorId,
                     }));
@@ -128,7 +251,8 @@ export default function Feed({ onSummarize, filterAuthorId, filterMode = 'exclud
                 } else {
                     setPosts([]);
                 }
-            } catch {
+            } catch (err) {
+                console.error('Feed load error:', err);
                 setPosts([]);
             }
         })();
