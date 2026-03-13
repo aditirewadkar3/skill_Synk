@@ -50,6 +50,7 @@ export function ChatPage({ className }) {
               lastMessageTime: new Date(conv.lastMessageTime),
               unreadCount: conv.unreadCount || 0,
               role: conv.otherUser?.role || '',
+              isCommunity: !!conv.isCommunity,
             })
           }
         })
@@ -318,6 +319,13 @@ export function ChatPage({ className }) {
     setIsTyping(false)
   }, [])
 
+  // Handle community name update
+  const handleUpdateCommunityName = React.useCallback((chatId, newName) => {
+    setUsers(prev => prev.map(u => 
+      u.id === chatId ? { ...u, name: newName } : u
+    ))
+  }, [])
+
   // Get selected user object from current list
   const selectedUser = selectedUserId
     ? users.find(u => u.id === selectedUserId) || null
@@ -345,6 +353,7 @@ export function ChatPage({ className }) {
               onBack={() => setSelectedUserId(null)}
               isTyping={isTyping}
               connectionStatus={connectionStatus}
+              onUpdateCommunityName={handleUpdateCommunityName}
             />
           </div>
         ) : (

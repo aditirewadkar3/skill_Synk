@@ -130,28 +130,39 @@ export function ChatSidebar({
                         )}>
                         <div className="relative">
                           <Avatar className="h-12 w-12">
-                            <AvatarImage src={user.avatar} alt={user.name} />
+                            <AvatarImage src={user.isCommunity ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}` : user.avatar} alt={user.name} />
                             <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                           </Avatar>
-                          <Badge
-                            variant={user.status === "online" ? "default" : "secondary"}
-                            className={cn(
-                              "absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-background p-0",
-                              user.status === "online" ? "bg-green-500" : "bg-gray-400"
-                            )}>
-                            <span className="sr-only">{user.status}</span>
-                          </Badge>
+                          {!user.isCommunity && (
+                            <Badge
+                              variant={user.status === "online" ? "default" : "secondary"}
+                              className={cn(
+                                "absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-background p-0",
+                                user.status === "online" ? "bg-green-500" : "bg-gray-400"
+                              )}>
+                              <span className="sr-only">{user.status}</span>
+                            </Badge>
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2 mb-1">
                             <div className="flex items-center gap-2 min-w-0">
                               <h3 className="font-medium truncate">{user.name}</h3>
-                              {user.role && (
-                                <Badge variant="outline" className="text-xs px-1.5 py-0 h-5 shrink-0">
-                                  {user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()}
-                                </Badge>
+                                {user.isCommunity ? (
+                                  <Badge variant="default" className="bg-blue-600 text-[10px] px-1.5 py-0 h-5 shrink-0 font-bold uppercase">
+                                    Community
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-xs px-1.5 py-0 h-5 shrink-0">
+                                    {user.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()) : 'User'}
+                                  </Badge>
+                                )}
+                              </div>
+                              {user.isCommunity && (
+                                <span className="text-[10px] bg-muted px-1 rounded text-muted-foreground ml-1">
+                                  {user.memberCount || 2} members
+                                </span>
                               )}
-                            </div>
                             {user.lastMessageTime && (
                               <span className="text-xs text-muted-foreground whitespace-nowrap">
                                 {formatTime(user.lastMessageTime)}

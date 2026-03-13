@@ -66,29 +66,51 @@ router.post('/messages', verifyToken, async (req, res) => {
       });
     }
 
-    // Create message document
-    const messageRef = db.collection('messages').doc();
-    const messageData = {
-      senderId,
-      receiverId,
-      content: content.trim(),
-      timestamp: new Date(),
-      read: false,
-    };
+    // Fetch sender info
+    const senderDoc = await db.collection('users').doc(senderId).get();
+    const senderName = senderDoc.exists ? (senderDoc.data().name || 'Freelancer') : 'Freelancer';
 
-    await messageRef.set(messageData);
+    // Determine chatId
+    let chatId;
+    let isCommunity = false;
+    
+    if (receiverId.startsWith('community_')) {
+      chatId = receiverId;
+      isCommunity = true;
+    } else {
+      chatId = [senderId, receiverId].sort().join('_');
+    }
 
-    // Update chat list for both users
-    const chatId = [senderId, receiverId].sort().join('_');
-    const [p1, p2] = [senderId, receiverId].sort();
-
-    await db.collection('chats').doc(chatId).set({
-      participant1: p1,
-      participant2: p2,
+    // Update chat list
+    const chatRef = db.collection('chats').doc(chatId);
+    const chatUpdate = {
       lastMessage: content,
       lastMessageTime: new Date(),
       updatedAt: new Date(),
-    }, { merge: true });
+    };
+
+    if (!isCommunity) {
+      const [p1, p2] = [senderId, receiverId].sort();
+      chatUpdate.participant1 = p1;
+      chatUpdate.participant2 = p2;
+    }
+
+    await chatRef.set(chatUpdate, { merge: true });
+
+    // Store message
+    const messageRef = db.collection('messages').doc();
+    const messageData = {
+      senderId,
+      senderName,
+      receiverId: isCommunity ? null : receiverId,
+      chatId,
+      content: content.trim(),
+      timestamp: new Date(),
+      read: false,
+      isCommunity,
+    };
+
+    await messageRef.set(messageData);
 
     const messageResponse = convertTimestamps({
       id: messageRef.id,
@@ -115,38 +137,54 @@ router.get('/messages/:userId', verifyToken, async (req, res) => {
   try {
     const { userId } = req.params;
     const currentUserId = req.user.uid;
+    const unreadMessageDocs = [];
 
     // Get messages where current user is sender or receiver
     const messagesRef = db.collection('messages');
     
-    const sentMessages = await messagesRef
-      .where('senderId', '==', currentUserId)
-      .where('receiverId', '==', userId)
-      .orderBy('timestamp', 'asc')
-      .get();
+    let allMessages = [];
 
-    const receivedMessages = await messagesRef
-      .where('senderId', '==', userId)
-      .where('receiverId', '==', currentUserId)
-      .orderBy('timestamp', 'asc')
-      .get();
-
-    // Combine and sort messages
-    const allMessages = [];
-    
-    sentMessages.forEach(doc => {
-      allMessages.push({
-        id: doc.id,
-        ...doc.data(),
+    if (userId.startsWith('community_')) {
+      const snapshot = await messagesRef
+        .where('chatId', '==', userId)
+        .orderBy('timestamp', 'asc')
+        .get();
+      
+      snapshot.forEach(doc => {
+        allMessages.push({ id: doc.id, ...doc.data() });
       });
-    });
+    } else {
+      const sentMessages = await messagesRef
+        .where('senderId', '==', currentUserId)
+        .where('receiverId', '==', userId)
+        .orderBy('timestamp', 'asc')
+        .get();
 
-    receivedMessages.forEach(doc => {
-      allMessages.push({
-        id: doc.id,
-        ...doc.data(),
+      const receivedMessages = await messagesRef
+        .where('senderId', '==', userId)
+        .where('receiverId', '==', currentUserId)
+        .orderBy('timestamp', 'asc')
+        .get();
+
+      sentMessages.forEach(doc => {
+        allMessages.push({
+          id: doc.id,
+          ...doc.data(),
+        });
       });
-    });
+
+      receivedMessages.forEach(doc => {
+        allMessages.push({
+          id: doc.id,
+          ...doc.data(),
+        });
+
+        // Track unread received messages to mark as read later
+        if (!doc.data().read) {
+          unreadMessageDocs.push(doc);
+        }
+      });
+    }
 
     // Sort by timestamp
     allMessages.sort((a, b) => {
@@ -156,10 +194,9 @@ router.get('/messages/:userId', verifyToken, async (req, res) => {
     });
 
     // Mark messages as read
-    const unreadMessages = receivedMessages.docs.filter(doc => !doc.data().read);
-    if (unreadMessages.length > 0) {
+    if (unreadMessageDocs.length > 0) {
       const batch = db.batch();
-      unreadMessages.forEach(doc => {
+      unreadMessageDocs.forEach(doc => {
         batch.update(doc.ref, { read: true });
       });
       await batch.commit();
@@ -198,16 +235,25 @@ router.get('/conversations', verifyToken, async (req, res) => {
       .where('participant2', '==', currentUserId)
       .get();
 
+    const communityQuery = await chatsRef
+      .where('members', 'array-contains', currentUserId)
+      .get();
+
     const conversationsMap = new Map();
 
     // Process participant1 chats
     chatsQuery1.forEach(doc => {
       const chatData = doc.data();
+      const isComm = !!chatData.isCommunity;
       conversationsMap.set(doc.id, {
         chatId: doc.id,
-        otherUserId: chatData.participant2,
+        otherUserId: isComm ? doc.id : chatData.participant2,
+        name: chatData.name || null,
         lastMessage: chatData.lastMessage,
         lastMessageTime: chatData.lastMessageTime,
+        isCommunity: isComm,
+        members: chatData.members || [chatData.participant1, chatData.participant2].filter(Boolean),
+        memberCount: chatData.members ? chatData.members.length : (isComm ? 2 : 0)
       });
     });
 
@@ -215,11 +261,33 @@ router.get('/conversations', verifyToken, async (req, res) => {
     chatsQuery2.forEach(doc => {
       if (!conversationsMap.has(doc.id)) {
         const chatData = doc.data();
+        const isComm = !!chatData.isCommunity;
         conversationsMap.set(doc.id, {
           chatId: doc.id,
-          otherUserId: chatData.participant1,
+          otherUserId: isComm ? doc.id : chatData.participant1,
+          name: chatData.name || null,
           lastMessage: chatData.lastMessage,
           lastMessageTime: chatData.lastMessageTime,
+          isCommunity: isComm,
+          members: chatData.members || [chatData.participant1, chatData.participant2].filter(Boolean),
+          memberCount: chatData.members ? chatData.members.length : (isComm ? 2 : 0)
+        });
+      }
+    });
+
+    // Process community chats (Explicit members search)
+    communityQuery.forEach(doc => {
+      if (!conversationsMap.has(doc.id)) {
+        const chatData = doc.data();
+        conversationsMap.set(doc.id, {
+          chatId: doc.id,
+          otherUserId: doc.id,
+          name: chatData.name || 'Freelancer Community',
+          lastMessage: chatData.lastMessage,
+          lastMessageTime: chatData.lastMessageTime,
+          isCommunity: true,
+          memberCount: chatData.members?.length || 0,
+          members: chatData.members || []
         });
       }
     });
@@ -229,6 +297,21 @@ router.get('/conversations', verifyToken, async (req, res) => {
     // Get unread counts and user info for each conversation
     const conversationsWithDetails = await Promise.all(
       conversations.map(async (conv) => {
+        if (conv.isCommunity) {
+          return {
+            ...conv,
+            unreadCount: 0,
+            otherUser: {
+              id: conv.chatId,
+              name: conv.name || 'Freelancer Community',
+              avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${conv.chatId}`,
+              role: 'community',
+              isCommunity: true,
+              memberCount: conv.members?.length || 2
+            }
+          };
+        }
+
         // Get unread count
         const unreadQuery = await db.collection('messages')
           .where('senderId', '==', conv.otherUserId)

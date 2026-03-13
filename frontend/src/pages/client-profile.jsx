@@ -1,5 +1,5 @@
 import * as React from "react"
-import { getCurrentUser } from "@/services/api"
+import { getCurrentUser, communityAPI } from "@/services/api"
 import {
   Card,
   CardContent,
@@ -34,7 +34,9 @@ export default function ClientProfilePage() {
     email: "",
     phone: "",
     location: "",
+    role: "",
   })
+  const [requestLoading, setRequestLoading] = React.useState(false)
 
   const [businessData] = React.useState({
     companyName: "Innovate Inc.",
@@ -97,6 +99,7 @@ export default function ClientProfilePage() {
           ...prev,
           fullName: u.name || prev.fullName || "",
           email: u.email || prev.email || "",
+          role: u.role || "",
         }))
       } catch {}
     })()
@@ -107,8 +110,25 @@ export default function ClientProfilePage() {
     const targetUid = params.get("uid")
     if (!targetUid) return
     try { localStorage.setItem('chatTargetUid', targetUid) } catch {}
-    window.history.pushState({}, '', `/chat?with=${targetUid}`)
     window.dispatchEvent(new Event('app:navigate'))
+  }
+
+  const handleJoinCommunity = async () => {
+    const params = new URLSearchParams(window.location.search)
+    const targetUid = params.get("uid")
+    if (!targetUid) return
+    
+    try {
+      setRequestLoading(true)
+      const res = await communityAPI.request(targetUid)
+      if (res.success) {
+        alert("Community request sent successfully!")
+      }
+    } catch (error) {
+      alert(error.message || "Failed to send community request")
+    } finally {
+      setRequestLoading(false)
+    }
   }
 
   const getInitials = (name) => {
@@ -125,7 +145,18 @@ export default function ClientProfilePage() {
       <div className="container max-w-7xl mx-auto px-4 py-6 sm:py-8">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-semibold">Profile</h1>
-          <Button onClick={handleStartChat}>Message</Button>
+          <div className="flex gap-2">
+            {getCurrentUser()?.role === 'freelancer' && personalData.role === 'freelancer' && (
+              <Button 
+                variant="outline" 
+                onClick={handleJoinCommunity}
+                disabled={requestLoading}
+              >
+                {requestLoading ? "Sending..." : "Join Community"}
+              </Button>
+            )}
+            <Button onClick={handleStartChat}>Message</Button>
+          </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Sidebar - Profile Summary */}

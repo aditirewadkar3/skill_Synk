@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { LoginForm } from "@/components/login-form"
 import { SignupForm } from "@/components/signup-form"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { io } from "socket.io-client"
 import { ChatPage } from "@/components/chat/ChatPage"
 // Optional Dashboard import removed (page not present)
 // import Dashboard from "@/pages/dashboard"
@@ -16,12 +17,16 @@ import InvestorDashboard from "@/pages/investor"
 import MyPostsPage from "@/pages/myposts"
 import Landing from "@/pages/landing"
 import MeetingPage from "@/pages/meeting"
+import NotificationsPage from "@/pages/notifications"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { PieChart } from "lucide-react"
+import { NotificationPopover } from "@/components/NotificationPopover"
 import { auth } from "@/config/firebase"
 import { onIdTokenChanged } from "firebase/auth"
-import { setAuthToken, setCurrentUser } from "@/services/api"
+import { setAuthToken, setCurrentUser, getAuthToken } from "@/services/api"
+
+const SOCKET_URL = "http://localhost:3001"
 
 function App() {
   const [page, setPage] = useState("login")
@@ -29,6 +34,7 @@ function App() {
   const [role, setRole] = useState(null)
   const [roleLoading, setRoleLoading] = useState(false)
   const [isAuthReady, setIsAuthReady] = useState(false)
+  const [socket, setSocket] = useState(null)
 
   // Sync Firebase Auth state with local storage
   useEffect(() => {
@@ -54,6 +60,57 @@ function App() {
     })
     return () => unsubscribe()
   }, [])
+
+  // Manage Global Socket Connection
+  useEffect(() => {
+    if (!isAuthenticated || !isAuthReady) {
+      if (socket) {
+        socket.disconnect()
+        setSocket(null)
+      }
+      return
+    }
+
+    const token = getAuthToken()
+    if (!token) return
+
+    const newSocket = io(SOCKET_URL, {
+      auth: { token },
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    })
+
+    newSocket.on('connect', () => {
+      console.log('Global Socket connected')
+    })
+
+    newSocket.on('notification', (data) => {
+      console.log('Real-time notification received:', data)
+      // Dispatch a global event so NotificationPopover (or others) can react
+      window.dispatchEvent(new CustomEvent('app:notification', { detail: data }))
+    })
+
+    setSocket(newSocket)
+    // Attach to window for legacy components like ChatPage to re-use if needed
+    window.socket = newSocket
+
+    return () => {
+      newSocket.disconnect()
+      window.socket = null
+    }
+  }, [isAuthenticated, isAuthReady])
+
+  // Re-connect socket on token refresh
+  useEffect(() => {
+    const onRefreshed = (e) => {
+      const newToken = e?.detail?.token
+      if (!newToken || !socket) return
+      socket.auth.token = newToken
+      socket.disconnect().connect()
+    }
+    window.addEventListener('auth:token-refreshed', onRefreshed)
+    return () => window.removeEventListener('auth:token-refreshed', onRefreshed)
+  }, [socket])
 
   // Handle navigation based on window location
   useEffect(() => {
@@ -102,6 +159,9 @@ function App() {
     } else if (path === "/myposts") {
       setIsAuthenticated(true)
       setPage("myposts")
+    } else if (path === "/notifications") {
+      setIsAuthenticated(true)
+      setPage("notifications")
     } else if (path === "/entrepreneur") {
       setIsAuthenticated(true)
       setPage("entrepreneur")
@@ -191,6 +251,9 @@ function App() {
       } else if (path.startsWith('/meeting/')) {
         setIsAuthenticated(true)
         setPage('meeting')
+      } else if (path === '/notifications') {
+        setIsAuthenticated(true)
+        setPage('notifications')
       }
     }
     window.addEventListener('popstate', handleLocation)
@@ -207,7 +270,7 @@ function App() {
     const target = role === "freelancer" ? 
       "freelancer" : role === "investor" ? "investor" : "entrepreneur"
     // List of pages that should NOT be auto-redirected to the dashboard
-    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts"]
+    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "notifications"]
     if (page !== target && !protectedPages.includes(page)) {
       setPage(target)
       window.history.pushState({}, "", `/${target}`)
@@ -234,6 +297,7 @@ function App() {
       { title: "Messages", icon: PieChart , url: "/chat" },
       { title: "Analytics", icon: PieChart, url: analyticsPath },
       { title: "My Posts", url: "/myposts" },
+      ...(currentRole === 'freelancer' ? [{ title: "Notifications", url: "/notifications" }] : []),
     ]
   }
   const navForRole = buildNavForRole(role)
@@ -327,10 +391,15 @@ function App() {
                   ? "Freelancer Dashboard"
                   : page === "investor"
                   ? "Investor Dashboard"
+                  : page === "notifications"
+                  ? "Notifications"
                   : ""}
               </h1>
             </div>
-            <ThemeToggle />
+            <div className="flex items-center gap-2">
+              <NotificationPopover />
+              <ThemeToggle />
+            </div>
           </header>
           <main className="flex-1 overflow-hidden min-h-0">
             {page === "dashboard" && (
@@ -348,6 +417,7 @@ function App() {
             {page === "freelancer" && <FreelancerDashboard />}
             {page === "investor" && <InvestorDashboard />}
             {page === "myposts" && <MyPostsPage />}
+            {page === "notifications" && <NotificationsPage />}
           </main>
         </SidebarInset>
       </SidebarProvider>
