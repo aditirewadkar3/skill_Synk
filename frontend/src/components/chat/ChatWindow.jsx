@@ -27,6 +27,7 @@ export function ChatWindow({
   const [scheduleOpen, setScheduleOpen] = React.useState(false)
   const [meetingLoading, setMeetingLoading] = React.useState(false)
   const [meetingLink, setMeetingLink] = React.useState(null)
+  const [scheduledTime, setScheduledTime] = React.useState("")
   const [communitySettingsOpen, setCommunitySettingsOpen] = React.useState(false)
   const getUserRole = React.useCallback(() => {
     try {
@@ -144,24 +145,67 @@ export function ChatWindow({
           </SheetHeader>
           <div className="mt-4 space-y-4">
             {!meetingLink ? (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">Create a LiveKit meeting and share the invite link.</p>
-                <Button disabled={meetingLoading} onClick={async () => {
-                  try {
-                    setMeetingLoading(true)
-                    const res = await meetingsAPI.schedule({ participantId: user?.id, participantName: user?.name })
-                    if (res?.success && res?.token && res?.roomName) {
-                      const link = `${window.location.origin}/meeting/${res.roomName}?token=${res.token}`;
-                      setMeetingLink(link);
-                    } else {
-                      setMeetingLink(res?.links?.host || null)
+              <div className="space-y-4">
+                <div className="space-y-3 pb-4 border-b">
+                  <p className="text-sm font-medium">1. Start Immediately</p>
+                  <p className="text-xs text-muted-foreground">Create a LiveKit meeting and share the link in chat right now.</p>
+                  <Button className="w-full" variant="default" disabled={meetingLoading} onClick={async () => {
+                    try {
+                      setMeetingLoading(true)
+                      const res = await meetingsAPI.schedule({ 
+                        participantId: user?.id, 
+                        participantName: user?.name,
+                        scheduledTime: null
+                      })
+                      if (res?.success && res?.token && res?.roomName) {
+                        const link = `${window.location.origin}/meeting/${res.roomName}?token=${res.token}`;
+                        setMeetingLink(link);
+                        setScheduledTime(""); // Ensure it knows it's an immediate meeting
+                      } else {
+                        setMeetingLink(res?.links?.host || null)
+                      }
+                    } catch (e) {
+                      console.error('Schedule meeting failed', e)
+                    } finally {
+                      setMeetingLoading(false)
                     }
-                  } catch (e) {
-                    console.error('Schedule meeting failed', e)
-                  } finally {
-                    setMeetingLoading(false)
-                  }
-                }}>{meetingLoading ? 'Creating…' : 'Create meeting now'}</Button>
+                  }}>
+                    {meetingLoading && !scheduledTime ? 'Creating…' : 'Create meeting now'}
+                  </Button>
+                </div>
+
+                <div className="space-y-3 pt-2">
+                  <p className="text-sm font-medium">2. Schedule for Later</p>
+                  <p className="text-xs text-muted-foreground">Pick a future time. Both of you will get a notification.</p>
+                  <Input 
+                    type="datetime-local" 
+                    value={scheduledTime} 
+                    onChange={(e) => setScheduledTime(e.target.value)} 
+                    className="w-full"
+                  />
+                  <Button className="w-full" variant="outline" disabled={meetingLoading || !scheduledTime} onClick={async () => {
+                    try {
+                      setMeetingLoading(true)
+                      const res = await meetingsAPI.schedule({ 
+                        participantId: user?.id, 
+                        participantName: user?.name,
+                        scheduledTime: new Date(scheduledTime).toISOString()
+                      })
+                      if (res?.success && res?.token && res?.roomName) {
+                        const link = `${window.location.origin}/meeting/${res.roomName}?token=${res.token}`;
+                        setMeetingLink(link);
+                      } else {
+                        setMeetingLink(res?.links?.host || null)
+                      }
+                    } catch (e) {
+                      console.error('Schedule meeting failed', e)
+                    } finally {
+                      setMeetingLoading(false)
+                    }
+                  }}>
+                    {meetingLoading && scheduledTime ? 'Scheduling…' : 'Schedule meeting'}
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="space-y-3">
@@ -172,14 +216,20 @@ export function ChatWindow({
                   <div className="flex flex-col gap-2 pt-2">
                     <Button className="w-full" onClick={() => {
                       const cleanLink = meetingLink.split('?')[0];
-                      onSendMessage(`📅 Scheduled a LiveKit meeting. Join here: ${cleanLink}`);
-                      window.open(meetingLink, '_blank');
+                      const timeStr = scheduledTime 
+                        ? `for ${new Date(scheduledTime).toLocaleString()}` 
+                        : 'now';
+                      onSendMessage(`📅 Scheduled a LiveKit meeting ${timeStr}. Join here: ${cleanLink}`);
+                      if (!scheduledTime) {
+                        window.open(meetingLink, '_blank');
+                      }
                       setScheduleOpen(false);
                       setMeetingLink(null);
-                    }}>Join & Share to Chat</Button>
+                      setScheduledTime("");
+                    }}>{scheduledTime ? 'Share to Chat' : 'Join & Share to Chat'}</Button>
                     <div className="flex gap-2">
                       <Button variant="outline" className="flex-1" onClick={() => navigator.clipboard.writeText(meetingLink)}>Copy Link</Button>
-                      <Button variant="ghost" className="flex-1" onClick={() => setMeetingLink(null)}>Cancel</Button>
+                      <Button variant="ghost" className="flex-1" onClick={() => { setMeetingLink(null); setScheduledTime(""); }}>Cancel</Button>
                     </div>
                   </div>
               </div>
