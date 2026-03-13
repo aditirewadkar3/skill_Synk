@@ -270,7 +270,9 @@ export const postsAPI = {
                     timestamp: p.createdAt ? new Date(p.createdAt).toLocaleString() : 'now',
                     title: p.title,
                     description: p.description,
-                    summary: p.summary, // Added summary field
+                    summary: p.summary,
+                    likes: p.likes || [],
+                    comments: p.comments || [],
                     mediaType: p.mediaType,
                     mediaUrl: p.mediaUrl,
                     authorId: p.authorId,
@@ -327,6 +329,25 @@ export const postsAPI = {
             throw new Error(data?.error || data?.message || `Post failed (${res.status})`);
         }
         return data;
+    },
+
+    // Like or unlike a post
+    likePost: async (postId) => {
+        await ensureFreshToken();
+        const response = await apiRequest(`/posts/${postId}/like`, {
+            method: 'POST',
+        });
+        return response;
+    },
+
+    // Add a comment to a post
+    addComment: async (postId, content, authorName) => {
+        await ensureFreshToken();
+        const response = await apiRequest(`/posts/${postId}/comment`, {
+            method: 'POST',
+            body: JSON.stringify({ content, authorName }),
+        });
+        return response;
     },
 };
 
