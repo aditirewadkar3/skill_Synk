@@ -20,17 +20,15 @@ export function NotificationPopover() {
   const [actionLoading, setActionLoading] = React.useState(null)
   
   const user = getCurrentUser()
-  const isFreelancer = user?.role === 'freelancer'
 
   const fetchNotifications = React.useCallback(async () => {
-    if (!isFreelancer) return
     try {
       const data = await communityAPI.getNotifications()
       setNotifications(data)
     } catch (error) {
       console.error("Failed to fetch notifications:", error)
     }
-  }, [isFreelancer])
+  }, [])
 
   React.useEffect(() => {
     fetchNotifications()
@@ -82,8 +80,6 @@ export function NotificationPopover() {
       setActionLoading(null)
     }
   }
-
-  if (!isFreelancer) return null
 
   const unreadCount = notifications.length
 
@@ -138,7 +134,9 @@ export function NotificationPopover() {
                     <p className="text-[13px] text-muted-foreground line-clamp-2">
                       {notification.isRequest 
                         ? "sent you a community invite" 
-                        : (notification.message || "updated your request status")}
+                        : (notification.type === 'meeting' 
+                            ? notification.message 
+                            : (notification.message || "updated your request status"))}
                     </p>
                     <p className="text-[10px] text-muted-foreground mt-1">
                       {new Date(notification.createdAt).toLocaleDateString()}
@@ -168,6 +166,19 @@ export function NotificationPopover() {
                         Decline
                       </Button>
                     </>
+                  ) : notification.type === 'meeting' && notification.link ? (
+                    <Button 
+                      size="sm" 
+                      className="w-full h-7 text-[11px] gap-1 bg-gradient-to-r from-primary to-primary/80"
+                      disabled={actionLoading === notification.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(notification.link, '_blank');
+                        handleMarkRead(e, notification.id);
+                      }}
+                    >
+                      Join Meeting
+                    </Button>
                   ) : (
                     <Button 
                       size="sm" 
