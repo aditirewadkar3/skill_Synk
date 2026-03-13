@@ -204,6 +204,83 @@ router.post('/:id/comment', verifyToken, async (req, res) => {
   }
 });
 
+// Get AI Recommended Posts
+router.post('/recommend', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.uid;
+    // Fetch User Profile
+    const userSnap = await db.collection('users').doc(userId).get();
+    let userData = {};
+    if (userSnap.exists) {
+      userData = userSnap.data();
+    }
+    
+    // Fetch Recent Posts
+    const snap = await db.collection('posts').orderBy('createdAt', 'desc').limit(50).get();
+    const posts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Prepare prompt
+    const prompt = `
+    You are an AI recommendation engine for a professional networking platform (Entrepreneur, Freelancer, Investor).
+    User Profile:
+    - Role: ${userData.role || 'Unknown'}
+    - Skills/Interests: ${(userData.skills || []).join(', ')}
+    - Bio: ${userData.bio || 'None'}
+
+    Recent Posts:
+    ${posts.map(p => `[ID: ${p.id}] Role: ${p.role} | Title: ${p.title} | Summary: ${p.summary || p.description?.substring(0, 100)}`).join('\n')}
+
+    Select the top 5 to 10 most relevant post IDs for this user based on their profile. Return ONLY a valid JSON array of strings containing the IDs. No markdown formatting, no explanation.
+    `;
+
+    try {
+      const { default: openai } = await import('../config/openai.js');
+      const aiRes = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 300,
+        temperature: 0.3
+      });
+
+      const rawContent = aiRes.choices[0].message.content.trim();
+      let recommendedIds = [];
+      try {
+        recommendedIds = JSON.parse(rawContent.replace(/```json/g, '').replace(/```/g, ''));
+      } catch (parseErr) {
+        console.error("Failed to parse AI response:", rawContent);
+        // Fallback: Just return recent 10
+        recommendedIds = posts.slice(0, 10).map(p => p.id);
+      }
+
+      const recommendedPosts = posts.filter(p => recommendedIds.includes(p.id));
+      
+      // If AI returned fewer valid posts, backfill with recent posts
+      if (recommendedPosts.length < 5) {
+        const existingIds = new Set(recommendedPosts.map(p => p.id));
+        for (const p of posts) {
+          if (!existingIds.has(p.id)) {
+            recommendedPosts.push(p);
+            existingIds.add(p.id);
+            if (recommendedPosts.length >= 10) break;
+          }
+        }
+      }
+
+      return res.json({ success: true, posts: recommendedPosts });
+
+    } catch (aiError) {
+      console.error('AI Recommendation error (quota/network):', aiError.message);
+      // Mock Fallback: Return a subset of recent posts randomly sorted or just recent
+      const fallbackPosts = posts.slice(0, 10).sort(() => 0.5 - Math.random());
+      return res.json({ success: true, posts: fallbackPosts, fallback: true });
+    }
+
+  } catch (err) {
+    console.error('Recommend posts error:', err);
+    return res.status(500).json({ error: 'Failed to generate recommendations', message: err.message });
+  }
+});
+
 export default router;
 
 
