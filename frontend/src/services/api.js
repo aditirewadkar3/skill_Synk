@@ -372,5 +372,13 @@ export const meetingsAPI = {
   },
 };
 
+// News API
+export const newsAPI = {
+  getNews: async () => {
+    return await apiRequest('/news');
+  },
+};
+
 export { getAuthToken, setAuthToken, getCurrentUser, setCurrentUser };
+
 

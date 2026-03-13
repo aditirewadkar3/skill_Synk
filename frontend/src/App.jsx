@@ -16,6 +16,7 @@ import InvestorDashboard from "@/pages/investor"
 import MyPostsPage from "@/pages/myposts"
 import Landing from "@/pages/landing"
 import MeetingPage from "@/pages/meeting"
+import NewsPage from "@/pages/news"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { PieChart } from "lucide-react"
@@ -102,6 +103,9 @@ function App() {
     } else if (path === "/myposts") {
       setIsAuthenticated(true)
       setPage("myposts")
+    } else if (path === "/news") {
+      setIsAuthenticated(true)
+      setPage("news")
     } else if (path === "/entrepreneur") {
       setIsAuthenticated(true)
       setPage("entrepreneur")
@@ -188,6 +192,9 @@ function App() {
       } else if (path === '/myposts') {
         setIsAuthenticated(true)
         setPage('myposts')
+      } else if (path === '/news') {
+        setIsAuthenticated(true)
+        setPage('news')
       } else if (path.startsWith('/meeting/')) {
         setIsAuthenticated(true)
         setPage('meeting')
@@ -207,7 +214,7 @@ function App() {
     const target = role === "freelancer" ? 
       "freelancer" : role === "investor" ? "investor" : "entrepreneur"
     // List of pages that should NOT be auto-redirected to the dashboard
-    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts"]
+    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts", "news"]
     if (page !== target && !protectedPages.includes(page)) {
       setPage(target)
       window.history.pushState({}, "", `/${target}`)
@@ -234,6 +241,7 @@ function App() {
       { title: "Messages", icon: PieChart , url: "/chat" },
       { title: "Analytics", icon: PieChart, url: analyticsPath },
       { title: "My Posts", url: "/myposts" },
+      { title: "News", url: "/news" },
     ]
   }
   const navForRole = buildNavForRole(role)
@@ -327,6 +335,8 @@ function App() {
                   ? "Freelancer Dashboard"
                   : page === "investor"
                   ? "Investor Dashboard"
+                  : page === "news"
+                  ? "Ecosystem News"
                   : ""}
               </h1>
             </div>
@@ -346,8 +356,9 @@ function App() {
             {page === "investoranalytics" && <InvestorAnalytics />}
             {page === "entrepreneur" && <EntrepreneurDashboard />}
             {page === "freelancer" && <FreelancerDashboard />}
-            {page === "investor" && <InvestorDashboard />}
-            {page === "myposts" && <MyPostsPage />}
+            { page === "investor" && <InvestorDashboard />}
+            { page === "myposts" && <MyPostsPage />}
+            { page === "news" && <NewsPage />}
           </main>
         </SidebarInset>
       </SidebarProvider>
