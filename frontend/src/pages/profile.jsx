@@ -36,6 +36,8 @@ import {
   Github,
   X,
   FileText,
+  Download,
+  ExternalLink,
 } from "lucide-react"
 
 export default function ProfilePage() {
@@ -47,7 +49,9 @@ export default function ProfilePage() {
     email: "",
     phone: "",
     location: "",
+    bio: "",
   })
+  const [isUploadingResume, setIsUploadingResume] = React.useState(false)
 
   const [businessData, setBusinessData] = React.useState({
     companyName: "Innovate Inc.",
@@ -117,6 +121,7 @@ export default function ProfilePage() {
           email: u.email || prev.email || "",
           phone: u.phone || prev.phone || "",
           location: u.location || prev.location || "",
+          bio: u.bio || prev.bio || "",
         }))
         setSocialLinks({
           linkedin: u.linkedin || "",
@@ -183,6 +188,43 @@ export default function ProfilePage() {
     setUploadedFiles(uploadedFiles.filter((file) => file.id !== fileId))
   }
 
+  const handleResumeUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      alert('Please upload a PDF file.');
+      return;
+    }
+
+    setIsUploadingResume(true);
+    const formData = new FormData();
+    formData.append('resume', file);
+
+    try {
+      const res = await fetch('http://localhost:3001/api/upload/resume', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setSocialLinks(prev => ({ ...prev, resume: data.url }));
+        alert('Resume uploaded successfully!');
+      } else {
+        alert(data.error || 'Failed to upload resume');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('An error occurred while uploading.');
+    } finally {
+      setIsUploadingResume(false);
+    }
+  };
+
   const getInitials = (name) => {
     return name
       .split(" ")
@@ -226,6 +268,11 @@ export default function ProfilePage() {
                     {role !== 'freelancer' && (
                       <p className="text-sm text-muted-foreground">
                         Founder & CEO at {businessData.companyName}
+                      </p>
+                    )}
+                    {personalData.bio && (
+                      <p className="text-sm text-muted-foreground mt-2 px-4 italic">
+                        "{personalData.bio}"
                       </p>
                     )}
                   </div>
@@ -298,10 +345,11 @@ export default function ProfilePage() {
             <Card className="premium-card border-none shadow-xl min-h-[600px]">
               <CardContent className="pt-6">
                 <Tabs defaultValue="personal" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsList className="grid w-full grid-cols-3 mb-6">
                     <TabsTrigger value="personal">
                       {role === 'freelancer' ? 'Personal Information' : 'Personal & Business'}
                     </TabsTrigger>
+                    <TabsTrigger value="professional">Professional Summary</TabsTrigger>
                     <TabsTrigger value="skills">Skills & Focus</TabsTrigger>
                   </TabsList>
 
@@ -316,9 +364,6 @@ export default function ProfilePage() {
                           size="sm"
                           onClick={() => {
                             if (isEditingPersonal) {
-                              // Save logic here
-                              const token = localStorage.getItem('token');
-                              const uid = localStorage.getItem('uid');
                               fetch('http://localhost:3001/api/auth/update-profile', {
                                 method: 'PUT',
                                 headers: { 
@@ -329,13 +374,9 @@ export default function ProfilePage() {
                                   name: personalData.fullName,
                                   phone: personalData.phone,
                                   location: personalData.location,
-                                  linkedin: socialLinks.linkedin,
-                                  github: socialLinks.github,
-                                  portfolio: socialLinks.portfolio,
-                                  resume: socialLinks.resume
                                 })
                               }).then(res => res.json()).then(data => {
-                                if (data.success) alert("Profile updated successfully!");
+                                if (data.success) alert("Personal Information updated!");
                               });
                             }
                             setIsEditingPersonal(!isEditingPersonal)
@@ -386,56 +427,12 @@ export default function ProfilePage() {
                                 onChange={handlePersonalChange}
                               />
                             </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="linkedin">LinkedIn</Label>
-                              <Input
-                                id="linkedin"
-                                name="linkedin"
-                                value={socialLinks.linkedin}
-                                onChange={handleSocialLinkChange}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="github">GitHub</Label>
-                              <Input
-                                id="github"
-                                name="github"
-                                value={socialLinks.github}
-                                onChange={handleSocialLinkChange}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="portfolio">Portfolio</Label>
-                              <Input
-                                id="portfolio"
-                                name="portfolio"
-                                value={socialLinks.portfolio}
-                                onChange={handleSocialLinkChange}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="resume">Resume Link</Label>
-                              <Input
-                                id="resume"
-                                name="resume"
-                                value={socialLinks.resume}
-                                onChange={handleSocialLinkChange}
-                                placeholder="Paste your Google Drive or Dropbox link..."
-                              />
-                            </div>
                             <div className="flex gap-3 pt-2">
                               <Button
                                 onClick={() => setIsEditingPersonal(false)}
                                 className="flex-1"
                               >
-                                Save Changes
-                              </Button>
-                              <Button
-                                variant="outline"
-                                onClick={() => setIsEditingPersonal(false)}
-                                className="flex-1"
-                              >
-                                Cancel
+                                Done
                               </Button>
                             </div>
                           </CardContent>
@@ -501,7 +498,7 @@ export default function ProfilePage() {
                               onClick={() => setIsEditingBusiness(!isEditingBusiness)}
                             >
                               <Edit2 className="h-4 w-4 mr-2" />
-                              Edit
+                              {isEditingBusiness ? "Save" : "Edit"}
                             </Button>
                           </div>
 
@@ -550,14 +547,7 @@ export default function ProfilePage() {
                                     onClick={() => setIsEditingBusiness(false)}
                                     className="flex-1"
                                   >
-                                    Save Changes
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    onClick={() => setIsEditingBusiness(false)}
-                                    className="flex-1"
-                                  >
-                                    Cancel
+                                    Done
                                   </Button>
                                 </div>
                               </CardContent>
@@ -616,7 +606,184 @@ export default function ProfilePage() {
                     </div>
                   </TabsContent>
 
+                  {/* Professional Summary Tab */}
+                  <TabsContent value="professional" className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Professional Summary</h3>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => {
+                           fetch('http://localhost:3001/api/auth/update-profile', {
+                             method: 'PUT',
+                             headers: { 
+                               'Content-Type': 'application/json',
+                               'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                             },
+                             body: JSON.stringify({
+                               bio: personalData.bio,
+                               linkedin: socialLinks.linkedin,
+                               github: socialLinks.github,
+                               portfolio: socialLinks.portfolio,
+                               resume: socialLinks.resume
+                             })
+                           }).then(res => res.json()).then(data => {
+                             if (data.success) alert("Professional Summary updated!");
+                           });
+                        }}
+                      >
+                        Save Summary
+                      </Button>
+                    </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-6">
+                        <Card className="rounded-2xl border shadow-sm">
+                          <CardHeader>
+                            <CardTitle className="text-sm font-medium">Bio & Socials</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="prof-bio">Bio</Label>
+                              <Textarea
+                                id="prof-bio"
+                                name="bio"
+                                value={personalData.bio}
+                                onChange={handlePersonalChange}
+                                placeholder="E.g. Full-stack developer with 5 years experience..."
+                                rows={4}
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="prof-linkedin">LinkedIn</Label>
+                                <Input
+                                  id="prof-linkedin"
+                                  name="linkedin"
+                                  value={socialLinks.linkedin}
+                                  onChange={handleSocialLinkChange}
+                                  placeholder="linkedin.com/in/..."
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="prof-github">GitHub</Label>
+                                <Input
+                                  id="prof-github"
+                                  name="github"
+                                  value={socialLinks.github}
+                                  onChange={handleSocialLinkChange}
+                                  placeholder="github.com/..."
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="prof-portfolio">Portfolio</Label>
+                              <Input
+                                id="prof-portfolio"
+                                name="portfolio"
+                                value={socialLinks.portfolio}
+                                onChange={handleSocialLinkChange}
+                                placeholder="your-portfolio.com"
+                              />
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="rounded-2xl border shadow-sm">
+                          <CardHeader>
+                            <CardTitle className="text-sm font-medium">Resume Upload</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="flex items-center gap-3">
+                              <Input
+                                type="file"
+                                accept=".pdf"
+                                className="hidden"
+                                id="prof-resume-upload"
+                                onChange={handleResumeUpload}
+                                disabled={isUploadingResume}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full gap-2 border-dashed h-24"
+                                onClick={() => document.getElementById('prof-resume-upload').click()}
+                                disabled={isUploadingResume}
+                              >
+                                <Upload className={`h-6 w-6 ${isUploadingResume ? 'animate-spin' : ''}`} />
+                                <div className="text-left">
+                                  <p className="font-medium">{isUploadingResume ? 'Uploading...' : 'Click to Upload PDF'}</p>
+                                  <p className="text-xs text-muted-foreground">Max 5MB</p>
+                                </div>
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      <div className="space-y-6">
+                        <Card className="rounded-2xl border shadow-sm h-full flex flex-col">
+                          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Resume Preview</CardTitle>
+                            {socialLinks.resume && (
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                  title="Open in new tab"
+                                  onClick={() => window.open(socialLinks.resume, '_blank')}
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                  title="Download Resume"
+                                  onClick={() => {
+                                    const link = document.createElement('a');
+                                    let downloadUrl = socialLinks.resume;
+                                    // For Cloudinary images (like PDFs uploaded as images), force download using fl_attachment
+                                    // Raw files don't support transformations, so we use them as is
+                                    if (downloadUrl.includes('cloudinary.com') && !downloadUrl.includes('/raw/upload/')) {
+                                      downloadUrl = downloadUrl.replace('/upload/', '/upload/fl_attachment/');
+                                    }
+                                    link.href = downloadUrl;
+                                    link.setAttribute('download', 'resume.pdf');
+                                    link.setAttribute('target', '_blank');
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                  }}
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                          </CardHeader>
+                          <CardContent className="flex-1 min-h-[400px]">
+                            {socialLinks.resume ? (
+                              <iframe 
+                                src={
+                                  socialLinks.resume.includes('cloudinary.com') 
+                                    ? `https://docs.google.com/viewer?url=${encodeURIComponent(socialLinks.resume)}&embedded=true`
+                                    : socialLinks.resume
+                                } 
+                                className="w-full h-full rounded-lg border shadow-inner"
+                                title="Resume Preview"
+                              />
+                            ) : (
+                              <div className="h-full flex flex-col items-center justify-center text-muted-foreground bg-muted/20 rounded-lg border-2 border-dashed">
+                                <FileText className="h-12 w-12 mb-2 opacity-20" />
+                                <p className="text-sm">No resume uploaded yet</p>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </div>
+                  </TabsContent>
 
                   {/* Skills & Focus Tab */}
                   <TabsContent value="skills" className="space-y-6">
@@ -662,6 +829,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   </TabsContent>
+
                 </Tabs>
               </CardContent>
             </Card>
