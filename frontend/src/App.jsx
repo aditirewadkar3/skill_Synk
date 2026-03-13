@@ -325,19 +325,14 @@ function App() {
       { title: "Analytics", icon: PieChart, url: analyticsPath },
       { title: "My Posts", url: "/myposts" },
       { title: "News", url: "/news" },
-<<<<<<< HEAD
-      ...(currentRole === 'entrepreneur' ? [{ title: "My Projects", url: "/myprojects" }] : []),
-      ...(currentRole === 'freelancer' ? [
-        { title: "Browse Projects", url: "/myprojects" },
-        { title: "Notifications", url: "/notifications" }
-      ] : []),
-=======
       ...(currentRole === 'entrepreneur' ? [
         { title: "My Projects", url: "/myprojects" },
         { title: "AI Pitch Practice", url: "/pitch-practice" }
       ] : []),
-      ...(currentRole === 'freelancer' ? [{ title: "Notifications", url: "/notifications" }] : []),
->>>>>>> 5c230f0fe84e999b54f1870a0624c424036a44c2
+      ...(currentRole === 'freelancer' ? [
+        { title: "Browse Projects", url: "/myprojects" },
+        { title: "Notifications", url: "/notifications" }
+      ] : []),
     ]
   }
   const navForRole = buildNavForRole(role)
@@ -450,21 +445,15 @@ function App() {
                                           ? "Send Proposal"
                                           : page === "news"
                                             ? "Ecosystem News"
-                                            : page === "myprojects"
-                                              ? "My Projects"
-<<<<<<< HEAD
+                                              : page === "myprojects"
+                                                ? "My Projects"
                                               : page === "project-applications"
                                                 ? "Project Applications"
+                                              : page === "pitch-practice"
+                                                ? "AI Pitch Practice"
                                               : page === "discovery"
                                                 ? "Discovery Hub"
                                                 : ""}
-=======
-                                              : page === "pitch-practice"
-                                                ? "AI Pitch Practice"
-                                                : page === "discovery"
-                                                  ? "Discovery Hub"
-                                                  : ""}
->>>>>>> 5c230f0fe84e999b54f1870a0624c424036a44c2
                 </h1>
               </div>
               <div className="flex items-center gap-4">
