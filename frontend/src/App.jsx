@@ -25,7 +25,11 @@ import DiscoveryPage from "@/pages/discovery"
 import PostForm from "@/components/posts/PostForm"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { PieChart, Search, Rocket, Bell } from "lucide-react"
+import {
+  LayoutDashboard, MessageSquare, Compass, BarChart2,
+  Newspaper, Rss, FolderKanban, Mic, Search,
+  Briefcase, Bell, TrendingUp, Rocket,
+} from "lucide-react"
 import { NotificationPopover } from "@/components/NotificationPopover"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
@@ -318,21 +322,22 @@ function App() {
   const buildNavForRole = (currentRole) => {
     const roleTitle = currentRole === "freelancer" ? "Freelancer" : currentRole === "investor" ? "Investor" : "Entrepreneur"
     const rolePath = currentRole === "freelancer" ? "/freelancer" : currentRole === "investor" ? "/investor" : "/entrepreneur"
+    const roleIcon = currentRole === "freelancer" ? Briefcase : currentRole === "investor" ? TrendingUp : Rocket
     const analyticsPath = currentRole === "freelancer" ? "/freelanceranalytics" : currentRole === "investor" ? "/investoranalytics" : "/entrepreneuranalytics"
     return [
-      { title: roleTitle, icon: PieChart, url: rolePath, isActive: true },
-      { title: "Messages", icon: PieChart, url: "/chat" },
-      { title: "Discovery", icon: Search, url: "/discovery" },
-      { title: "Analytics", icon: PieChart, url: analyticsPath },
-      { title: "My Posts", url: "/myposts" },
-      { title: "News", url: "/news" },
+      { title: roleTitle, icon: roleIcon, url: rolePath, isActive: true },
+      { title: "Messages", icon: MessageSquare, url: "/chat" },
+      { title: "Discovery", icon: Compass, url: "/discovery" },
+      { title: "Analytics", icon: BarChart2, url: analyticsPath },
+      { title: "My Posts", icon: Newspaper, url: "/myposts" },
+      { title: "News", icon: Rss, url: "/news" },
       ...(currentRole === 'entrepreneur' ? [
-        { title: "My Projects", url: "/myprojects" },
-        { title: "AI Pitch Practice", url: "/pitch-practice" }
+        { title: "My Projects", icon: FolderKanban, url: "/myprojects" },
+        { title: "AI Pitch Practice", icon: Mic, url: "/pitch-practice" }
       ] : []),
       ...(currentRole === 'freelancer' ? [
-        { title: "Browse Projects", url: "/myprojects" },
-        { title: "Notifications", url: "/notifications" }
+        { title: "Browse Projects", icon: Search, url: "/myprojects" },
+        { title: "Notifications", icon: Bell, url: "/notifications" }
       ] : []),
     ]
   }
@@ -416,7 +421,7 @@ function App() {
             window.history.pushState({}, '', path)
           }} />
           <SidebarInset>
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
+            <header className="flex h-16 shrink-0 border rounded-t-[1rem] mx-2 mt-2 items-center gap-2 px-4 bg-background">
               <SidebarTrigger />
               <div className="flex-1">
                 <h1 className="text-lg font-semibold">
@@ -496,7 +501,7 @@ function App() {
                 <ThemeToggle />
               </div>
             </header>
-            <main className="flex-1 overflow-hidden min-h-0">
+            <main className="flex-1 border bg-background shadow-sm mx-2 mb-2 overflow-hidden min-h-0">
               {page === "dashboard" && (
                 role === 'freelancer' ? <FreelancerDashboard /> :
                   role === 'investor' ? <InvestorDashboard /> :

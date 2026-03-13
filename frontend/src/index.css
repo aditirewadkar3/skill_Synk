@@ -59,7 +59,7 @@
 
   * {
     @apply border-border;
-    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   }
   
   body {
@@ -157,7 +157,7 @@
   }
 
   .selected-component {
-    @apply border-primary ring-2 shadow-lg scale-[1.02];
+    @apply border-primary ring-2 shadow-lg;
     --tw-ring-color: color-mix(in srgb, var(--primary), transparent 80%);
     background-color: color-mix(in srgb, var(--primary), transparent 97%);
     z-index: 1;

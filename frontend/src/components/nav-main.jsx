@@ -68,7 +68,7 @@ export function NavMain({
                         onNavigate(item.url)
                       }
                     }} aria-current={isActive ? 'page' : undefined}>
-                    {item.icon && <item.icon className={`size-4 transition-transform duration-300 ${isActive ? 'text-primary scale-110 animate-float' : 'text-foreground'}`} />}
+                    {item.icon && <item.icon className={`size-4 ${isActive ? 'text-primary' : 'text-foreground'}`} />}
                     <span className={isActive ? "text-primary font-bold" : ""}>{item.title}</span>
                   </a>
                 </SidebarMenuButton>

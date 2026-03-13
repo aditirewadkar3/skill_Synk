@@ -3,16 +3,26 @@
 import * as React from "react";
 import {
   Activity,
-  BookOpen,
-  Bot,
   Command,
-  Frame,
   GalleryVerticalEnd,
   Map,
   PieChart,
-  Settings2,
-  Terminal,
+  Frame,
+  LayoutDashboard,
+  FileSignature,
+  Rocket,
+  Briefcase,
+  TrendingUp,
+  MessageSquare,
+  Presentation,
+  BarChart2,
   Newspaper,
+  Rss,
+  FolderKanban,
+  Search,
+  Mic,
+  Compass,
+  Bell,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -55,65 +65,73 @@ const data = {
     {
       title: "Dashboard",
       url: "/dashboard",
-      icon: <lord-icon
-    src="https://cdn.lordicon.com/bushiqea.json"
-    trigger="hover"
-    style="width:10px;height:10px">
-</lord-icon>,
+      icon: LayoutDashboard,
       isActive: true,
     },
     {
       title: "Proposal",
       url: "/proposal",
-      icon: <lord-icon
-    src="https://cdn.lordicon.com/bushiqea.json"
-    trigger="hover"
-    style="width:10px;height:10px">
-</lord-icon>,
-      isActive: true,
+      icon: FileSignature,
     },
-    // {
-    //   title: "News",
-    //   url: "/news",
-    //   icon: Newspaper,
-    // },
     {
       title: "Entrepreneur",
       url: "/entrepreneur",
-      icon: <lord-icon
-    src="https://cdn.lordicon.com/bushiqea.json"
-    trigger="hover"
-    style="width:10px;height:10px">
-</lord-icon>,
+      icon: Rocket, 
     },
     {
       title: "Freelancer",
       url: "/freelancer",
-      icon: Frame,
+      icon: Briefcase,
     },
     {
       title: "Investor",
       url: "/investor",
-      icon: BookOpen,
+      icon: TrendingUp,
     },
     {
       title: "Messages",
       url: "/chat",
-      icon: <lord-icon
-    src="https://cdn.lordicon.com/bushiqea.json"
-    trigger="hover"
-    style="width:10px;height:10px">
-</lord-icon>,
+      icon: MessageSquare,
     },
     {
       title: "Pitch Deck",
       url: "#",
-      icon: Settings2,
+      icon: Presentation,
     },
     {
       title: "Analytics",
       url: "/analytics",
-      icon: Frame,
+      icon: BarChart2,
+    },
+    {
+      title: "My Posts",
+      url: "/myposts",
+      icon: Newspaper,
+    },
+    {
+      title: "My Projects",
+      url: "/myprojects",
+      icon: FolderKanban,
+    },
+    {
+      title: "Browse Projects",
+      url: "/myprojects",
+      icon: Search,
+    },
+    {
+      title: "AI Pitch Practice",
+      url: "/pitch-practice",
+      icon: Mic,
+    },
+    {
+      title: "Discovery",
+      url: "/discovery",
+      icon: Compass,
+    },
+    {
+      title: "Notifications",
+      url: "/notifications",
+      icon: Bell,
     },
   ],
   projects: [
@@ -174,14 +192,18 @@ export function AppSidebar({ user, teams, navMain, projects, onNavigate, ...prop
   }
   const role = getUserRole();
   const filteredNav = (merged.navMain || []).filter((item) => {
-    if (["Dashboard", "Messages", "Analytics", "Pitch Deck", "My Posts", "News", "My Projects", "Browse Projects", "AI Pitch Practice"].includes(item.title)) return true;
+    if ([
+      "Dashboard", "Messages", "Analytics", "Pitch Deck",
+      "My Posts", "My Projects", "Browse Projects",
+      "AI Pitch Practice", "Discovery", "Notifications", "Proposal",
+    ].includes(item.title)) return true;
     if (item.title === "Entrepreneur") return role === "entrepreneur";
     if (item.title === "Freelancer") return role === "freelancer";
     if (item.title === "Investor") return role === "investor";
     return false;
   });
   return (
-    <Sidebar collapsible="icon" className={`premium-card border-none ${role ? `theme-${role}` : ""}`} {...props}>
+    <Sidebar collapsible="icon" className={`border-none ${role ? `theme-${role}` : ""}`} {...props}>
       <SidebarHeader className="bg-gradient-to-b from-primary/10 to-transparent">
         <TeamSwitcher teams={merged.teams} />
       </SidebarHeader>
@@ -189,7 +211,7 @@ export function AppSidebar({ user, teams, navMain, projects, onNavigate, ...prop
         <NavMain items={filteredNav} onNavigate={onNavigate} />
         <NavProjects projects={merged.projects} />
       </SidebarContent>
-      <SidebarFooter className="border-t border-white/5">
+      <SidebarFooter className="">
         <NavUser user={merged.user} onNavigate={onNavigate} />
       </SidebarFooter>
       <SidebarRail />
