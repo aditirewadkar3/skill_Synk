@@ -449,6 +449,14 @@ export const postsAPI = {
     return response.posts || [];
   },
 
+  // Get AI recommended posts
+  getRecommendations: async () => {
+    const response = await apiRequest('/posts/recommend', {
+      method: 'POST',
+    });
+    return response.posts || [];
+  },
+
   // Like or unlike a post
   likePost: async (postId) => {
     return await apiRequest(`/posts/${postId}/like`, {
