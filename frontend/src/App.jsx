@@ -15,6 +15,7 @@ import FreelancerDashboard from "@/pages/freelancer"
 import InvestorDashboard from "@/pages/investor"
 import MyPostsPage from "@/pages/myposts"
 import Landing from "@/pages/landing"
+import MeetingPage from "@/pages/meeting"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { PieChart } from "lucide-react"
@@ -47,6 +48,9 @@ function App() {
     } else if (path === "/chat") {
       setIsAuthenticated(true)
       setPage("chat")
+    } else if (path.startsWith("/meeting/")) {
+      setIsAuthenticated(true)
+      setPage("meeting")
     } else if (path === "/profile") {
       setIsAuthenticated(true)
       setPage("profile")
@@ -155,6 +159,9 @@ function App() {
       } else if (path === '/myposts') {
         setIsAuthenticated(true)
         setPage('myposts')
+      } else if (path.startsWith('/meeting/')) {
+        setIsAuthenticated(true)
+        setPage('meeting')
       }
     }
     window.addEventListener('popstate', handleLocation)
@@ -170,7 +177,9 @@ function App() {
     if (!isAuthenticated || !role) return
     const target = role === "freelancer" ? 
       "freelancer" : role === "investor" ? "investor" : "entrepreneur"
-    if (page !== target) {
+    // List of pages that should NOT be auto-redirected to the dashboard
+    const protectedPages = ["meeting", "chat", "profile", "client-profile", "freelanceranalytics", "investoranalytics", "entrepreneuranalytics", "myposts"]
+    if (page !== target && !protectedPages.includes(page)) {
       setPage(target)
       window.history.pushState({}, "", `/${target}`)
     }
@@ -237,6 +246,9 @@ function App() {
 
   // ---------- AUTHENTICATED PAGES (With Sidebar) ----------
   if (isAuthenticated) {
+    if (page === "meeting") {
+      return <MeetingPage />
+    }
     return (
       <SidebarProvider>
         <AppSidebar navMain={navForRole} onNavigate={(path) => {

@@ -79,22 +79,12 @@ router.post('/messages', verifyToken, async (req, res) => {
     await messageRef.set(messageData);
 
     // Update chat list for both users
-    const chatId1 = [senderId, receiverId].sort().join('_');
-    const chatId2 = [receiverId, senderId].sort().join('_');
+    const chatId = [senderId, receiverId].sort().join('_');
+    const [p1, p2] = [senderId, receiverId].sort();
 
-    // Update sender's chat list
-    await db.collection('chats').doc(chatId1).set({
-      participant1: senderId,
-      participant2: receiverId,
-      lastMessage: content,
-      lastMessageTime: new Date(),
-      updatedAt: new Date(),
-    }, { merge: true });
-
-    // Update receiver's chat list
-    await db.collection('chats').doc(chatId2).set({
-      participant1: receiverId,
-      participant2: senderId,
+    await db.collection('chats').doc(chatId).set({
+      participant1: p1,
+      participant2: p2,
       lastMessage: content,
       lastMessageTime: new Date(),
       updatedAt: new Date(),
@@ -208,12 +198,12 @@ router.get('/conversations', verifyToken, async (req, res) => {
       .where('participant2', '==', currentUserId)
       .get();
 
-    const conversations = [];
+    const conversationsMap = new Map();
 
     // Process participant1 chats
     chatsQuery1.forEach(doc => {
       const chatData = doc.data();
-      conversations.push({
+      conversationsMap.set(doc.id, {
         chatId: doc.id,
         otherUserId: chatData.participant2,
         lastMessage: chatData.lastMessage,
@@ -223,14 +213,18 @@ router.get('/conversations', verifyToken, async (req, res) => {
 
     // Process participant2 chats
     chatsQuery2.forEach(doc => {
-      const chatData = doc.data();
-      conversations.push({
-        chatId: doc.id,
-        otherUserId: chatData.participant1,
-        lastMessage: chatData.lastMessage,
-        lastMessageTime: chatData.lastMessageTime,
-      });
+      if (!conversationsMap.has(doc.id)) {
+        const chatData = doc.data();
+        conversationsMap.set(doc.id, {
+          chatId: doc.id,
+          otherUserId: chatData.participant1,
+          lastMessage: chatData.lastMessage,
+          lastMessageTime: chatData.lastMessageTime,
+        });
+      }
     });
+
+    const conversations = Array.from(conversationsMap.values());
 
     // Get unread counts and user info for each conversation
     const conversationsWithDetails = await Promise.all(

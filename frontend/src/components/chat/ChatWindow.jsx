@@ -137,7 +137,12 @@ export function ChatWindow({
                   try {
                     setMeetingLoading(true)
                     const res = await meetingsAPI.schedule({ participantId: user?.id, participantName: user?.name })
-                    setMeetingLink(res?.links?.host || null)
+                    if (res?.success && res?.token && res?.roomName) {
+                      const link = `${window.location.origin}/meeting/${res.roomName}?token=${res.token}`;
+                      setMeetingLink(link);
+                    } else {
+                      setMeetingLink(res?.links?.host || null)
+                    }
                   } catch (e) {
                     console.error('Schedule meeting failed', e)
                   } finally {
@@ -151,9 +156,15 @@ export function ChatWindow({
                   <label className="text-sm font-medium">Your join link</label>
                   <Input readOnly value={meetingLink} onFocus={(e) => e.target.select()} />
                 </div>
-                <div className="flex gap-2 justify-end">
-                  <Button variant="secondary" onClick={() => navigator.clipboard.writeText(meetingLink)}>Copy</Button>
-                  <Button onClick={() => window.open(meetingLink, '_blank')}>Join now</Button>
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-2 justify-end">
+                    <Button variant="secondary" size="sm" onClick={() => navigator.clipboard.writeText(meetingLink)}>Copy</Button>
+                    <Button size="sm" onClick={() => window.open(meetingLink, '_blank')}>Join now</Button>
+                  </div>
+                  <Button className="w-full" onClick={() => {
+                    onSendMessage(`📅 Scheduled a LiveKit meeting. Join here: ${meetingLink}`);
+                    setScheduleOpen(false);
+                  }}>Share to Chat</Button>
                 </div>
               </div>
             )}

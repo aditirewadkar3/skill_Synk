@@ -37,17 +37,23 @@ export function ChatPage({ className }) {
         } catch {}
         const conversations = await chatAPI.getConversations()
         
-        // Transform conversations to user list format
-        const usersList = conversations.map(conv => ({
-          id: conv.otherUserId,
-          name: conv.otherUser?.name || conv.otherUserId?.substring(0, 8) || 'User',
-          avatar: conv.otherUser?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(conv.otherUser?.name || conv.otherUserId)}`,
-          status: 'online', // TODO: Implement real status
-          lastMessage: conv.lastMessage || '',
-          lastMessageTime: new Date(conv.lastMessageTime),
-          unreadCount: conv.unreadCount || 0,
-          role: conv.otherUser?.role || '',
-        }))
+        // Transform and de-duplicate users list
+        const usersMap = new Map()
+        conversations.forEach(conv => {
+          if (!usersMap.has(conv.otherUserId)) {
+            usersMap.set(conv.otherUserId, {
+              id: conv.otherUserId,
+              name: conv.otherUser?.name || conv.otherUserId?.substring(0, 8) || 'User',
+              avatar: conv.otherUser?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(conv.otherUser?.name || conv.otherUserId)}`,
+              status: 'online',
+              lastMessage: conv.lastMessage || '',
+              lastMessageTime: new Date(conv.lastMessageTime),
+              unreadCount: conv.unreadCount || 0,
+              role: conv.otherUser?.role || '',
+            })
+          }
+        })
+        const usersList = Array.from(usersMap.values())
         setUsers(usersList)
 
         // Check if there's a target user from URL
@@ -109,29 +115,49 @@ export function ChatPage({ className }) {
       return
     }
 
-    const newSocket = io(SOCKET_URL, {
-      auth: {
-        token: token,
-      },
-    })
+    const socketOptions = {
+      auth: { token: token },
+      // Add reconnection parameters
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    }
+
+    const newSocket = io(SOCKET_URL, socketOptions)
 
     newSocket.on('connect', () => {
       console.log('Socket.IO connected')
       setConnectionStatus("connected")
     })
 
-    newSocket.on('disconnect', () => {
-      console.log('Socket.IO disconnected')
+    newSocket.on('disconnect', (reason) => {
+      console.log('Socket.IO disconnected:', reason)
       setConnectionStatus("disconnected")
-      // Suppress disconnect toast to avoid distracting popup
     })
 
-    newSocket.on('message', (message) => {
-      // New message received (only from other users, not our own messages)
-      if (message.senderId !== currentUserId && (message.senderId === selectedUserId || message.receiverId === currentUserId)) {
-        setMessages(prev => {
-          // Avoid duplicates by checking message ID
-          if (prev.find(m => m.id === message.id)) return prev
+    newSocket.on('error', (error) => {
+      console.error('Socket error:', error)
+    })
+
+    setSocket(newSocket)
+
+    return () => {
+      newSocket.disconnect()
+    }
+  }, [currentUserId]) // Remove selectedUserId from dependencies
+
+  // Handle incoming messages and typing separately to avoid reconnections
+  React.useEffect(() => {
+    if (!socket) return
+
+    const handleMessage = (message) => {
+      // Logic for message handling
+      setMessages(prev => {
+        if (prev.find(m => m.id === message.id)) return prev
+        const isForCurrentChat = (message.senderId === selectedUserId || message.receiverId === selectedUserId)
+        if (!isForCurrentChat && message.receiverId === currentUserId) {
+          // Message for a different chat - sidebar will update but messages won't
+        }
+        if (isForCurrentChat) {
           return [...prev, {
             ...message,
             timestamp: new Date(message.timestamp),
@@ -140,21 +166,22 @@ export function ChatPage({ className }) {
             const timeB = b.timestamp?.getTime?.() || new Date(b.timestamp).getTime()
             return timeA - timeB
           })
-        })
-      }
-      
+        }
+        return prev
+      })
+
       // Update user's last message in sidebar
       setUsers(prev => prev.map(u => 
         (u.id === message.senderId || u.id === message.receiverId) ? {
           ...u,
           lastMessage: message.content,
           lastMessageTime: new Date(message.timestamp),
+          unreadCount: (message.senderId !== currentUserId && message.senderId !== selectedUserId) ? (u.unreadCount + 1) : u.unreadCount
         } : u
       ))
-    })
+    }
 
-    newSocket.on('message-sent', (message) => {
-      // Message sent confirmation - only update if not already in list
+    const handleMessageSent = (message) => {
       setMessages(prev => {
         if (prev.find(m => m.id === message.id)) return prev
         return [...prev, {
@@ -166,29 +193,24 @@ export function ChatPage({ className }) {
           return timeA - timeB
         })
       })
-    })
+    }
 
-    newSocket.on('typing', (data) => {
+    const handleTyping = (data) => {
       if (data.userId === selectedUserId) {
         setIsTyping(data.isTyping)
       }
-    })
+    }
 
-    newSocket.on('error', (error) => {
-      console.error('Socket error:', error)
-      toast({
-        title: "Connection Error",
-        description: error.message || "Socket connection error",
-        variant: "destructive",
-      })
-    })
-
-    setSocket(newSocket)
+    socket.on('message', handleMessage)
+    socket.on('message-sent', handleMessageSent)
+    socket.on('typing', handleTyping)
 
     return () => {
-      newSocket.disconnect()
+      socket.off('message', handleMessage)
+      socket.off('message-sent', handleMessageSent)
+      socket.off('typing', handleTyping)
     }
-  }, [currentUserId, selectedUserId, toast])
+  }, [socket, selectedUserId, currentUserId])
 
   // Reconnect socket when token is refreshed
   React.useEffect(() => {

@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
 import chatRoutes from './routes/chat.js';
 import postsRoutes from './routes/posts.js';
+import meetingsRoutes from './routes/meetings.js';
 import { auth, db } from './config/firebase.js';
 
 dotenv.config();
@@ -45,6 +46,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/posts', postsRoutes);
+app.use('/api/meetings', meetingsRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -96,22 +98,13 @@ io.on('connection', (socket) => {
 
       await messageRef.set(messageData);
 
-      // Update chat list for both users
-      const chatId1 = [senderId, receiverId].sort().join('_');
+      // Update chat list for both users (unified doc)
+      const chatId = [senderId, receiverId].sort().join('_');
+      const [p1, p2] = [senderId, receiverId].sort();
       
-      // Update sender's chat list
-      await db.collection('chats').doc(chatId1).set({
-        participant1: senderId,
-        participant2: receiverId,
-        lastMessage: content,
-        lastMessageTime: new Date(),
-        updatedAt: new Date(),
-      }, { merge: true });
-
-      // Update receiver's chat list
-      await db.collection('chats').doc(chatId1).set({
-        participant1: receiverId,
-        participant2: senderId,
+      await db.collection('chats').doc(chatId).set({
+        participant1: p1,
+        participant2: p2,
         lastMessage: content,
         lastMessageTime: new Date(),
         updatedAt: new Date(),
