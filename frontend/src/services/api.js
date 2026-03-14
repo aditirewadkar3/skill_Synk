@@ -446,6 +446,10 @@ export const projectsAPI = {
       body: JSON.stringify({ action })
     });
   },
+  getMyActiveProjects: async () => {
+    const response = await apiRequest('/projects/my-active-projects');
+    return response.projects || [];
+  },
   updateProject: async (projectId, data) => {
     return await apiRequest(`/projects/${projectId}`, {
       method: 'PUT',
@@ -495,15 +499,17 @@ export const postsAPI = {
 
 // Analytics API
 export const analyticsAPI = {
-  getEntrepreneurData: async () => {
+  getEntrepreneur: async () => {
     const res = await apiRequest('/analytics/entrepreneur');
     return res.data;
   },
-  getInvestorData: async () => {
-    return await apiRequest('/analytics/investor');
+  getInvestor: async () => {
+    const res = await apiRequest('/analytics/investor');
+    return res.data;
   },
-  getFreelancerData: async () => {
-    return await apiRequest('/analytics/freelancer');
+  getFreelancer: async () => {
+    const res = await apiRequest('/analytics/freelancer');
+    return res.data;
   },
   trackView: async (targetUid) => {
     return await apiRequest('/analytics/track-view', {

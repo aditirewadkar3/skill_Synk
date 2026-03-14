@@ -61,29 +61,43 @@ export function ChatPage({ className }) {
         const params = new URLSearchParams(window.location.search)
         const targetUid = params.get('with') || localStorage.getItem('chatTargetUid')
         if (targetUid) {
-          // If target user not in conversations, fetch their info
+          const isCommunity = targetUid.startsWith('community_')
+          // If target user/community not in conversations, fetch their info (if user)
           if (!usersList.find(u => u.id === targetUid)) {
-            try {
-              const res = await fetch('http://localhost:3001/api/auth/get-user', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ uid: targetUid })
-              })
-              if (res.ok) {
-                const data = await res.json()
-                const name = data?.user?.name || (data?.user?.email ? data.user.email.split('@')[0] : 'User')
-                const avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`
-                setUsers(prev => [{ 
-                  id: targetUid, 
-                  name, 
-                  avatar, 
-                  status: 'online', 
-                  unreadCount: 0,
-                  role: data?.user?.role || ''
-                }, ...prev])
+            if (!isCommunity) {
+              try {
+                const res = await fetch('http://localhost:3001/api/auth/get-user', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ uid: targetUid })
+                })
+                if (res.ok) {
+                  const data = await res.json()
+                  const name = data?.user?.name || (data?.user?.email ? data.user.email.split('@')[0] : 'User')
+                  const avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`
+                  setUsers(prev => [{ 
+                    id: targetUid, 
+                    name, 
+                    avatar, 
+                    status: 'online', 
+                    unreadCount: 0,
+                    role: data?.user?.role || ''
+                  }, ...prev])
+                }
+              } catch (err) {
+                console.error('Error fetching target user:', err)
               }
-            } catch (err) {
-              console.error('Error fetching target user:', err)
+            } else {
+              // It's a community, but not in conversation list yet (rare if accepted)
+              // We'll just add a placeholder until conversations reload or messages arrive
+              setUsers(prev => [{
+                id: targetUid,
+                name: 'Community Chat',
+                avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${targetUid}`,
+                status: 'online',
+                unreadCount: 0,
+                isCommunity: true
+              }, ...prev])
             }
           }
           setSelectedUserId(targetUid)
@@ -122,7 +136,21 @@ export function ChatPage({ className }) {
           setSelectedUserId(targetUid)
           return prev
         }
-        // Otherwise fetch and prepend
+        
+        if (targetUid.startsWith('community_')) {
+          // For community, just add placeholder and select
+          setSelectedUserId(targetUid)
+          return [{
+            id: targetUid,
+            name: 'Community Chat',
+            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${targetUid}`,
+            status: 'online',
+            unreadCount: 0,
+            isCommunity: true
+          }, ...prev]
+        }
+
+        // Otherwise fetch and prepend (for users)
         fetch('http://localhost:3001/api/auth/get-user', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

@@ -297,6 +297,7 @@ function ProjectCommunity({ project, onBack, onProjectUpdate }) {
                 </SheetDescription>
               </SheetHeader>
 
+              {/* Scrollable body */}
               <ScrollArea className="flex-1 p-6">
                 <div className="space-y-8">
                   {editLifecycle.map((stage, sIdx) => (
@@ -349,6 +350,7 @@ function ProjectCommunity({ project, onBack, onProjectUpdate }) {
                   </Button>
                 </div>
               </ScrollArea>
+
 
               <SheetFooter className="p-6 border-t bg-muted/10">
                 <Button 
@@ -822,9 +824,41 @@ export default function MyProjectsPage() {
   };
 
   useEffect(() => {
-    fetchProjects();
-    if (isApplicant) fetchUserProfile();
+    const init = async () => {
+      await fetchProjects();
+      if (isApplicant) fetchUserProfile();
+    };
+    init();
   }, [isApplicant]);
+
+  // Handle deep-linking and route changes
+  useEffect(() => {
+    const handleNavigation = () => {
+      const params = new URLSearchParams(window.location.search);
+      const projectId = params.get('projectId');
+      
+      if (projectId && projects.length > 0) {
+        const project = projects.find(p => p.id === projectId);
+        if (project) {
+          setSelectedProject(project);
+        }
+      } else if (!projectId) {
+        setSelectedProject(null);
+      }
+    };
+
+    // Run on mount or when projects list changes
+    handleNavigation();
+
+    // Listen for custom navigation events and browser back/forward
+    window.addEventListener('app:navigate', handleNavigation);
+    window.addEventListener('popstate', handleNavigation);
+    
+    return () => {
+      window.removeEventListener('app:navigate', handleNavigation);
+      window.removeEventListener('popstate', handleNavigation);
+    };
+  }, [projects]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -858,12 +892,7 @@ export default function MyProjectsPage() {
   };
 
   if (view === VIEW_WHITEBOARD && selectedProject) {
-    return (
-      <ProjectWhiteboard
-        project={selectedProject}
-        onBack={() => setView(VIEW_DETAIL)}
-      />
-    );
+    return <ProjectWhiteboard project={selectedProject} onBack={() => setView(VIEW_DETAIL)} />;
   }
 
   if (view === VIEW_COMMUNITY && selectedProject) {
@@ -880,7 +909,15 @@ export default function MyProjectsPage() {
     return (
       <ProjectDetail
         project={selectedProject}
-        onBack={() => { setView(VIEW_LIST); setSelectedProject(null); }}
+        onBack={() => { 
+          setView(VIEW_LIST); 
+          setSelectedProject(null); 
+          // Clear query param
+          const url = new URL(window.location);
+          url.searchParams.delete('projectId');
+          window.history.pushState({}, '', url);
+          fetchProjects(); 
+        }}
         onOpenCommunity={() => setView(VIEW_COMMUNITY)}
         onOpenWhiteboard={() => setView(VIEW_WHITEBOARD)}
         isApplicant={isApplicant}

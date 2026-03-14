@@ -318,6 +318,46 @@ router.get('/my-investments', verifyToken, async (req, res) => {
   }
 });
 
+// GET /api/projects/my-active-projects
+router.get('/my-active-projects', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.uid;
+    const snap = await db.collection('projects').get();
+    
+    let projects = [];
+    snap.docs.forEach(doc => {
+      const projectData = doc.data();
+      const applicants = projectData.applicants || [];
+      
+      const myApplication = applicants.find(app => 
+        app.applicantId === userId && 
+        (app.type || 'freelancer') === 'freelancer' && 
+        app.status === 'accepted'
+      );
+      
+      if (myApplication) {
+        projects.push({
+          id: doc.id,
+          name: projectData.name,
+          details: projectData.details,
+          communityChatId: projectData.communityChatId,
+          ownerId: projectData.ownerId,
+          status: myApplication.status,
+          appliedAt: myApplication.appliedAt || projectData.createdAt
+        });
+      }
+    });
+
+    // Sort by applied date
+    projects.sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt));
+
+    return res.json({ success: true, projects });
+  } catch (err) {
+    console.error('Fetch my active projects error:', err);
+    return res.status(500).json({ error: 'Failed to fetch active projects', message: err.message });
+  }
+});
+
 // POST /api/projects/:id/apply
 router.post('/:id/apply', verifyToken, async (req, res) => {
   try {

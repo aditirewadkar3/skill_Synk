@@ -13,6 +13,7 @@ import communityRoutes from './routes/community.js';
 import newsRoutes from './routes/news.js';
 import pitchPracticeRoutes from './routes/pitchPractice.js';
 import projectsRoutes from './routes/projects.js';
+import analyticsRoutes from './routes/analytics.js';
 import uploadRoutes from './routes/upload.js';
 import { initMeetingCron } from './cron.js';
 import { auth, db } from './config/firebase.js';
@@ -75,6 +76,7 @@ app.use('/api/pitch-practice', pitchPracticeRoutes);
 app.use('/api/projects', projectsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/meetings', meetingsRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
