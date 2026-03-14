@@ -26,7 +26,6 @@ import {
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
 import { NavUser } from "@/components/nav-user";
 import { TeamSwitcher } from "@/components/team-switcher";
 import {
@@ -134,23 +133,6 @@ const data = {
       icon: Bell,
     },
   ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
 };
 
 function getUserRole() {
@@ -195,7 +177,7 @@ export function AppSidebar({ user, teams, navMain, projects, onNavigate, ...prop
     if ([
       "Dashboard", "Messages", "Analytics", "Pitch Deck",
       "My Posts", "My Projects", "Browse Projects",
-      "AI Pitch Practice", "Discovery", "Notifications", "Proposal", "News",
+      "Discovery", "Notifications", "Proposal",
     ].includes(item.title)) return true;
     if (item.title === "Entrepreneur") return role === "entrepreneur";
     if (item.title === "Freelancer") return role === "freelancer";
@@ -209,7 +191,6 @@ export function AppSidebar({ user, teams, navMain, projects, onNavigate, ...prop
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={filteredNav} onNavigate={onNavigate} />
-        <NavProjects projects={merged.projects} />
       </SidebarContent>
       <SidebarFooter className="">
         <NavUser user={merged.user} onNavigate={onNavigate} />

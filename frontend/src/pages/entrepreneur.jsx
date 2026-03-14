@@ -79,47 +79,19 @@ export default function EntrepreneurDashboard() {
       </div>
 
       {/* Widgets Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[180px] pr-4">
-              <div className="space-y-3 text-sm">
-                <div>
-                  <div className="font-medium">Investor meeting scheduled</div>
-                  <div className="text-muted-foreground">Tomorrow, 10:00 AM</div>
-                </div>
-                <Separator />
-                <div>
-                  <div className="font-medium">New pilot customer joined</div>
-                  <div className="text-muted-foreground">Acme Health</div>
-                </div>
-                <Separator />
-                <div>
-                  <div className="font-medium">v0.7.0 release notes drafted</div>
-                  <div className="text-muted-foreground">Review pending</div>
-                </div>
-                <Separator />
-                <div>
-                  <div className="font-medium">Design handoff</div>
-                  <div className="text-muted-foreground">Dashboard cards refresh</div>
-                </div>
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-
+      <div className="grid grid-cols-1 gap-4">
         <Card className="flex flex-col">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Quick Actions</CardTitle>
+            <CardTitle className="text-base text-primary flex items-center gap-2">
+              <Rocket className="h-5 w-5" />
+              Quick Actions
+            </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            <Button variant="secondary" size="sm" className="gap-2"><Users className="h-4 w-4" /> Invite teammate</Button>
-            <Button variant="secondary" size="sm" className="gap-2"><Rocket className="h-4 w-4" /> Plan launch</Button>
-            <Button variant="secondary" size="sm" className="gap-2"><Coins className="h-4 w-4" /> Update metrics</Button>
-            <Button variant="secondary" size="sm" className="gap-2"><FileText className="h-4 w-4" /> New Report</Button>
+          <CardContent className="flex flex-wrap gap-3 pt-2">
+            <Button variant="secondary" size="sm" className="gap-2 px-4 shadow-sm hover:bg-secondary/80 transition-all"><Users className="h-4 w-4" /> Invite teammate</Button>
+            <Button variant="secondary" size="sm" className="gap-2 px-4 shadow-sm hover:bg-secondary/80 transition-all"><Rocket className="h-4 w-4" /> Plan launch</Button>
+            <Button variant="secondary" size="sm" className="gap-2 px-4 shadow-sm hover:bg-secondary/80 transition-all"><Coins className="h-4 w-4" /> Update metrics</Button>
+            <Button variant="secondary" size="sm" className="gap-2 px-4 shadow-sm hover:bg-secondary/80 transition-all"><FileText className="h-4 w-4" /> New Report</Button>
           </CardContent>
         </Card>
       </div>

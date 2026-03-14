@@ -337,10 +337,8 @@ function App() {
       { title: "Discovery", icon: Compass, url: "/discovery" },
       { title: "Analytics", icon: BarChart2, url: analyticsPath },
       { title: "My Posts", icon: Newspaper, url: "/myposts" },
-      { title: "News", icon: Rss, url: "/news" },
       ...(currentRole === 'entrepreneur' ? [
         { title: "My Projects", icon: FolderKanban, url: "/myprojects" },
-        { title: "AI Pitch Practice", icon: Mic, url: "/pitch-practice" },
         { title: "Project Applications", icon: Bell, url: "/project-applications" }
       ] : []),
       ...(currentRole === 'freelancer' || currentRole === 'investor' ? [

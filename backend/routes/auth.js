@@ -509,7 +509,7 @@ router.put('/update-profile', async (req, res) => {
     const decodedToken = await auth.verifyIdToken(token);
     const uid = decodedToken.uid;
 
-    const allowedFields = ['name', 'bio', 'resume', 'skills', 'rate', 'phone', 'location', 'linkedin', 'github', 'portfolio'];
+    const allowedFields = ['name', 'bio', 'resume', 'skills', 'rate', 'phone', 'location', 'linkedin', 'github', 'portfolio', 'companyName', 'industry', 'registrationNo', 'businessAddress'];
     const updates = {};
     for (const field of allowedFields) {
       if (req.body[field] !== undefined) {

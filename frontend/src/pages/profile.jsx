@@ -37,6 +37,8 @@ import {
   FileText,
   Download,
   ExternalLink,
+  Briefcase,
+  Rocket,
   X,
 } from "lucide-react"
 
@@ -62,7 +64,6 @@ export default function ProfilePage() {
 
   const [socialLinks, setSocialLinks] = React.useState({
     linkedin: "linkedin.com/in/alexdoe",
-    github: "github.com/alexdoe",
     portfolio: "innovateinc.com/portfolio",
   })
 
@@ -127,8 +128,13 @@ export default function ProfilePage() {
         }))
         setSocialLinks({
           linkedin: u.linkedin || "",
-          github: u.github || "",
           portfolio: u.portfolio || "",
+        })
+        setBusinessData({
+          companyName: u.companyName || "",
+          industry: u.industry || "",
+          registrationNo: u.registrationNo || "",
+          businessAddress: u.businessAddress || "",
         })
       } catch (err) {
         console.error("Error fetching user data:", err)
@@ -266,31 +272,36 @@ export default function ProfilePage() {
 
 
                   {role !== 'freelancer' && (
-                    <div className="w-full space-y-4">
-                      <div className="flex items-center gap-3 text-sm">
-                        <Linkedin className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <a
-                          href={`https://${socialLinks.linkedin}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-primary transition-colors break-all"
-                        >
-                          {socialLinks.linkedin}
-                        </a>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm">
-                        <Github className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <a
-                          href={`https://${socialLinks.github}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-primary transition-colors break-all"
-                        >
-                          {socialLinks.github}
-                        </a>
-                      </div>
-                      {socialLinks.resume && (
+                    <div className="w-full space-y-4 pt-2">
+                       <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70 text-left px-1">Business Information</h3>
+                       <div className="space-y-3">
                         <div className="flex items-center gap-3 text-sm">
+                          <Briefcase className="h-4 w-4 text-primary/70 shrink-0" />
+                          <span className="text-muted-foreground font-medium">
+                            {businessData.companyName}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm">
+                          <Rocket className="h-4 w-4 text-primary/70 shrink-0" />
+                          <span className="text-muted-foreground">
+                            {businessData.industry}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm">
+                          <Linkedin className="h-4 w-4 text-primary shrink-0" />
+                          <a
+                            href={`https://${socialLinks.linkedin}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-muted-foreground hover:text-primary transition-colors hover:underline break-all"
+                          >
+                            LinkedIn Profile
+                          </a>
+                        </div>
+                      </div>
+                      
+                      {socialLinks.resume && (
+                        <div className="flex items-center gap-3 text-sm pt-2">
                           <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                           <a
                             href={socialLinks.resume.startsWith('http') ? socialLinks.resume : `https://${socialLinks.resume}`}
@@ -314,12 +325,18 @@ export default function ProfilePage() {
             <Card className="premium-card border-none shadow-xl min-h-[600px]">
               <CardContent className="pt-6">
                 <Tabs defaultValue="personal" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 mb-6">
+                  <TabsList className={`grid w-full ${role === 'entrepreneur' ? 'grid-cols-2' : 'grid-cols-3'} mb-6`}>
                     <TabsTrigger value="personal">
-                      {role === 'freelancer' ? 'Personal Information' : 'Personal & Business'}
+                      {role === 'investor' ? 'Personal & Business' : 'Personal Information'}
                     </TabsTrigger>
-                    <TabsTrigger value="professional">Professional Summary</TabsTrigger>
-                    <TabsTrigger value="skills">Skills & Focus</TabsTrigger>
+                    {role === 'entrepreneur' ? (
+                      <TabsTrigger value="business">Business Information</TabsTrigger>
+                    ) : (
+                      <>
+                        <TabsTrigger value="professional">Professional Summary</TabsTrigger>
+                        <TabsTrigger value="skills">Skills & Focus</TabsTrigger>
+                      </>
+                    )}
                   </TabsList>
 
                   {/* Personal & Business Tab */}
@@ -456,126 +473,267 @@ export default function ProfilePage() {
                         </Card>
                       )}
 
-                      {/* Business Information Section - Hidden for Freelancers */}
-                      {role !== 'freelancer' && (
-                        <>
-                          <div className="flex items-center justify-between mt-6">
-                            <h3 className="text-lg font-semibold">Business Information</h3>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setIsEditingBusiness(!isEditingBusiness)}
-                            >
-                              <Edit2 className="h-4 w-4 mr-2" />
-                              {isEditingBusiness ? "Save" : "Edit"}
-                            </Button>
-                          </div>
-
-                          {isEditingBusiness ? (
-                            <Card className="rounded-2xl border bg-background/50 backdrop-blur-sm shadow-md">
-                              <CardContent className="pt-6 space-y-4">
-                                <div className="space-y-2">
-                                  <Label htmlFor="companyName">Company Name</Label>
-                                  <Input
-                                    id="companyName"
-                                    name="companyName"
-                                    value={businessData.companyName}
-                                    onChange={handleBusinessChange}
-                                  />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="industry">Industry</Label>
-                                  <Input
-                                    id="industry"
-                                    name="industry"
-                                    value={businessData.industry}
-                                    onChange={handleBusinessChange}
-                                  />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="registrationNo">Registration No.</Label>
-                                  <Input
-                                    id="registrationNo"
-                                    name="registrationNo"
-                                    value={businessData.registrationNo}
-                                    onChange={handleBusinessChange}
-                                  />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="businessAddress">Business Address</Label>
-                                  <Textarea
-                                    id="businessAddress"
-                                    name="businessAddress"
-                                    value={businessData.businessAddress}
-                                    onChange={handleBusinessChange}
-                                    rows={3}
-                                  />
-                                </div>
-                                <div className="flex gap-3 pt-2">
-                                  <Button
-                                    onClick={() => setIsEditingBusiness(false)}
-                                    className="flex-1"
-                                  >
-                                    Done
-                                  </Button>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ) : (
-                            <Card className="rounded-2xl border bg-background/50 backdrop-blur-sm shadow-md transition-all hover:shadow-lg">
-                              <CardContent className="pt-6 space-y-3">
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <p className="text-sm text-muted-foreground mb-1">
-                                      Company Name
-                                    </p>
-                                    <p className="text-sm font-medium">
-                                      {businessData.companyName}
-                                    </p>
-                                  </div>
-                                </div>
-                                <Separator />
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <p className="text-sm text-muted-foreground mb-1">
-                                      Industry
-                                    </p>
-                                    <p className="text-sm font-medium">
-                                      {businessData.industry}
-                                    </p>
-                                  </div>
-                                </div>
-                                <Separator />
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <p className="text-sm text-muted-foreground mb-1">
-                                      Registration No.
-                                    </p>
-                                    <p className="text-sm font-medium">
-                                      {businessData.registrationNo}
-                                    </p>
-                                  </div>
-                                </div>
-                                <Separator />
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <p className="text-sm text-muted-foreground mb-1">
-                                      Business Address
-                                    </p>
-                                    <p className="text-sm font-medium">
-                                      {businessData.businessAddress}
-                                    </p>
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          )}
-                        </>
-                      )}
                     </div>
+
+                    {/* Business Information Section - Shown here for Investors, moved to tab for Entrepreneurs */}
+                    {role === 'investor' && (
+                      <>
+                        <div className="flex items-center justify-between mt-6">
+                          <h3 className="text-lg font-semibold">Business Information</h3>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setIsEditingBusiness(!isEditingBusiness)}
+                          >
+                            <Edit2 className="h-4 w-4 mr-2" />
+                            {isEditingBusiness ? "Save" : "Edit"}
+                          </Button>
+                        </div>
+
+                        {isEditingBusiness ? (
+                          <Card className="rounded-2xl border bg-background/50 backdrop-blur-sm shadow-md">
+                            <CardContent className="pt-6 space-y-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="companyName">Company Name</Label>
+                                <Input
+                                  id="companyName"
+                                  name="companyName"
+                                  value={businessData.companyName}
+                                  onChange={handleBusinessChange}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="industry">Industry</Label>
+                                <Input
+                                  id="industry"
+                                  name="industry"
+                                  value={businessData.industry}
+                                  onChange={handleBusinessChange}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="registrationNo">Registration No.</Label>
+                                <Input
+                                  id="registrationNo"
+                                  name="registrationNo"
+                                  value={businessData.registrationNo}
+                                  onChange={handleBusinessChange}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="linkedin">LinkedIn Profile</Label>
+                                <Input
+                                  id="linkedin"
+                                  name="linkedin"
+                                  value={socialLinks.linkedin}
+                                  onChange={handleSocialLinkChange}
+                                  placeholder="linkedin.com/in/..."
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="businessAddress">Business Address</Label>
+                                <Textarea
+                                  id="businessAddress"
+                                  name="businessAddress"
+                                  value={businessData.businessAddress}
+                                  onChange={handleBusinessChange}
+                                  rows={3}
+                                />
+                              </div>
+                              <div className="flex gap-3 pt-2">
+                                <Button
+                                  onClick={() => setIsEditingBusiness(false)}
+                                  className="flex-1"
+                                >
+                                  Done
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ) : (
+                          <Card className="rounded-2xl border bg-background/50 backdrop-blur-sm shadow-md transition-all hover:shadow-lg">
+                            <CardContent className="pt-6 space-y-3">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <p className="text-sm text-muted-foreground mb-1">Company Name</p>
+                                  <p className="text-sm font-medium">{businessData.companyName}</p>
+                                </div>
+                              </div>
+                              <Separator />
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <p className="text-sm text-muted-foreground mb-1">Industry</p>
+                                  <p className="text-sm font-medium">{businessData.industry}</p>
+                                </div>
+                              </div>
+                              <Separator />
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <p className="text-sm text-muted-foreground mb-1">Registration No.</p>
+                                  <p className="text-sm font-medium">{businessData.registrationNo}</p>
+                                </div>
+                              </div>
+                              <Separator />
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <p className="text-sm text-muted-foreground mb-1">LinkedIn Profile</p>
+                                  <p className="text-sm font-medium">{socialLinks.linkedin}</p>
+                                </div>
+                              </div>
+                              <Separator />
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <p className="text-sm text-muted-foreground mb-1">Business Address</p>
+                                  <p className="text-sm font-medium">{businessData.businessAddress}</p>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
+                      </>
+                    )}
                   </TabsContent>
 
+                  {/* Business Information Tab (Entrepreneur only) */}
+                  {role === 'entrepreneur' && (
+                    <TabsContent value="business" className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold">Business Information</h3>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            if (isEditingBusiness) {
+                              fetch('http://localhost:3001/api/auth/update-profile', {
+                                method: 'PUT',
+                                headers: { 
+                                  'Content-Type': 'application/json',
+                                  'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                                },
+                                body: JSON.stringify({
+                                  companyName: businessData.companyName,
+                                  industry: businessData.industry,
+                                  registrationNo: businessData.registrationNo,
+                                  businessAddress: businessData.businessAddress,
+                                  linkedin: socialLinks.linkedin,
+                                })
+                              }).then(res => res.json()).then(data => {
+                                if (data.success) alert("Business Information updated!");
+                              });
+                            }
+                            setIsEditingBusiness(!isEditingBusiness);
+                          }}
+                        >
+                          <Edit2 className="h-4 w-4 mr-2" />
+                          {isEditingBusiness ? "Save" : "Edit"}
+                        </Button>
+                      </div>
+
+                      {isEditingBusiness ? (
+                        <Card className="rounded-2xl border bg-background/50 backdrop-blur-sm shadow-md">
+                          <CardContent className="pt-6 space-y-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="companyName">Company Name</Label>
+                              <Input
+                                id="companyName"
+                                name="companyName"
+                                value={businessData.companyName}
+                                onChange={handleBusinessChange}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="industry">Industry</Label>
+                              <Input
+                                id="industry"
+                                name="industry"
+                                value={businessData.industry}
+                                onChange={handleBusinessChange}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="registrationNo">Registration No.</Label>
+                              <Input
+                                id="registrationNo"
+                                name="registrationNo"
+                                value={businessData.registrationNo}
+                                onChange={handleBusinessChange}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="linkedin">LinkedIn Profile</Label>
+                              <Input
+                                id="linkedin"
+                                name="linkedin"
+                                value={socialLinks.linkedin}
+                                onChange={handleSocialLinkChange}
+                                placeholder="linkedin.com/in/..."
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="businessAddress">Business Address</Label>
+                              <Textarea
+                                id="businessAddress"
+                                name="businessAddress"
+                                value={businessData.businessAddress}
+                                onChange={handleBusinessChange}
+                                rows={3}
+                              />
+                            </div>
+                            <div className="flex gap-3 pt-2">
+                              <Button
+                                onClick={() => setIsEditingBusiness(false)}
+                                className="flex-1"
+                              >
+                                Done
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ) : (
+                        <Card className="rounded-2xl border bg-background/50 backdrop-blur-sm shadow-md transition-all hover:shadow-lg">
+                          <CardContent className="pt-6 space-y-3">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="text-sm text-muted-foreground mb-1">Company Name</p>
+                                <p className="text-sm font-medium">{businessData.companyName}</p>
+                              </div>
+                            </div>
+                            <Separator />
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="text-sm text-muted-foreground mb-1">Industry</p>
+                                <p className="text-sm font-medium">{businessData.industry}</p>
+                              </div>
+                            </div>
+                            <Separator />
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="text-sm text-muted-foreground mb-1">Registration No.</p>
+                                <p className="text-sm font-medium">{businessData.registrationNo}</p>
+                              </div>
+                            </div>
+                            <Separator />
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="text-sm text-muted-foreground mb-1">LinkedIn Profile</p>
+                                <p className="text-sm font-medium">{socialLinks.linkedin}</p>
+                              </div>
+                            </div>
+                            <Separator />
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="text-sm text-muted-foreground mb-1">Business Address</p>
+                                <p className="text-sm font-medium">{businessData.businessAddress}</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </TabsContent>
+                  )}
+
                   {/* Professional Summary Tab */}
+                  {role !== 'entrepreneur' && (
                   <TabsContent value="professional" className="space-y-6">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold">Professional Summary</h3>
@@ -593,7 +751,6 @@ export default function ProfilePage() {
                               body: JSON.stringify({
                                 bio: personalData.bio,
                                 linkedin: socialLinks.linkedin,
-                                github: socialLinks.github,
                                 portfolio: socialLinks.portfolio,
                               })
                             }).then(res => res.json()).then(data => {
@@ -627,28 +784,6 @@ export default function ProfilePage() {
                                   rows={4}
                                 />
                               </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <Label htmlFor="prof-linkedin">LinkedIn</Label>
-                                  <Input
-                                    id="prof-linkedin"
-                                    name="linkedin"
-                                    value={socialLinks.linkedin}
-                                    onChange={handleSocialLinkChange}
-                                    placeholder="linkedin.com/in/..."
-                                  />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="prof-github">GitHub</Label>
-                                  <Input
-                                    id="prof-github"
-                                    name="github"
-                                    value={socialLinks.github}
-                                    onChange={handleSocialLinkChange}
-                                    placeholder="github.com/..."
-                                  />
-                                </div>
-                              </div>
                               <div className="space-y-2">
                                 <Label htmlFor="prof-portfolio">Portfolio</Label>
                                 <Input
@@ -674,18 +809,6 @@ export default function ProfilePage() {
                               <div className="space-y-3">
                                 <p className="text-sm text-muted-foreground">Professional Links</p>
                                 <div className="grid grid-cols-1 gap-2">
-                                  {socialLinks.linkedin && (
-                                    <div className="flex items-center gap-2 text-sm">
-                                      <Linkedin className="h-4 w-4 text-primary" />
-                                      <a href={`https://${socialLinks.linkedin}`} target="_blank" rel="noopener" className="hover:underline">{socialLinks.linkedin}</a>
-                                    </div>
-                                  )}
-                                  {socialLinks.github && (
-                                    <div className="flex items-center gap-2 text-sm">
-                                      <Github className="h-4 w-4 text-primary" />
-                                      <a href={`https://${socialLinks.github}`} target="_blank" rel="noopener" className="hover:underline">{socialLinks.github}</a>
-                                    </div>
-                                  )}
                                   {socialLinks.portfolio && (
                                     <div className="flex items-center gap-2 text-sm">
                                       <Link2 className="h-4 w-4 text-primary" />
@@ -700,8 +823,10 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   </TabsContent>
+                  )}
 
                   {/* Skills & Focus Tab */}
+                  {role !== 'entrepreneur' && (
                   <TabsContent value="skills" className="space-y-6">
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold">Skills & Focus</h3>
@@ -745,6 +870,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   </TabsContent>
+                  )}
 
                 </Tabs>
               </CardContent>
