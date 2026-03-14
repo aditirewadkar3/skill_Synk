@@ -102,7 +102,7 @@ export default function ProfilePage() {
           email: cu.email || prev.email || "",
         }))
       }
-    } catch {}
+    } catch { }
 
     // 2. Fetch latest data from backend
     const fetchUserData = async () => {
@@ -335,7 +335,7 @@ export default function ProfilePage() {
                             if (isEditingPersonal) {
                               fetch('http://localhost:3001/api/auth/update-profile', {
                                 method: 'PUT',
-                                headers: { 
+                                headers: {
                                   'Content-Type': 'application/json',
                                   'Authorization': `Bearer ${localStorage.getItem('authToken')}`
                                 },
@@ -586,7 +586,7 @@ export default function ProfilePage() {
                           if (isEditingProfessional) {
                             fetch('http://localhost:3001/api/auth/update-profile', {
                               method: 'PUT',
-                              headers: { 
+                              headers: {
                                 'Content-Type': 'application/json',
                                 'Authorization': `Bearer ${localStorage.getItem('authToken')}`
                               },
