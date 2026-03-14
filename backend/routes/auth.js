@@ -349,6 +349,7 @@ router.post('/get-user', async (req, res) => {
         name:      userData.name      || (userData.email ? userData.email.split('@')[0] : 'User'),
         role:      userData.role      || ROLES.FREELANCER,
         bio:       userData.bio       || '',
+        resume:    userData.resume    || '',
         skills:    Array.isArray(userData.skills) ? userData.skills : [],
         rate:      userData.rate      || '',
         phone:     userData.phone     || '',
@@ -508,7 +509,7 @@ router.put('/update-profile', async (req, res) => {
     const decodedToken = await auth.verifyIdToken(token);
     const uid = decodedToken.uid;
 
-    const allowedFields = ['name', 'bio', 'skills', 'rate', 'phone', 'location', 'linkedin', 'github', 'portfolio'];
+    const allowedFields = ['name', 'bio', 'resume', 'skills', 'rate', 'phone', 'location', 'linkedin', 'github', 'portfolio'];
     const updates = {};
     for (const field of allowedFields) {
       if (req.body[field] !== undefined) {

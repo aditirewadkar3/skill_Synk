@@ -25,10 +25,22 @@ import DiscoveryPage from "@/pages/discovery"
 import PostForm from "@/components/posts/PostForm"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { PieChart, Search, Rocket, Bell } from "lucide-react"
+import {
+  LayoutDashboard, MessageSquare, Compass, BarChart2,
+  Newspaper, Rss, FolderKanban, Mic, Search,
+  Briefcase, Bell, TrendingUp, Rocket,
+} from "lucide-react"
 import { NotificationPopover } from "@/components/NotificationPopover"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 import { auth } from "@/config/firebase"
 import { onIdTokenChanged } from "firebase/auth"
 import { setAuthToken, setCurrentUser, getAuthToken } from "@/services/api"
@@ -43,6 +55,7 @@ function App() {
   const [isAuthReady, setIsAuthReady] = useState(false)
   const [socket, setSocket] = useState(null)
   const [isPostModalOpen, setIsPostModalOpen] = useState(false)
+  const [navHistory, setNavHistory] = useState([])
 
   // Sync Firebase Auth state with local storage
   useEffect(() => {
@@ -119,19 +132,17 @@ function App() {
   useEffect(() => {
     const path = window.location.pathname
     if (path === "/signup") {
-      setPage("signup")
-      setIsAuthenticated(false)
+      if (!isAuthenticated) setPage("signup")
     } else if (path === "/login") {
-      setPage("login")
-      setIsAuthenticated(false)
+      if (!isAuthenticated) setPage("login")
     } else if (path === "/") {
-      setIsAuthenticated(false)
-      setPage("landing")
+      if (!isAuthenticated) setPage("landing")
     } else if (path === "/dashboard") {
-      setIsAuthenticated(true)
-      const target = role === "freelancer" ? "/freelancer" : role === "investor" ? "/investor" : "/entrepreneur"
-      window.history.replaceState({}, "", target)
-      setPage(target.slice(1))
+      if (isAuthenticated && role) {
+        const target = role === "freelancer" ? "/freelancer" : role === "investor" ? "/investor" : "/entrepreneur"
+        window.history.replaceState({}, "", target)
+        setPage(target.slice(1))
+      }
     } else if (path === "/chat") {
       setIsAuthenticated(true)
       setPage("chat")
@@ -318,21 +329,23 @@ function App() {
   const buildNavForRole = (currentRole) => {
     const roleTitle = currentRole === "freelancer" ? "Freelancer" : currentRole === "investor" ? "Investor" : "Entrepreneur"
     const rolePath = currentRole === "freelancer" ? "/freelancer" : currentRole === "investor" ? "/investor" : "/entrepreneur"
+    const roleIcon = currentRole === "freelancer" ? Briefcase : currentRole === "investor" ? TrendingUp : Rocket
     const analyticsPath = currentRole === "freelancer" ? "/freelanceranalytics" : currentRole === "investor" ? "/investoranalytics" : "/entrepreneuranalytics"
     return [
-      { title: roleTitle, icon: PieChart, url: rolePath, isActive: true },
-      { title: "Messages", icon: PieChart, url: "/chat" },
-      { title: "Discovery", icon: Search, url: "/discovery" },
-      { title: "Analytics", icon: PieChart, url: analyticsPath },
-      { title: "My Posts", url: "/myposts" },
-      { title: "News", url: "/news" },
+      { title: roleTitle, icon: roleIcon, url: rolePath, isActive: true },
+      { title: "Messages", icon: MessageSquare, url: "/chat" },
+      { title: "Discovery", icon: Compass, url: "/discovery" },
+      { title: "Analytics", icon: BarChart2, url: analyticsPath },
+      { title: "My Posts", icon: Newspaper, url: "/myposts" },
+      { title: "News", icon: Rss, url: "/news" },
       ...(currentRole === 'entrepreneur' ? [
-        { title: "My Projects", url: "/myprojects" },
-        { title: "AI Pitch Practice", url: "/pitch-practice" }
+        { title: "My Projects", icon: FolderKanban, url: "/myprojects" },
+        { title: "AI Pitch Practice", icon: Mic, url: "/pitch-practice" },
+        { title: "Project Applications", icon: Bell, url: "/project-applications" }
       ] : []),
-      ...(currentRole === 'freelancer' ? [
-        { title: "Browse Projects", url: "/myprojects" },
-        { title: "Notifications", url: "/notifications" }
+      ...(currentRole === 'freelancer' || currentRole === 'investor' ? [
+        { title: "Browse Projects", icon: Search, url: "/myprojects" },
+        { title: "Notifications", icon: Bell, url: "/notifications" }
       ] : []),
     ]
   }
@@ -412,53 +425,73 @@ function App() {
               return
             }
             const pageName = path.replace(/^\//, '')
+            setNavHistory((prev) => {
+              const next = [...prev.filter(p => p !== pageName), page]
+              return next.slice(-5)
+            })
             setPage(pageName)
             window.history.pushState({}, '', path)
           }} />
           <SidebarInset>
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
+            <header className="flex h-16 shrink-0 border rounded-t-[1rem]  mr-2 mt-2 items-center gap-2 px-4 bg-background">
               <SidebarTrigger />
-              <div className="flex-1">
-                <h1 className="text-lg font-semibold">
-                  {page === "dashboard"
-                    ? "Dashboard"
-                    : page === "chat"
-                      ? "Chat"
-                      : page === "profile"
-                        ? "Profile"
-                        : page === "client-profile"
-                          ? "Client Profile"
-                          : page === "entrepreneuranalytics"
-                            ? "Entrepreneur Analytics"
-                            : page === "freelanceranalytics"
-                              ? "Freelancer Analytics"
-                              : page === "investoranalytics"
-                                ? "Investor Analytics"
-                                : page === "entrepreneur"
-                                  ? "Entrepreneur Dashboard"
-                                  : page === "freelancer"
-                                    ? "Freelancer Dashboard"
-                                    : page === "investor"
-                                      ? "Investor Dashboard"
-                                      : page === "notifications"
-                                        ? "Notifications"
-                                        : page === "proposal"
-                                          ? "Send Proposal"
-                                          : page === "news"
-                                            ? "Ecosystem News"
-                                            : page === "myprojects"
-                                              ? "My Projects"
-                                              : page === "project-applications"
-                                                ? "Project Applications"
-                                              : page === "pitch-practice"
-                                                ? "AI Pitch Practice"
-                                              : page === "discovery"
-                                                ? "Discovery Hub"
-                                                : ""}
-                </h1>
+              <div className="flex-1 min-w-0">
+                {(() => {
+                  const PAGE_TITLES = {
+                    dashboard: "Dashboard", chat: "Chat", profile: "Profile",
+                    "client-profile": "Client Profile",
+                    entrepreneuranalytics: "Entrepreneur Analytics",
+                    freelanceranalytics: "Freelancer Analytics",
+                    investoranalytics: "Investor Analytics",
+                    entrepreneur: "Entrepreneur Dashboard",
+                    freelancer: "Freelancer Dashboard",
+                    investor: "Investor Dashboard",
+                    notifications: "Notifications",
+                    proposal: "Send Proposal",
+                    news: "Ecosystem News",
+                    myprojects: "My Projects",
+                    myposts: "My Posts",
+                    "project-applications": "Project Applications",
+                    "pitch-practice": "AI Pitch Practice",
+                    discovery: "Discovery Hub",
+                  }
+                  const homePage = role === "freelancer" ? "freelancer" : role === "investor" ? "investor" : "entrepreneur"
+                  const homeTitle = PAGE_TITLES[homePage]
+                  const currentTitle = PAGE_TITLES[page] || page
+                  const isHome = page === homePage
+                  return (
+                    <Breadcrumb>
+                      <BreadcrumbList>
+                        {!isHome && (
+                          <>
+                            <BreadcrumbItem>
+                              <BreadcrumbLink
+                                className="cursor-pointer text-muted-foreground hover:text-foreground text-sm"
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  setNavHistory([])
+                                  setPage(homePage)
+                                  window.history.pushState({}, '', `/${homePage}`)
+                                }}
+                              >
+                                {homeTitle}
+                              </BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                          </>
+                        )}
+                        <BreadcrumbItem>
+                          <BreadcrumbPage className="font-semibold text-foreground text-sm">
+                            {currentTitle}
+                          </BreadcrumbPage>
+                        </BreadcrumbItem>
+                      </BreadcrumbList>
+                    </Breadcrumb>
+                  )
+                })()}
               </div>
-              <div className="flex items-center gap-4">
-                {role === "entrepreneur" && (
+                <div className="flex items-center gap-4">
+                {/* {role === "entrepreneur" && (
                   <Button 
                     variant="ghost" 
                     size="icon" 
@@ -471,14 +504,14 @@ function App() {
                     <Bell className="h-5 w-5" />
                     <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary border-2 border-background" />
                   </Button>
-                )}
+                )} */}
                 {(page === "entrepreneur" || page === "myposts") && (
                   <Sheet open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
-                    <SheetTrigger asChild>
+                    {/* <SheetTrigger asChild>
                       <Button variant="premium" size="sm" className="gap-2">
                         <Rocket className="h-4 w-4" /> New Post
                       </Button>
-                    </SheetTrigger>
+                    </SheetTrigger> */}
                     <SheetContent side="right" className="w-[400px] sm:w-[540px]">
                       <SheetHeader>
                         <SheetTitle>Create a New Post</SheetTitle>
@@ -496,7 +529,7 @@ function App() {
                 <ThemeToggle />
               </div>
             </header>
-            <main className="flex-1 overflow-hidden min-h-0">
+            <main className="flex-1 border bg-background shadow-sm mr-2 mb-2 overflow-hidden min-h-0">
               {page === "dashboard" && (
                 role === 'freelancer' ? <FreelancerDashboard /> :
                   role === 'investor' ? <InvestorDashboard /> :

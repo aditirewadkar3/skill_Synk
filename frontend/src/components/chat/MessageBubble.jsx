@@ -29,7 +29,8 @@ export function MessageBubble({ message, isOwn = false }) {
           "flex flex-col max-w-[75%] md:max-w-[60%]",
           isOwn ? "items-end" : "items-start"
         )}>
-        {!isOwn && (message.isCommunity || !message.receiverId) && message.senderName && (
+        {/* Only show name for non-own messages in a community chat */}
+        {!isOwn && (message.isCommunity || !message.receiverId || message.chatId?.startsWith('community_')) && message.senderName && (
           <span className="text-[10px] font-bold text-primary mb-1 ml-1 uppercase tracking-wider">
             {message.senderName}
           </span>

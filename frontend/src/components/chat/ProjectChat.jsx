@@ -86,8 +86,14 @@ export function ProjectChat({ projectId, communityChatId, projectName }) {
     try {
       const response = await chatAPI.sendMessage(communityChatId, content.trim())
       if (response.success && response.message) {
-        // Optimistic update is handled by 'message-sent' event usually, 
-        // but we can add it here if needed if socket is slow
+        const newMessage = {
+          ...response.message,
+          timestamp: new Date(response.message.timestamp),
+        }
+        setMessages(prev => {
+          if (prev.find(m => m.id === newMessage.id)) return prev
+          return [...prev, newMessage].sort((a, b) => a.timestamp - b.timestamp)
+        })
       }
     } catch (error) {
       console.error('Error sending message:', error)

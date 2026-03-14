@@ -30,6 +30,7 @@ import { Separator } from "@/components/ui/separator";
 import { chatAPI, postsAPI } from "@/services/api";
 
 export default function DiscoveryPage() {
+  const userRole = localStorage.getItem("role") || "entrepreneur";
   const [searchQuery, setSearchQuery] = useState("");
   const [talentList, setTalentList] = useState([]);
   const [projectList, setProjectList] = useState([]);
@@ -168,7 +169,8 @@ export default function DiscoveryPage() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Discovery Hub</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              {talentList.length} verified freelancers · {projectList.length} active projects
+              {talentList.length} verified freelancers
+              {userRole !== "freelancer" && ` · ${projectList.length} active projects`}
             </p>
           </div>
           {/* Search bar */}
@@ -198,15 +200,17 @@ export default function DiscoveryPage() {
       {/* ── Tabs ── */}
       <Tabs defaultValue="talent" className="flex-1 flex flex-col overflow-hidden">
         <div className="px-6 pt-4">
-          <TabsList className="grid grid-cols-2 w-full max-w-sm">
+          <TabsList className={`grid ${userRole === "freelancer" ? "grid-cols-1 w-32" : "grid-cols-2 w-full max-w-sm"}`}>
             <TabsTrigger value="talent" className="flex items-center gap-2 text-xs">
               <Users className="h-3.5 w-3.5" />
               Talent Marketplace
             </TabsTrigger>
-            <TabsTrigger value="funding" className="flex items-center gap-2 text-xs">
-              <TrendingUp className="h-3.5 w-3.5" />
-              Project Funding
-            </TabsTrigger>
+            {userRole !== "freelancer" && (
+              <TabsTrigger value="funding" className="flex items-center gap-2 text-xs">
+                <TrendingUp className="h-3.5 w-3.5" />
+                Project Funding
+              </TabsTrigger>
+            )}
           </TabsList>
         </div>
 
@@ -411,96 +415,97 @@ export default function DiscoveryPage() {
           </ScrollArea>
         </TabsContent>
 
-        {/* ════════════ FUNDING TAB ════════════ */}
-        <TabsContent value="funding" className="flex-1 overflow-hidden mt-0 outline-none">
-          <ScrollArea className="h-full px-6 pt-4">
-            {filteredProjects.length > 0 ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 pb-8">
-                {filteredProjects.map((project) => (
-                  <Card
-                    key={project.id}
-                    className="group flex flex-col overflow-hidden border border-border/60 bg-card hover:border-primary/30 hover:shadow-lg transition-all duration-200"
-                  >
-                    <CardHeader className="p-4 pb-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge
-                          variant="outline"
-                          className={`text-[10px] uppercase tracking-wider font-semibold px-2.5 py-0.5 ${
-                            project.category === "Investment"
-                              ? "border-emerald-500/30 text-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/30"
-                              : "border-blue-500/30 text-blue-600 bg-blue-50/50 dark:bg-blue-950/30"
-                          }`}
-                        >
-                          {project.category}
-                        </Badge>
-                        <Zap className="h-4 w-4 text-primary opacity-60" />
-                      </div>
-                      <CardTitle className="text-base font-semibold line-clamp-1">
-                        {project.title}
-                      </CardTitle>
-                      <CardDescription className="text-xs line-clamp-2 mt-1">
-                        {project.description || "No description provided."}
-                      </CardDescription>
-                    </CardHeader>
-
-                    <CardContent className="px-4 pt-0 pb-3 flex-1">
-                      {/* Progress bar */}
-                      <div className="space-y-1.5">
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Raised: <span className="font-semibold text-foreground">{project.raised}</span></span>
-                          <span>Goal: {project.fundingGoal}</span>
-                        </div>
-                        <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                          <div
-                            className="h-full bg-primary rounded-full transition-all"
-                            style={{ width: `${project.progress}%` }}
-                          />
-                        </div>
-                        <p className="text-right text-[10px] text-muted-foreground font-medium">
-                          {project.progress}% funded
-                        </p>
-                      </div>
-
-                      {/* Tags */}
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        {project.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-secondary text-secondary-foreground border border-border/40"
+        {userRole !== "freelancer" && (
+          <TabsContent value="funding" className="flex-1 overflow-hidden mt-0 outline-none">
+            <ScrollArea className="h-full px-6 pt-4">
+              {filteredProjects.length > 0 ? (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 pb-8">
+                  {filteredProjects.map((project) => (
+                    <Card
+                      key={project.id}
+                      className="group flex flex-col overflow-hidden border border-border/60 bg-card hover:border-primary/30 hover:shadow-lg transition-all duration-200"
+                    >
+                      <CardHeader className="p-4 pb-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge
+                            variant="outline"
+                            className={`text-[10px] uppercase tracking-wider font-semibold px-2.5 py-0.5 ${
+                              project.category === "Investment"
+                                ? "border-emerald-500/30 text-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/30"
+                                : "border-blue-500/30 text-blue-600 bg-blue-50/50 dark:bg-blue-950/30"
+                            }`}
                           >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    </CardContent>
+                            {project.category}
+                          </Badge>
+                          <Zap className="h-4 w-4 text-primary opacity-60" />
+                        </div>
+                        <CardTitle className="text-base font-semibold line-clamp-1">
+                          {project.title}
+                        </CardTitle>
+                        <CardDescription className="text-xs line-clamp-2 mt-1">
+                          {project.description || "No description provided."}
+                        </CardDescription>
+                      </CardHeader>
 
-                    <Separator className="opacity-50" />
+                      <CardContent className="px-4 pt-0 pb-3 flex-1">
+                        {/* Progress bar */}
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>Raised: <span className="font-semibold text-foreground">{project.raised}</span></span>
+                            <span>Goal: {project.fundingGoal}</span>
+                          </div>
+                          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                            <div
+                              className="h-full bg-primary rounded-full transition-all"
+                              style={{ width: `${project.progress}%` }}
+                            />
+                          </div>
+                          <p className="text-right text-[10px] text-muted-foreground font-medium">
+                            {project.progress}% funded
+                          </p>
+                        </div>
 
-                    <CardFooter className="p-3">
-                      <Button
-                        className="w-full h-8 text-xs gap-2 font-semibold"
-                        onClick={() => handleBackProject(project.id)}
-                      >
-                        <DollarSign className="h-3.5 w-3.5" />
-                        Back this project
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="p-4 rounded-full bg-muted/60 mb-4">
-                  <DollarSign className="h-8 w-8 text-muted-foreground/40" />
+                        {/* Tags */}
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {project.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-secondary text-secondary-foreground border border-border/40"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      </CardContent>
+
+                      <Separator className="opacity-50" />
+
+                      <CardFooter className="p-3">
+                        <Button
+                          className="w-full h-8 text-xs gap-2 font-semibold"
+                          onClick={() => handleBackProject(project.id)}
+                        >
+                          <DollarSign className="h-3.5 w-3.5" />
+                          Back this project
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
                 </div>
-                <p className="text-sm font-medium text-muted-foreground">No projects found</p>
-                <p className="text-xs text-muted-foreground/60 mt-1">
-                  Try adjusting your search query
-                </p>
-              </div>
-            )}
-          </ScrollArea>
-        </TabsContent>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <div className="p-4 rounded-full bg-muted/60 mb-4">
+                    <DollarSign className="h-8 w-8 text-muted-foreground/40" />
+                  </div>
+                  <p className="text-sm font-medium text-muted-foreground">No projects found</p>
+                  <p className="text-xs text-muted-foreground/60 mt-1">
+                    Try adjusting your search query
+                  </p>
+                </div>
+              )}
+            </ScrollArea>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

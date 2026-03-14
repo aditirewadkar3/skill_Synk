@@ -32,7 +32,7 @@ const verifyToken = async (req, res, next) => {
  */
 router.post('/schedule', verifyToken, async (req, res) => {
   try {
-    const { participantId, participantName } = req.body;
+    const { participantId, participantName, scheduledTime } = req.body;
     const hostId = req.user.uid;
     const hostName = req.user.name || req.user.email || 'Host';
 
@@ -66,8 +66,11 @@ router.post('/schedule', verifyToken, async (req, res) => {
       participantId,
       participantName: participantName || 'Guest',
       roomName,
+      hostLink,
       timestamp: new Date(),
-      status: 'scheduled'
+      scheduledTime: scheduledTime ? new Date(scheduledTime) : null,
+      status: scheduledTime ? 'scheduled' : 'active',
+      notified: false // flag for cron job
     });
 
     res.json({

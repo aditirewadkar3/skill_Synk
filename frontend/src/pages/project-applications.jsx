@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, User, Briefcase, CheckCircle2, XCircle, MessageSquare, Clock } from "lucide-react";
+import { Loader2, User, Briefcase, CheckCircle2, XCircle, MessageSquare, Clock, TrendingUp } from "lucide-react";
 import { getAuthToken } from "@/services/api";
 
 export default function ProjectApplicationsPage() {
@@ -70,8 +70,8 @@ export default function ProjectApplicationsPage() {
   const handleChat = (app) => {
     // Navigate to messages with this user
     // In Slynk, we might need a specific way to start a DM
-    // For now, let's assume redirecting to /chat?user=ID or similar
-    window.location.href = `/chat?with=${app.freelancerId}`;
+    // For now, let's assume redirecting to /chat?with=ID or similar
+    window.location.href = `/chat?with=${app.applicantId}`;
   };
 
   return (
@@ -117,16 +117,21 @@ export default function ProjectApplicationsPage() {
                   <div className="p-6 md:w-1/3 border-b md:border-b-0 md:border-r border-white/5 bg-primary/5">
                     <div className="flex items-center gap-4 mb-4">
                       <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
-                        <User className="h-6 w-6 text-primary" />
+                        {app.type === 'investor' ? <TrendingUp className="h-6 w-6 text-primary" /> : <User className="h-6 w-6 text-primary" />}
                       </div>
                       <div>
                         <h3 className="font-bold text-lg">{app.freelancerName}</h3>
                         <p className="text-xs text-muted-foreground">{app.freelancerEmail}</p>
                       </div>
                     </div>
-                    <Badge variant={app.status === 'pending' ? 'outline' : app.status === 'accepted' ? 'success' : 'destructive'} className="rounded-full px-3">
-                      {app.status.toUpperCase()}
-                    </Badge>
+                    <div className="flex flex-col gap-2">
+                      <Badge variant="outline" className="w-fit">
+                        {app.type === 'investor' ? 'Investor' : 'Freelancer'}
+                      </Badge>
+                      <Badge variant={app.status === 'pending' ? 'outline' : app.status === 'accepted' ? 'success' : 'destructive'} className="rounded-full px-3 w-fit">
+                        {app.status.toUpperCase()}
+                      </Badge>
+                    </div>
                   </div>
 
                   {/* Right: Project Info and Actions */}
@@ -137,6 +142,21 @@ export default function ProjectApplicationsPage() {
                         <span className="text-sm font-semibold uppercase tracking-wider">Applied for</span>
                       </div>
                       <h2 className="text-2xl font-bold">{app.projectName}</h2>
+                      {app.type === 'investor' && (
+                        <div className="p-4 bg-muted/40 rounded-xl space-y-2 border border-primary/10">
+                          <p className="text-sm font-semibold text-primary">Investment Offer</p>
+                          <div className="flex gap-4">
+                            <div>
+                              <p className="text-xs text-muted-foreground">Amount</p>
+                              <p className="font-bold text-lg">${app.investmentAmount}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Equity Wanted</p>
+                              <p className="font-bold text-lg">{app.equityWanted}%</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Clock className="h-3 w-3" />
                         Applied on {new Date(app.createdAt).toLocaleDateString(undefined, {
@@ -184,7 +204,7 @@ export default function ProjectApplicationsPage() {
                         className="gap-2 ml-auto"
                         onClick={() => handleChat(app)}
                       >
-                        <MessageSquare className="h-4 w-4" /> Chat with Freelancer
+                        <MessageSquare className="h-4 w-4" /> Message {app.type === 'investor' ? 'Investor' : 'Freelancer'}
                       </Button>
                     </div>
                   </div>

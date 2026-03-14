@@ -51,6 +51,16 @@ export default {
           DEFAULT: "var(--card)",
           foreground: "var(--card-foreground)",
         },
+        sidebar: {
+          DEFAULT: "var(--sidebar)",
+          foreground: "var(--foreground)",
+          border: "var(--border)",
+          accent: "var(--accent)",
+          "accent-foreground": "var(--accent-foreground)",
+          primary: "var(--primary)",
+          "primary-foreground": "var(--primary-foreground)",
+          ring: "var(--ring)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

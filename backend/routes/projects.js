@@ -133,10 +133,13 @@ router.get('/applications', verifyToken, async (req, res) => {
           projectId: doc.id,
           projectName: projectData.name,
           applicantId: app.applicantId,
-          freelancerName: app.freelancerName,
-          freelancerEmail: app.freelancerEmail,
+          freelancerName: app.freelancerName || app.applicantName, // handle legacy/new
+          freelancerEmail: app.freelancerEmail || app.applicantEmail,
           status: app.status || 'pending',
-          createdAt: app.appliedAt || projectData.createdAt
+          createdAt: app.appliedAt || projectData.createdAt,
+          type: app.type || 'freelancer',
+          investmentAmount: app.investmentAmount,
+          equityWanted: app.equityWanted
         });
       });
     });
@@ -211,12 +214,14 @@ router.post('/applications/:id/respond', verifyToken, async (req, res) => {
 router.post('/:id/apply', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { freelancerName, freelancerEmail } = req.body;
+    const { freelancerName, freelancerEmail, applicantName, applicantEmail, type, investmentAmount, equityWanted } = req.body;
     const applicantId = req.user.uid;
 
+    const nameToSave = applicantName || freelancerName;
+    const emailToSave = applicantEmail || freelancerEmail;
 
-    if (!freelancerName || !freelancerEmail) {
-      return res.status(400).json({ error: 'freelancerName and freelancerEmail are required' });
+    if (!nameToSave || !emailToSave) {
+      return res.status(400).json({ error: 'Applicant name and email are required' });
     }
 
     const projectRef = db.collection('projects').doc(id);
@@ -228,11 +233,19 @@ router.post('/:id/apply', verifyToken, async (req, res) => {
 
     const application = {
       applicantId,
-      freelancerName,
-      freelancerEmail,
+      applicantName: nameToSave, // Save modern names
+      applicantEmail: emailToSave,
+      freelancerName: nameToSave, // Keep legacy names for compatibility in UI if any
+      freelancerEmail: emailToSave,
       status: 'pending',
       appliedAt: new Date().toISOString(),
+      type: type || 'freelancer',
     };
+
+    if (type === 'investor' && investmentAmount && equityWanted) {
+      application.investmentAmount = investmentAmount;
+      application.equityWanted = equityWanted;
+    }
 
     const projectData = project.data();
     const applicants = projectData.applicants || [];
