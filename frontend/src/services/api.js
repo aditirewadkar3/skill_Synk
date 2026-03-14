@@ -446,9 +446,17 @@ export const projectsAPI = {
       body: JSON.stringify({ action })
     });
   },
+<<<<<<< HEAD
   getMyActiveProjects: async () => {
     const response = await apiRequest('/projects/my-active-projects');
     return response.projects || [];
+=======
+  updateProject: async (projectId, data) => {
+    return await apiRequest(`/projects/${projectId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+>>>>>>> 19988bc14730a97092baf407a539c914c7ae1516
   }
 };
 

@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import { authAPI } from "@/services/api"
 
+import loginImage from "@/assets/Login-pana.png";
+
 export function LoginForm({
   className,
   onLogin,
@@ -29,7 +31,7 @@ export function LoginForm({
     try {
       const res = await authAPI.login(email, password)
       // Store uid for role fetch routing
-      try { localStorage.setItem('uid', res.user.uid) } catch {}
+      try { localStorage.setItem('uid', res.user.uid) } catch { }
       toast({ title: "Login successful", description: "Welcome back!" })
       if (onLogin) onLogin()
     } catch (error) {
@@ -42,7 +44,7 @@ export function LoginForm({
       setIsLoading(false)
     }
   }
-  
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden p-0">
@@ -57,13 +59,13 @@ export function LoginForm({
               </div>
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="m@example.com" 
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required 
+                  required
                   disabled={isLoading}
                 />
               </Field>
@@ -74,12 +76,12 @@ export function LoginForm({
                     Forgot your password?
                   </a>
                 </div>
-                <Input 
-                  id="password" 
-                  type="password" 
+                <Input
+                  id="password"
+                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required 
+                  required
                   disabled={isLoading}
                   autoComplete="current-password"
                 />
@@ -94,11 +96,11 @@ export function LoginForm({
               </FieldDescription>
             </FieldGroup>
           </form>
-          <div className="bg-muted relative hidden md:block">
+          <div className="bg-muted relative hidden md:flex items-center justify-center p-8 bg-white/5 object-cover">
             <img
-              src="/placeholder.svg"
-              alt="Image"
-              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale" />
+              src={loginImage}
+              alt="Login hero"
+              className="max-h-full max-w-full object-contain dark:brightness-[0.9] dark:contrast-125 mix-blend-multiply dark:mix-blend-normal" />
           </div>
         </CardContent>
       </Card>

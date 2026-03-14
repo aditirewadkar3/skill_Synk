@@ -441,4 +441,39 @@ router.post('/:id/apply', verifyToken, async (req, res) => {
   }
 });
 
+// PUT /api/projects/:id
+router.put('/:id', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    const ownerId = req.user.uid;
+
+    const projectRef = db.collection('projects').doc(id);
+    const project = await projectRef.get();
+
+    if (!project.exists) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (project.data().ownerId !== ownerId) {
+      return res.status(403).json({ error: 'Unauthorized to update this project' });
+    }
+
+    // Sanitize updateData - don't allow changing sensitive fields if any
+    delete updateData.id;
+    delete updateData.ownerId;
+    delete updateData.createdAt;
+
+    await projectRef.update({
+      ...updateData,
+      updatedAt: new Date().toISOString()
+    });
+
+    return res.json({ success: true, message: 'Project updated successfully' });
+  } catch (err) {
+    console.error('Update project error:', err);
+    return res.status(500).json({ error: 'Failed to update project', message: err.message });
+  }
+});
+
 export default router;
