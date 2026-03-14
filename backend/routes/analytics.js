@@ -79,32 +79,44 @@ router.post('/interest', verifyToken, async (req, res) => {
 router.get('/entrepreneur', verifyToken, async (req, res) => {
   try {
     const uid = req.user.uid;
+    
+    // 1. Fetch Projects owned by user
+    const projectsSnapshot = await db.collection('projects')
+      .where('ownerId', '==', uid)
+      .get();
+    
+    const activeProjects = projectsSnapshot.size;
+    
+    // 2. Fetch User data for view counts
     const userDoc = await db.collection('users').doc(uid).get();
     const userData = userDoc.data() || {};
+    const pitchViews = userData.viewCount || 0;
 
-    const viewCount = userData.viewCount || 0;
-    const interestCount = (userData.interestedInvestors || []).length;
-    
-    // Count meetings
-    const meetingsSnapshot = await db.collection('meetings')
-      .where('hostId', '==', uid)
-      .get();
-    const meetingCount = meetingsSnapshot.size;
+    // 3. Calculate Financials (Burn/Runway) - Placeholder logic or derived from accepted applications
+    // We'll iterate through projects and sum up accepted freelancer "rates" if they exist
+    let monthlyBurn = 0;
+    projectsSnapshot.forEach(doc => {
+      const p = doc.data();
+      (p.applicants || []).forEach(app => {
+        const type = app.type || 'freelancer';
+        if (app.status === 'accepted' && type === 'freelancer') {
+          monthlyBurn += (Number(app.hourlyRate) * 160) || Number(app.bidAmount) || 0;
+        }
+      });
+    });
 
-    // Count applications (simplified: messages from freelancers)
-    // In a full app, you'd have an 'applications' collection
-    const appsSnapshot = await db.collection('messages')
-      .where('receiverId', '==', uid)
-      .get();
-    const applicationCount = appsSnapshot.size;
+    // Dummy runway logic
+    const totalCapital = userData.capital || 100000;
+    const runway = monthlyBurn > 0 ? Math.floor(totalCapital / monthlyBurn) : 12;
 
     res.json({
       success: true,
       data: {
-        pitchViews: viewCount,
-        investorInterest: interestCount,
-        meetingsScheduled: meetingCount,
-        freelancerApplications: applicationCount
+        activeProjects,
+        pitchViews,
+        monthlyBurn,
+        runway,
+        investorInterest: (userData.interestedInvestors || []).length
       }
     });
   } catch (error) {
@@ -114,34 +126,42 @@ router.get('/entrepreneur', verifyToken, async (req, res) => {
 
 /**
  * GET /api/analytics/investor
- * Recommended and Trending startups
  */
 router.get('/investor', verifyToken, async (req, res) => {
   try {
     const uid = req.user.uid;
-    const userDoc = await db.collection('users').doc(uid).get();
-    const myInterests = userDoc.data()?.interests || [];
+    
+    // Fetch all projects and filter for accepted investments
+    const snap = await db.collection('projects').get();
+    let portfolioStartups = 0;
+    let investedAmount = 0;
+    const domains = {};
 
-    // Recommended: Match industry with my interests
-    let recommended = [];
-    if (myInterests.length > 0) {
-      const recSnapshot = await db.collection('users')
-        .where('role', '==', 'entrepreneur')
-        .where('industry', 'in', myInterests)
-        .limit(5)
-        .get();
-      recommended = recSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    }
+    snap.forEach(doc => {
+      const p = doc.data();
+      const myApp = (p.applicants || []).find(a => 
+        a.applicantId === uid && 
+        a.type === 'investor' && 
+        a.status === 'accepted'
+      );
+      if (myApp) {
+        portfolioStartups++;
+        investedAmount += Number(myApp.investmentAmount || 0);
+        const domain = p.industry || 'Tech';
+        domains[domain] = (domains[domain] || 0) + 1;
+      }
+    });
 
-    // Trending: High view count + interest
-    const trendingSnapshot = await db.collection('users')
-      .where('role', '==', 'entrepreneur')
-      .orderBy('viewCount', 'desc')
-      .limit(5)
-      .get();
-    const trending = trendingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const roiDomain = Object.entries(domains).sort((a,b) => b[1]-a[1])[0]?.[0] || 'N/A';
 
-    res.json({ success: true, recommended, trending });
+    res.json({
+      success: true,
+      data: {
+        portfolioStartups,
+        investedAmount,
+        roiDomain
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -149,28 +169,38 @@ router.get('/investor', verifyToken, async (req, res) => {
 
 /**
  * GET /api/analytics/freelancer
- * Skill demand based on post descriptions
  */
 router.get('/freelancer', verifyToken, async (req, res) => {
   try {
-    const postsSnapshot = await db.collection('posts').get();
-    const skillMap = {};
+    const uid = req.user.uid;
+    const snap = await db.collection('projects').get();
+    
+    let activeContracts = 0;
+    let thisMonthIncome = 0;
+    let hoursTracked = 0;
 
-    postsSnapshot.forEach(doc => {
-      const desc = (doc.data().description || '').toLowerCase();
-      // Simple skill extraction (can be improved with AI or predefined list)
-      ['react', 'node', 'python', 'ai', 'marketing', 'design', 'firebase', 'aws'].forEach(skill => {
-        if (desc.includes(skill)) {
-          skillMap[skill] = (skillMap[skill] || 0) + 1;
-        }
-      });
+    snap.forEach(doc => {
+      const p = doc.data();
+      const myApp = (p.applicants || []).find(a => 
+        a.applicantId === uid && 
+        (a.type || 'freelancer') === 'freelancer' && 
+        a.status === 'accepted'
+      );
+      if (myApp) {
+        activeContracts++;
+        thisMonthIncome += Number(myApp.bidAmount || 0) || (Number(myApp.hourlyRate || 0) * 40); // estimate
+        hoursTracked += 40; // placeholder for a week
+      }
     });
 
-    const skillDemand = Object.entries(skillMap)
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count);
-
-    res.json({ success: true, skillDemand });
+    res.json({
+      success: true,
+      data: {
+        activeContracts,
+        thisMonthIncome,
+        hoursTracked
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

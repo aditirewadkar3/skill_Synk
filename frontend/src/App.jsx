@@ -16,6 +16,7 @@ import MyPostsPage from "@/pages/myposts"
 import MyProjectsPage from "@/pages/my-projects"
 import ProjectApplicationsPage from "@/pages/project-applications.jsx"
 import MyInvestmentsPage from "@/pages/my-investments"
+import MyActiveProjectsPage from "@/pages/my-active-projects.jsx"
 import Landing from "@/pages/landing"
 import MeetingPage from "@/pages/meeting"
 import NotificationsPage from "@/pages/notifications"
@@ -190,6 +191,9 @@ function App() {
     } else if (path === "/my-investments") {
       setIsAuthenticated(true)
       setPage("my-investments")
+    } else if (path === "/my-active-projects") {
+      setIsAuthenticated(true)
+      setPage("my-active-projects")
     } else if (path === "/discovery") {
       setIsAuthenticated(true)
       setPage("discovery")
@@ -268,7 +272,12 @@ function App() {
 
   // Listen to history/navigation events
   useEffect(() => {
-    const handleLocation = () => {
+    const handleLocation = (e) => {
+      // If it's a custom app:navigate event, update the URL first
+      if (e && e.type === 'app:navigate' && e.detail) {
+        window.history.pushState({}, '', e.detail)
+      }
+
       const path = window.location.pathname
       if (path === '/client-profile') {
         setIsAuthenticated(true)
@@ -303,6 +312,9 @@ function App() {
       } else if (path === '/my-investments') {
         setIsAuthenticated(true)
         setPage('my-investments')
+      } else if (path === '/my-active-projects') {
+        setIsAuthenticated(true)
+        setPage('my-active-projects')
       }
     }
     window.addEventListener('popstate', handleLocation)
@@ -321,7 +333,7 @@ function App() {
     const protectedPages = [
       "meeting", "chat", "profile", "client-profile",
       "freelanceranalytics", "investoranalytics", "entrepreneuranalytics",
-      "myposts", "myprojects", "my-investments", "notifications", "proposal", "news", "discovery", "pitch-practice"
+      "myposts", "myprojects", "my-investments", "my-active-projects", "notifications", "proposal", "news", "discovery", "pitch-practice"
     ]
     if (page !== target && !protectedPages.includes(page)) {
       setPage(target)
@@ -350,6 +362,7 @@ function App() {
       ] : []),
       ...(currentRole === 'freelancer' || currentRole === 'investor' ? [
         { title: "Browse Projects", icon: Search, url: "/myprojects" },
+        ...(currentRole === 'freelancer' ? [{ title: "My Active Projects", icon: FolderKanban, url: "/my-active-projects" }] : []),
         ...(currentRole === 'investor' ? [{ title: "My Investments", icon: TrendingUp, url: "/my-investments" }] : []),
         { title: "Notifications", icon: Bell, url: "/notifications" }
       ] : []),
@@ -457,6 +470,7 @@ function App() {
                     news: "Ecosystem News",
                     myprojects: "My Projects",
                     "my-investments": "My Investments",
+                    "my-active-projects": "My Active Projects",
                     myposts: "My Posts",
                     "project-applications": "Project Applications",
                     "pitch-practice": "AI Pitch Practice",
@@ -554,6 +568,7 @@ function App() {
               {page === "myposts" && <MyPostsPage />}
               {page === "myprojects" && <MyProjectsPage />}
               {page === "my-investments" && <MyInvestmentsPage />}
+              {page === "my-active-projects" && <MyActiveProjectsPage />}
               {page === "notifications" && <NotificationsPage />}
               {page === "proposal" && <ProposalPage />}
               {page === "news" && <NewsPage />}

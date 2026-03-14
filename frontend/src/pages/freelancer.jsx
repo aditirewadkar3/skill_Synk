@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Feed from "@/components/feed/Feed";
@@ -9,22 +9,71 @@ import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { DollarSign, Briefcase, Clock, Filter, FileText, Star } from "lucide-react";
+import { DollarSign, Briefcase, Clock, Filter, FileText, Star, Loader2 } from "lucide-react";
 import PostForm from "@/components/posts/PostForm";
+import { analyticsAPI } from "@/services/api";
 
 export default function FreelancerDashboard() {
   const [summary, setSummary] = useState("")
   const [selectedId, setSelectedId] = useState(null)
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [stats, setStats] = useState({
+    activeContracts: 0,
+    thisMonthIncome: 0,
+    hoursTracked: 0
+  });
   
   const currentUser = (() => {
     try { return JSON.parse(localStorage.getItem('currentUser')) } catch { return null }
   })()
   const uid = currentUser?.uid || localStorage.getItem('uid') || null
 
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await analyticsAPI.getFreelancer();
+        if (data) setStats(data);
+      } catch (err) {
+        console.error("Failed to fetch freelancer stats:", err);
+        setError("Failed to load live metrics. Ensure the server is running.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
   const handleSelect = (id) => {
     setSelectedId(selectedId === id ? null : id)
   }
   
+  const kpis = [
+    { 
+      id: 'contracts', 
+      title: 'Active Contracts', 
+      value: stats.activeContracts, 
+      sub: stats.activeContracts > 0 ? 'Work in progress' : 'Explore opportunities', 
+      icon: Briefcase 
+    },
+    { 
+      id: 'income', 
+      title: 'This Month Income', 
+      value: `$${stats.thisMonthIncome.toLocaleString()}`, 
+      sub: stats.thisMonthIncome > 0 ? 'Earnings confirmed' : 'Apply to projects', 
+      icon: DollarSign 
+    },
+    { 
+      id: 'hours', 
+      title: 'Hours Tracked', 
+      value: `${stats.hoursTracked}h`, 
+      sub: 'Recent activity', 
+      icon: Clock 
+    },
+  ];
+
   return (
     <div className="p-6 space-y-6">
       {/* Page header */}
@@ -39,32 +88,41 @@ export default function FreelancerDashboard() {
       </div>
 
       {/* KPI cards - Interactive */}
+      {error && (
+        <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-lg flex items-center gap-2">
+          <Loader2 className="h-4 w-4" /> {error}
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[
-          { id: 'contracts', title: 'Active Contracts', value: '3', sub: '2 fixed, 1 hourly', icon: Briefcase },
-          { id: 'income', title: 'This Month Income', value: '$3,250', sub: '$1,100 outstanding', icon: DollarSign },
-          { id: 'hours', title: 'Hours Tracked', value: '46h', sub: '76% of goal', icon: Clock },
-        ].map((kpi) => (
-          <Card 
-            key={kpi.id}
-            className={`premium-card interactive-item ${selectedId === kpi.id ? 'selected-component' : ''}`}
-            onClick={() => handleSelect(kpi.id)}
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
-              <kpi.icon className="h-4 w-4 text-primary animate-float" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{kpi.value}</div>
-              <p className="text-xs text-muted-foreground">{kpi.sub}</p>
-              {kpi.id === 'hours' && (
-                <div className="mt-2 w-full h-2 rounded bg-muted overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: "76%" }} />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+        {loading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i} className="premium-card animate-pulse">
+              <div className="h-24 bg-muted/50 rounded-lg" />
+            </Card>
+          ))
+        ) : (
+          kpis.map((kpi) => (
+            <Card 
+              key={kpi.id}
+              className={`premium-card interactive-item ${selectedId === kpi.id ? 'selected-component' : ''}`}
+              onClick={() => handleSelect(kpi.id)}
+            >
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
+                <kpi.icon className="h-4 w-4 text-primary animate-float" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{kpi.value}</div>
+                <p className="text-xs text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">{kpi.sub}</p>
+                {kpi.id === 'hours' && stats.hoursTracked > 0 && (
+                  <div className="mt-2 w-full h-2 rounded bg-muted overflow-hidden">
+                    <div className="h-full bg-primary" style={{ width: "76%" }} />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
 
 {/* 

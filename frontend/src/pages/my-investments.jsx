@@ -54,93 +54,10 @@ export default function MyInvestmentsPage() {
     }
   };
 
-  if (selectedProject) {
-    const isAccepted = selectedProject.status === 'accepted';
-
-    return (
-      <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-background">
-        {/* Project Details Section */}
-        <div className="flex-1 flex flex-col min-w-0 border-r overflow-y-auto">
-          <div className="p-8 space-y-8 max-w-4xl mx-auto w-full">
-            <Button 
-              variant="ghost" 
-              className="mb-4 hover:bg-primary/10 -ml-4"
-              onClick={() => setSelectedProject(null)}
-            >
-              ← Back to investments
-            </Button>
-            
-            <header className="space-y-4">
-              <div className="p-4 rounded-2xl bg-primary/10 w-fit">
-                <TrendingUp className="h-10 w-10 text-primary" />
-              </div>
-              <h1 className="text-4xl font-bold tracking-tight gradient-text leading-tight">
-                {selectedProject.projectName}
-              </h1>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1.5">
-                  {getStatusBadge(selectedProject.status)}
-                </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30" />
-                <span>Applied on {new Date(selectedProject.appliedAt).toLocaleDateString()}</span>
-              </div>
-            </header>
-
-            <Separator className="bg-primary/10" />
-
-            {/* Investment Terms Card */}
-            <section>
-              <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-8 rounded-3xl border border-primary/20">
-                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                  💰 Your Proposed Terms
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="p-6 rounded-2xl bg-background border border-primary/10 shadow-sm">
-                    <p className="text-sm text-muted-foreground mb-1 uppercase tracking-wider font-semibold">Investment Amount</p>
-                    <p className="text-3xl font-bold text-primary">${Number(selectedProject.investmentAmount).toLocaleString()}</p>
-                  </div>
-                  <div className="p-6 rounded-2xl bg-background border border-primary/10 shadow-sm">
-                    <p className="text-sm text-muted-foreground mb-1 uppercase tracking-wider font-semibold">Equity Requested</p>
-                    <p className="text-3xl font-bold text-primary">{selectedProject.equityWanted}%</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section className="space-y-6">
-              <div className="bg-muted/30 p-8 rounded-3xl border border-primary/5">
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <Info className="h-5 w-5 text-primary" /> Project Overview
-                </h3>
-                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-lg">
-                  {selectedProject.projectDetails}
-                </p>
-              </div>
-            </section>
-          </div>
-        </div>
-
-        {/* Community Chat Section */}
-        {isAccepted && (
-          <div className="w-[400px] lg:w-[450px] shrink-0 hidden md:block">
-            {selectedProject.communityChatId ? (
-              <ProjectChat 
-                projectId={selectedProject.projectId}
-                communityChatId={selectedProject.communityChatId}
-                projectName={selectedProject.projectName}
-              />
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-muted/10">
-                <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground font-medium">Community chat is being initialized...</p>
-                <p className="text-xs text-muted-foreground mt-2 italic">Try refreshing if it doesn't appear.</p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }
+  const handleOpenProject = (projectId) => {
+    if (!projectId) return;
+    window.dispatchEvent(new CustomEvent('app:navigate', { detail: `/myprojects?projectId=${projectId}` }));
+  };
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -194,7 +111,7 @@ export default function MyInvestmentsPage() {
             <Card 
               key={`${inv.projectId}_${inv.appliedAt}`} 
               className="premium-card group relative overflow-hidden h-full border-primary/5 hover:border-primary/40 transition-all duration-500 cursor-pointer shadow-sm hover:shadow-xl hover:shadow-primary/5"
-              onClick={() => setSelectedProject(inv)}
+              onClick={() => handleOpenProject(inv.projectId)}
             >
               <CardHeader className="pb-4 relative z-10">
                 <div className="flex items-center justify-between mb-4">

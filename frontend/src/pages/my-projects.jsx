@@ -183,6 +183,25 @@ function ProjectInnerPage({ project, onBack, isApplicant, isInvestor, userProfil
                 </p>
               </div>
 
+              {/* Investor Details (if applicable) */}
+              {isInvestor && myApplication && (
+                <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 rounded-2xl border border-primary/20 space-y-4">
+                  <h3 className="text-sm font-bold flex items-center gap-2">
+                    💰 Your Proposed Terms
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 rounded-xl bg-background border border-primary/10">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Amount</p>
+                      <p className="text-lg font-bold text-primary">${Number(myApplication.investmentAmount).toLocaleString()}</p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-background border border-primary/10">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Equity</p>
+                      <p className="text-lg font-bold text-primary">{myApplication.equityWanted}%</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Stats */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-4 rounded-2xl bg-muted/30 border border-primary/5 text-center">
@@ -397,9 +416,41 @@ export default function MyProjectsPage() {
   };
 
   useEffect(() => {
-    fetchProjects();
-    if (isApplicant) fetchUserProfile();
+    const init = async () => {
+      await fetchProjects();
+      if (isApplicant) fetchUserProfile();
+    };
+    init();
   }, [isApplicant]);
+
+  // Handle deep-linking and route changes
+  useEffect(() => {
+    const handleNavigation = () => {
+      const params = new URLSearchParams(window.location.search);
+      const projectId = params.get('projectId');
+      
+      if (projectId && projects.length > 0) {
+        const project = projects.find(p => p.id === projectId);
+        if (project) {
+          setSelectedProject(project);
+        }
+      } else if (!projectId) {
+        setSelectedProject(null);
+      }
+    };
+
+    // Run on mount or when projects list changes
+    handleNavigation();
+
+    // Listen for custom navigation events and browser back/forward
+    window.addEventListener('app:navigate', handleNavigation);
+    window.addEventListener('popstate', handleNavigation);
+    
+    return () => {
+      window.removeEventListener('app:navigate', handleNavigation);
+      window.removeEventListener('popstate', handleNavigation);
+    };
+  }, [projects]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -432,7 +483,14 @@ export default function MyProjectsPage() {
     return (
       <ProjectInnerPage
         project={selectedProject}
-        onBack={() => { setSelectedProject(null); fetchProjects(); }}
+        onBack={() => { 
+          setSelectedProject(null); 
+          // Clear query param
+          const url = new URL(window.location);
+          url.searchParams.delete('projectId');
+          window.history.pushState({}, '', url);
+          fetchProjects(); 
+        }}
         isApplicant={isApplicant}
         isInvestor={isInvestor}
         userProfile={userProfile}
