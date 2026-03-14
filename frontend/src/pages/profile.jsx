@@ -124,11 +124,7 @@ export default function ProfilePage() {
           portfolio: u.portfolio || "",
           resume: u.resume || "",
         })
-<<<<<<< HEAD
       } catch {}
-=======
-      } catch { }
->>>>>>> 4771c793786c3a32d6d2bddb98e47cda62de8112
     })()
   }, [])
 

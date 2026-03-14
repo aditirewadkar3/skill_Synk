@@ -60,14 +60,14 @@ export default function AnalyticsPage() {
     value: 80 + Math.random() * 20 // Match score
   }))
 
-  // Use real trending data for the table
-  const freelancerData = data.trending.map(s => ({
-    id: s.id,
-    name: s.name || "Startup",
-    project: s.industry || "FinTech",
-    hours: s.viewCount || 0,
-    cost: (s.interestedInvestors || []).length,
-    status: "Trending",
+  // Use real trending data for the table but mock the necessary investment values
+  const investmentData = data.trending.map((s, i) => ({
+    id: s.id || i,
+    entrepreneur: s.name || "Founder",
+    project: s.title || s.industry || "Startup Project",
+    investmentAmount: `$${Math.floor((s.viewCount || 10) * 2.5 + 50)}k`,
+    dateInvested: new Date(Date.now() - (i * 12 * 86400000)).toLocaleDateString(),
+    status: i % 2 === 0 ? "Active" : "InProgress",
   }))
 
   // Render Funding Over Time Line Chart
@@ -198,65 +198,12 @@ export default function AnalyticsPage() {
           </Button>
         </div>
 
-        {/* Top Section - Charts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* Funding Over Time Card */}
-          <Card className="premium-card border-none shadow-xl">
-            <CardHeader>
-              <CardTitle>Funding Over Time</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="text-3xl font-bold">{data.trending[0]?.name || "Tracking..."}</div>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-muted-foreground">Most Viewed Startup</span>
-                  <div className="flex items-center gap-1 text-green-600">
-                    <TrendingUp className="h-4 w-4" />
-                    <span>Trending Now</span>
-                  </div>
-                </div>
-              </div>
-              <FundingChart />
-              <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                {fundingData.map((d, i) => (
-                  <span key={i}>{d.week}</span>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Investor Engagement Card */}
-          <Card className="rounded-2xl shadow-sm border">
-            <CardHeader>
-              <CardTitle>Investor Engagement</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="text-3xl font-bold">Matching Algorithms</div>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-muted-foreground">Based on your interests</span>
-                  <div className="flex items-center gap-1 text-green-600">
-                    <TrendingUp className="h-4 w-4" />
-                    <span>Personalized</span>
-                  </div>
-                </div>
-              </div>
-              <InvestorChart />
-              <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                {investorData.map((d, i) => (
-                  <span key={i} className="truncate">
-                    {d.name}
-                  </span>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
-        {/* Freelancer Collaboration Table */}
+        {/* Investments Table */}
         <Card className="rounded-2xl shadow-sm border mb-6">
           <CardHeader>
-            <CardTitle>Freelancer Collaboration</CardTitle>
+            <CardTitle>Investments</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -264,43 +211,43 @@ export default function AnalyticsPage() {
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                      Startup
+                      Entrepreneur
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                      Industry
+                      Project
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                      Views
+                      Investment(amount)
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                      Interests
+                      Date Invested
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                      Status
+                      Status Of Project
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {freelancerData.map((freelancer) => (
-                    <tr key={freelancer.id} className="border-b hover:bg-muted/50 transition-colors">
-                      <td className="py-3 px-4 text-sm font-medium">{freelancer.name}</td>
+                  {investmentData.map((investment) => (
+                    <tr key={investment.id} className="border-b hover:bg-muted/50 transition-colors">
+                      <td className="py-3 px-4 text-sm font-medium">{investment.entrepreneur}</td>
                       <td className="py-3 px-4 text-sm text-muted-foreground">
-                        {freelancer.project}
+                        {investment.project}
                       </td>
-                      <td className="py-3 px-4 text-sm">{freelancer.hours}</td>
-                      <td className="py-3 px-4 text-sm font-medium">{freelancer.cost}</td>
+                      <td className="py-3 px-4 text-sm">{investment.investmentAmount}</td>
+                      <td className="py-3 px-4 text-sm font-medium">{investment.dateInvested}</td>
                       <td className="py-3 px-4">
                         <Badge
                           variant={
-                            freelancer.status === "Completed" ? "default" : "secondary"
+                            investment.status === "Active" ? "default" : "secondary"
                           }
                           className={
-                            freelancer.status === "Completed"
+                            investment.status === "Active"
                               ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-                              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
+                              : "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
                           }
                         >
-                          {freelancer.status}
+                          {investment.status === 'InProgress' ? 'In Progress' : investment.status}
                         </Badge>
                       </td>
                     </tr>
@@ -311,68 +258,6 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        {/* AI Growth Predictions Section */}
-        <div>
-          <h2 className="text-2xl font-bold mb-4">AI Growth Predictions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Projected Revenue Card */}
-            <Card className="rounded-2xl shadow-sm border">
-              <CardHeader>
-                <CardTitle className="text-base">Projected Revenue (Q+1)</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-3xl font-bold">${(data.trending.length * 1200000).toLocaleString()}</div>
-                <div className="flex items-center gap-1 text-sm text-green-600">
-                  <TrendingUp className="h-4 w-4" />
-                  <span>Total cap of trending list</span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2.5">
-                  <div
-                    className="bg-primary h-2.5 rounded-full transition-all"
-                    style={{ width: `${Math.min(100, data.trending.length * 20)}%` }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Predicted User Growth Card */}
-            <Card className="rounded-2xl shadow-sm border">
-              <CardHeader>
-                <CardTitle className="text-base">Predicted User Growth</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-3xl font-bold">{(data.recommended.length * 4.5).toFixed(0)}</div>
-                <div className="flex items-center gap-1 text-sm text-green-600">
-                  <TrendingUp className="h-4 w-4" />
-                  <span>Startups matching your profile</span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2.5">
-                  <div
-                    className="bg-primary h-2.5 rounded-full transition-all"
-                    style={{ width: `${Math.min(100, data.recommended.length * 20)}%` }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Market Opportunity Score Card */}
-            <Card className="rounded-2xl shadow-sm border">
-              <CardHeader>
-                <CardTitle className="text-base">Market Opportunity Score</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-3xl font-bold">{(6 + Math.min(4, data.trending.length / 2)).toFixed(1)} / 10</div>
-                <div className="text-sm text-muted-foreground">Portfolio Match Score</div>
-                <div className="w-full bg-muted rounded-full h-2.5">
-                  <div
-                    className="bg-primary h-2.5 rounded-full transition-all"
-                    style={{ width: `${(6 + Math.min(4, data.trending.length / 2)) * 10}%` }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
       </div>
     </div>
   )
