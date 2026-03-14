@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Bell, Users, Check, X } from "lucide-react"
+import { Bell, Users, Check, X, MessageSquare } from "lucide-react"
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { communityAPI, getCurrentUser } from "@/services/api"
+import { communityAPI, projectsAPI, getCurrentUser } from "@/services/api"
 import { cn } from "@/lib/utils"
 
 export function NotificationPopover() {
@@ -60,6 +60,23 @@ export function NotificationPopover() {
       }
     } catch (error) {
       console.error(`Failed to ${action} request:`, error)
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleProjectRespond = async (e, notificationId, projectId, applicantId, action) => {
+    e.preventDefault()
+    e.stopPropagation()
+    try {
+      setActionLoading(notificationId)
+      const res = await projectsAPI.respondToApplication(projectId, applicantId, action)
+      if (res.success) {
+        await communityAPI.markRead(notificationId)
+        setNotifications(prev => prev.filter(n => n.id !== notificationId))
+      }
+    } catch (error) {
+      console.error(`Failed to ${action} project request:`, error)
     } finally {
       setActionLoading(null)
     }
@@ -144,7 +161,45 @@ export function NotificationPopover() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {notification.isRequest ? (
+                  {notification.type === 'project_application' ? (
+                    <div className="flex w-full gap-1">
+                      <Button 
+                        size="sm" 
+                        className="flex-1 h-7 text-[10px] gap-1 px-1 bg-emerald-600 hover:bg-emerald-700 hover:text-white dark:text-white"
+                        disabled={actionLoading === notification.id}
+                        onClick={(e) => handleProjectRespond(e, notification.id, notification.relatedId, notification.senderUid, 'accepted')}
+                      >
+                        <Check className="h-3 w-3" />
+                        Accept
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="destructive"
+                        className="flex-1 h-7 text-[10px] gap-1 px-1"
+                        disabled={actionLoading === notification.id}
+                        onClick={(e) => handleProjectRespond(e, notification.id, notification.relatedId, notification.senderUid, 'rejected')}
+                      >
+                        <X className="h-3 w-3" />
+                        Reject
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="secondary"
+                        className="flex-1 h-7 text-[10px] gap-1 px-1"
+                        disabled={actionLoading === notification.id}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          localStorage.setItem('chatTargetUid', notification.senderUid)
+                          window.history.pushState({}, '', '/chat')
+                          window.dispatchEvent(new Event('app:navigate'))
+                        }}
+                      >
+                        <MessageSquare className="h-3 w-3" />
+                        Chat
+                      </Button>
+                    </div>
+                  ) : notification.isRequest ? (
                     <>
                       <Button 
                         size="sm" 

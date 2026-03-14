@@ -30,8 +30,8 @@ export default function InvestorDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
           { id: 'portfolio', title: 'Portfolio Startups', value: '9' },
-          { id: 'irr', title: 'YTD IRR', value: '18.4%' },
-          { id: 'reserves', title: 'Follow-on Reserves', value: '$1.2M' },
+          { id: 'investedAmount', title: 'Invested Amount', value: '$5.4M' },
+          { id: 'roiDomain', title: 'Highest ROI Domain', value: 'AI & SaaS' },
         ].map((kpi) => (
           <Card 
             key={kpi.id}
@@ -48,32 +48,6 @@ export default function InvestorDashboard() {
         ))}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Insights</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="deals">
-            <TabsList>
-              <TabsTrigger value="deals">Deals</TabsTrigger>
-              <TabsTrigger value="updates">Updates</TabsTrigger>
-              <TabsTrigger value="risks">Risks</TabsTrigger>
-            </TabsList>
-            <TabsContent value="deals">
-              <ul className="list-disc pl-6 space-y-2 text-sm text-muted-foreground">
-                <li>AI Ops platform raising Seed</li>
-                <li>Fintech infra Series A opening next month</li>
-              </ul>
-            </TabsContent>
-            <TabsContent value="updates">
-              <p className="text-sm text-muted-foreground">5 startups shared monthly updates.</p>
-            </TabsContent>
-            <TabsContent value="risks">
-              <p className="text-sm text-muted-foreground">Monitor churn in 2 portfolio companies.</p>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
 
       {/* Feed + Right Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

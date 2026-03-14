@@ -75,7 +75,7 @@ const data = {
     {
       title: "Entrepreneur",
       url: "/entrepreneur",
-      icon: Rocket, 
+      icon: Rocket,
     },
     {
       title: "Freelancer",
@@ -118,9 +118,9 @@ const data = {
       icon: Search,
     },
     {
-      title: "AI Pitch Practice",
-      url: "/pitch-practice",
-      icon: Mic,
+      title: "My Investments",
+      url: "/my-investments",
+      icon: TrendingUp,
     },
     {
       title: "Discovery",
@@ -142,7 +142,7 @@ function getUserRole() {
       const cu = JSON.parse(cuStr);
       if (cu && cu.role) return cu.role;
     }
-  } catch {}
+  } catch { }
   const r = localStorage.getItem("role");
   return r || "entrepreneur";
 }
@@ -160,7 +160,7 @@ function getUserInfo() {
         };
       }
     }
-  } catch {}
+  } catch { }
   return null;
 }
 
@@ -176,7 +176,7 @@ export function AppSidebar({ user, teams, navMain, projects, onNavigate, ...prop
   const filteredNav = (merged.navMain || []).filter((item) => {
     if ([
       "Dashboard", "Messages", "Analytics", "Pitch Deck",
-      "My Posts", "My Projects", "Browse Projects",
+      "My Posts", "My Projects", "Browse Projects", "My Investments",
       "Discovery", "Notifications", "Proposal",
     ].includes(item.title)) return true;
     if (item.title === "Entrepreneur") return role === "entrepreneur";

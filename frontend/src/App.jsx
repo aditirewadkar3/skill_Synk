@@ -15,6 +15,7 @@ import InvestorDashboard from "@/pages/investor"
 import MyPostsPage from "@/pages/myposts"
 import MyProjectsPage from "@/pages/my-projects"
 import ProjectApplicationsPage from "@/pages/project-applications.jsx"
+import MyInvestmentsPage from "@/pages/my-investments"
 import Landing from "@/pages/landing"
 import MeetingPage from "@/pages/meeting"
 import NotificationsPage from "@/pages/notifications"
@@ -186,6 +187,9 @@ function App() {
     } else if (path === "/myprojects") {
       setIsAuthenticated(true)
       setPage("myprojects")
+    } else if (path === "/my-investments") {
+      setIsAuthenticated(true)
+      setPage("my-investments")
     } else if (path === "/discovery") {
       setIsAuthenticated(true)
       setPage("discovery")
@@ -296,6 +300,9 @@ function App() {
       } else if (path === '/myprojects') {
         setIsAuthenticated(true)
         setPage('myprojects')
+      } else if (path === '/my-investments') {
+        setIsAuthenticated(true)
+        setPage('my-investments')
       }
     }
     window.addEventListener('popstate', handleLocation)
@@ -314,7 +321,7 @@ function App() {
     const protectedPages = [
       "meeting", "chat", "profile", "client-profile",
       "freelanceranalytics", "investoranalytics", "entrepreneuranalytics",
-      "myposts", "myprojects", "notifications", "proposal", "news", "discovery", "pitch-practice"
+      "myposts", "myprojects", "my-investments", "notifications", "proposal", "news", "discovery", "pitch-practice"
     ]
     if (page !== target && !protectedPages.includes(page)) {
       setPage(target)
@@ -343,6 +350,7 @@ function App() {
       ] : []),
       ...(currentRole === 'freelancer' || currentRole === 'investor' ? [
         { title: "Browse Projects", icon: Search, url: "/myprojects" },
+        ...(currentRole === 'investor' ? [{ title: "My Investments", icon: TrendingUp, url: "/my-investments" }] : []),
         { title: "Notifications", icon: Bell, url: "/notifications" }
       ] : []),
     ]
@@ -431,7 +439,7 @@ function App() {
             window.history.pushState({}, '', path)
           }} />
           <SidebarInset>
-            <header className="flex h-16 shrink-0 border rounded-t-[1rem] mx-2 mt-2 items-center gap-2 px-4 bg-background">
+            <header className="flex h-16 shrink-0 border rounded-t-[1rem]  mr-2 mt-2 items-center gap-2 px-4 bg-background">
               <SidebarTrigger />
               <div className="flex-1 min-w-0">
                 {(() => {
@@ -448,6 +456,7 @@ function App() {
                     proposal: "Send Proposal",
                     news: "Ecosystem News",
                     myprojects: "My Projects",
+                    "my-investments": "My Investments",
                     myposts: "My Posts",
                     "project-applications": "Project Applications",
                     "pitch-practice": "AI Pitch Practice",
@@ -489,7 +498,7 @@ function App() {
                 })()}
               </div>
                 <div className="flex items-center gap-4">
-                {role === "entrepreneur" && (
+                {/* {role === "entrepreneur" && (
                   <Button 
                     variant="ghost" 
                     size="icon" 
@@ -502,7 +511,7 @@ function App() {
                     <Bell className="h-5 w-5" />
                     <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary border-2 border-background" />
                   </Button>
-                )}
+                )} */}
                 {(page === "entrepreneur" || page === "myposts") && (
                   <Sheet open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
                     {/* <SheetTrigger asChild>
@@ -527,7 +536,7 @@ function App() {
                 <ThemeToggle />
               </div>
             </header>
-            <main className="flex-1 border bg-background shadow-sm mx-2 mb-2 overflow-hidden min-h-0">
+            <main className="flex-1 border bg-background shadow-sm mr-2 mb-2 overflow-hidden min-h-0">
               {page === "dashboard" && (
                 role === 'freelancer' ? <FreelancerDashboard /> :
                   role === 'investor' ? <InvestorDashboard /> :
@@ -544,6 +553,7 @@ function App() {
               {page === "investor" && <InvestorDashboard />}
               {page === "myposts" && <MyPostsPage />}
               {page === "myprojects" && <MyProjectsPage />}
+              {page === "my-investments" && <MyInvestmentsPage />}
               {page === "notifications" && <NotificationsPage />}
               {page === "proposal" && <ProposalPage />}
               {page === "news" && <NewsPage />}
