@@ -445,6 +445,12 @@ export const projectsAPI = {
       method: 'POST',
       body: JSON.stringify({ action })
     });
+  },
+  updateProject: async (projectId, data) => {
+    return await apiRequest(`/projects/${projectId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
   }
 };
 
