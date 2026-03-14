@@ -78,23 +78,7 @@ export default function EntrepreneurDashboard() {
         ))}
       </div>
 
-      {/* Widgets Grid */}
-      <div className="grid grid-cols-1 gap-4">
-        <Card className="flex flex-col">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base text-primary flex items-center gap-2">
-              <Rocket className="h-5 w-5" />
-              Quick Actions
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-3 pt-2">
-            <Button variant="secondary" size="sm" className="gap-2 px-4 shadow-sm hover:bg-secondary/80 transition-all"><Users className="h-4 w-4" /> Invite teammate</Button>
-            <Button variant="secondary" size="sm" className="gap-2 px-4 shadow-sm hover:bg-secondary/80 transition-all"><Rocket className="h-4 w-4" /> Plan launch</Button>
-            <Button variant="secondary" size="sm" className="gap-2 px-4 shadow-sm hover:bg-secondary/80 transition-all"><Coins className="h-4 w-4" /> Update metrics</Button>
-            <Button variant="secondary" size="sm" className="gap-2 px-4 shadow-sm hover:bg-secondary/80 transition-all"><FileText className="h-4 w-4" /> New Report</Button>
-          </CardContent>
-        </Card>
-      </div>
+
 
       {/* Feed + Right Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
