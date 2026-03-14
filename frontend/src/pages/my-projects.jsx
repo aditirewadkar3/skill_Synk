@@ -297,145 +297,7 @@ function ProjectCommunity({ project, onBack, onProjectUpdate }) {
                 </SheetDescription>
               </SheetHeader>
 
-<<<<<<< HEAD
-            {/* Scrollable body */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {/* Overview */}
-              <div className="space-y-2">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                  <Info className="h-3.5 w-3.5" /> Overview
-                </h3>
-                <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap bg-muted/30 rounded-2xl p-4 border border-primary/5">
-                  {project.details}
-                </p>
-              </div>
-
-              {/* Investor Details (if applicable) */}
-              {isInvestor && myApplication && (
-                <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 rounded-2xl border border-primary/20 space-y-4">
-                  <h3 className="text-sm font-bold flex items-center gap-2">
-                    💰 Your Proposed Terms
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3 rounded-xl bg-background border border-primary/10">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Amount</p>
-                      <p className="text-lg font-bold text-primary">${Number(myApplication.investmentAmount).toLocaleString()}</p>
-                    </div>
-                    <div className="p-3 rounded-xl bg-background border border-primary/10">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Equity</p>
-                      <p className="text-lg font-bold text-primary">{myApplication.equityWanted}%</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Stats */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-4 rounded-2xl bg-muted/30 border border-primary/5 text-center">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Members</p>
-                  <p className="text-2xl font-extrabold text-primary">
-                    {project.applicants?.filter((a) => a.status === "accepted").length ?? 0}
-                  </p>
-                </div>
-                <div className="p-4 rounded-2xl bg-muted/30 border border-primary/5 text-center">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Duration</p>
-                  <p className="text-lg font-extrabold">Flexible</p>
-                </div>
-              </div>
-
-              {/* ── Application section (inside sheet) ── */}
-              {isApplicant && (
-                <>
-                  <Separator className="bg-primary/10" />
-                  {myApplication ? (
-                    <div className="flex flex-col items-center text-center gap-3 py-4 px-6 rounded-2xl bg-muted/20 border border-primary/5">
-                      {myApplication.status === "pending" && (
-                        <>
-                          <Loader2 className="h-10 w-10 text-amber-500 animate-spin" />
-                          <p className="font-bold text-amber-500">Request Pending</p>
-                          <p className="text-xs text-muted-foreground">The entrepreneur is reviewing your request.</p>
-                        </>
-                      )}
-                      {myApplication.status === "accepted" && (
-                        <>
-                          <CheckCircle2 className="h-10 w-10 text-emerald-500" />
-                          <p className="font-bold text-emerald-500">You're In!</p>
-                          <p className="text-xs text-muted-foreground">You're a member of this project community. Use the chat!</p>
-                        </>
-                      )}
-                      {myApplication.status === "rejected" && (
-                        <>
-                          <AlertCircle className="h-10 w-10 text-destructive" />
-                          <p className="font-bold text-destructive">Request Rejected</p>
-                          <p className="text-xs text-muted-foreground">Unfortunately your request was not accepted.</p>
-                        </>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-bold">Interested in joining?</h3>
-                      <p className="text-xs text-muted-foreground">
-                        {isInvestor
-                          ? "Propose an investment to join the project community."
-                          : "Apply now and start collaborating with the creator."}
-                      </p>
-
-                      {isInvestor ? (
-                        <Sheet open={isInvestmentModalOpen} onOpenChange={setIsInvestmentModalOpen}>
-                          <SheetTrigger asChild>
-                            <Button className="w-full h-11 gap-2 rounded-xl bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform">
-                              <CheckCircle2 className="h-4 w-4" />
-                              Propose Investment
-                            </Button>
-                          </SheetTrigger>
-                          <SheetContent side="bottom" className="rounded-t-3xl premium-card border-t sm:max-w-full">
-                            <SheetHeader className="mb-6">
-                              <SheetTitle className="gradient-text text-xl font-bold">Propose Investment</SheetTitle>
-                              <SheetDescription>Offer funding in exchange for equity.</SheetDescription>
-                            </SheetHeader>
-                            <div className="space-y-4 max-w-md mx-auto pb-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="amount" className="text-sm font-semibold">Investment Amount ($)</Label>
-                                <Input
-                                  id="amount"
-                                  type="number"
-                                  placeholder="e.g., 50000"
-                                  value={investmentData.amount}
-                                  onChange={(e) => setInvestmentData({ ...investmentData, amount: e.target.value })}
-                                  className="h-12 rounded-xl"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="equity" className="text-sm font-semibold">Equity Wanted (%)</Label>
-                                <Input
-                                  id="equity"
-                                  type="number"
-                                  placeholder="e.g., 10"
-                                  value={investmentData.equity}
-                                  onChange={(e) => setInvestmentData({ ...investmentData, equity: e.target.value })}
-                                  className="h-12 rounded-xl"
-                                />
-                              </div>
-                              <Button
-                                onClick={() => handleApply(investmentData)}
-                                className="w-full h-12 gap-2 rounded-xl bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20"
-                                disabled={isSubmitting || !investmentData.amount || !investmentData.equity}
-                              >
-                                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                                {isSubmitting ? "Submitting..." : "Submit Proposal"}
-                              </Button>
-                            </div>
-                          </SheetContent>
-                        </Sheet>
-                      ) : (
-                        <Button
-                          className="w-full h-11 gap-2 rounded-xl bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform"
-                          disabled={isSubmitting}
-                          onClick={() => handleApply()}
-                        >
-                          {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                          {isSubmitting ? "Submitting..." : "Apply to Project"}
-=======
+              {/* Scrollable body */}
               <ScrollArea className="flex-1 p-6">
                 <div className="space-y-8">
                   {editLifecycle.map((stage, sIdx) => (
@@ -449,7 +311,6 @@ function ProjectCommunity({ project, onBack, onProjectUpdate }) {
                         />
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/40 hover:text-destructive hover:bg-destructive/10 rounded-lg" onClick={() => deleteStage(stage.id)}>
                           <Trash2 className="h-4 w-4" />
->>>>>>> 19988bc14730a97092baf407a539c914c7ae1516
                         </Button>
                       </div>
 
@@ -489,6 +350,7 @@ function ProjectCommunity({ project, onBack, onProjectUpdate }) {
                   </Button>
                 </div>
               </ScrollArea>
+
 
               <SheetFooter className="p-6 border-t bg-muted/10">
                 <Button 
@@ -1030,25 +892,7 @@ export default function MyProjectsPage() {
   };
 
   if (view === VIEW_WHITEBOARD && selectedProject) {
-    return (
-      <ProjectWhiteboard
-        project={selectedProject}
-<<<<<<< HEAD
-        onBack={() => { 
-          setSelectedProject(null); 
-          // Clear query param
-          const url = new URL(window.location);
-          url.searchParams.delete('projectId');
-          window.history.pushState({}, '', url);
-          fetchProjects(); 
-        }}
-        isApplicant={isApplicant}
-        isInvestor={isInvestor}
-        userProfile={userProfile}
-=======
-        onBack={() => setView(VIEW_DETAIL)}
-      />
-    );
+    return <ProjectWhiteboard project={selectedProject} onBack={() => setView(VIEW_DETAIL)} />;
   }
 
   if (view === VIEW_COMMUNITY && selectedProject) {
@@ -1065,14 +909,21 @@ export default function MyProjectsPage() {
     return (
       <ProjectDetail
         project={selectedProject}
-        onBack={() => { setView(VIEW_LIST); setSelectedProject(null); }}
+        onBack={() => { 
+          setView(VIEW_LIST); 
+          setSelectedProject(null); 
+          // Clear query param
+          const url = new URL(window.location);
+          url.searchParams.delete('projectId');
+          window.history.pushState({}, '', url);
+          fetchProjects(); 
+        }}
         onOpenCommunity={() => setView(VIEW_COMMUNITY)}
         onOpenWhiteboard={() => setView(VIEW_WHITEBOARD)}
         isApplicant={isApplicant}
         isInvestor={isInvestor}
         userProfile={userProfile}
         onProjectUpdate={fetchProjects}
->>>>>>> 19988bc14730a97092baf407a539c914c7ae1516
       />
     );
   }
