@@ -23,6 +23,8 @@ const ROLES = [
   { value: 'admin', label: 'Admin' }
 ];
 
+import signupImage from "@/assets/Mobile login-pana.png";
+
 export function SignupForm({
   className,
   onSignup,
@@ -69,11 +71,11 @@ export function SignupForm({
     }
 
     setIsLoading(true)
-    try { sessionStorage.setItem('pendingRole', role) } catch {}
+    try { sessionStorage.setItem('pendingRole', role) } catch { }
 
     try {
       const response = await authAPI.register(email, password, name || email.split('@')[0], role)
-      
+
       // Check if OTP was returned (development mode)
       if (response.development && response.otp) {
         toast({
@@ -89,7 +91,7 @@ export function SignupForm({
           description: "Check your email for the verification code",
         })
       }
-      
+
       setShowOTP(true)
     } catch (error) {
       toast({
@@ -103,7 +105,7 @@ export function SignupForm({
   }
 
   const handleOTPVerified = (user) => {
-    try { if (user?.uid) localStorage.setItem('uid', user.uid) } catch {}
+    try { if (user?.uid) localStorage.setItem('uid', user.uid) } catch { }
     // Role is saved in Firestore via backend; DB is source of truth
     if (onSignup) {
       onSignup()
@@ -112,7 +114,7 @@ export function SignupForm({
 
   if (showOTP) {
     return (
-      <OTPVerification 
+      <OTPVerification
         email={email}
         password={password} // Pass password to OTP verification
         onVerified={handleOTPVerified}
@@ -123,7 +125,7 @@ export function SignupForm({
       />
     )
   }
-  
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden p-0">
@@ -138,10 +140,10 @@ export function SignupForm({
               </div>
               <Field>
                 <FieldLabel>Name</FieldLabel>
-                <Input 
-                  id="name" 
-                  type="text" 
-                  placeholder="John Doe" 
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="John Doe"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={isLoading}
@@ -149,14 +151,14 @@ export function SignupForm({
               </Field>
               <Field>
                 <FieldLabel>Email</FieldLabel>6
-                
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="m@example.com" 
+
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required 
+                  required
                   disabled={isLoading}
                 />
               </Field>
@@ -181,12 +183,12 @@ export function SignupForm({
                 <Field className="grid grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel htmlFor="password">Password</FieldLabel>
-                    <Input 
-                      id="password" 
-                      type="password" 
+                    <Input
+                      id="password"
+                      type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      required 
+                      required
                       disabled={isLoading}
                       autoComplete="new-password"
                     />
@@ -195,12 +197,12 @@ export function SignupForm({
                     <FieldLabel htmlFor="confirm-password">
                       Confirm Password
                     </FieldLabel>
-                    <Input 
-                      id="confirm-password" 
-                      type="password" 
+                    <Input
+                      id="confirm-password"
+                      type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      required 
+                      required
                       disabled={isLoading}
                       autoComplete="new-password"
                     />
@@ -220,11 +222,11 @@ export function SignupForm({
               </FieldDescription>
             </FieldGroup>
           </form>
-          <div className="bg-muted relative hidden md:block">
+          <div className="bg-muted relative hidden md:flex items-center justify-center p-8 bg-white/5 object-cover">
             <img
-              src="/placeholder.svg"
-              alt="Image"
-              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale" />
+              src={signupImage}
+              alt="Signup hero"
+              className="max-h-full max-w-full object-contain dark:brightness-[0.9] dark:contrast-125 mix-blend-multiply dark:mix-blend-normal" />
           </div>
         </CardContent>
       </Card>
