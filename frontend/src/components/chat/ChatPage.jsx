@@ -106,6 +106,47 @@ export function ChatPage({ className }) {
     }
   }, [currentUserId, toast])
 
+  // Re-select target user when navigated to from elsewhere (e.g. client-profile Message button)
+  React.useEffect(() => {
+    const handleNavigate = async () => {
+      // Only act if we're actually on the chat page
+      if (!window.location.pathname.startsWith('/chat')) return
+      const params = new URLSearchParams(window.location.search)
+      const targetUid = params.get('with') || localStorage.getItem('chatTargetUid')
+      if (!targetUid) return
+
+      // If user already in the list just select them
+      setUsers(prev => {
+        const existing = prev.find(u => u.id === targetUid)
+        if (existing) {
+          setSelectedUserId(targetUid)
+          return prev
+        }
+        // Otherwise fetch and prepend
+        fetch('http://localhost:3001/api/auth/get-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid: targetUid })
+        }).then(res => res.ok ? res.json() : null).then(data => {
+          if (data?.user) {
+            const name = data.user.name || (data.user.email ? data.user.email.split('@')[0] : 'User')
+            const avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`
+            setUsers(p => {
+              if (p.find(u => u.id === targetUid)) return p
+              return [{ id: targetUid, name, avatar, status: 'online', unreadCount: 0, role: data.user.role || '' }, ...p]
+            })
+          }
+          setSelectedUserId(targetUid)
+        }).catch(() => setSelectedUserId(targetUid))
+        return prev
+      })
+      localStorage.removeItem('chatTargetUid')
+    }
+
+    window.addEventListener('app:navigate', handleNavigate)
+    return () => window.removeEventListener('app:navigate', handleNavigate)
+  }, [])
+
   // Initialize Socket.IO connection
   React.useEffect(() => {
     if (!currentUserId) return

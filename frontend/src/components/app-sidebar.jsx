@@ -195,7 +195,7 @@ export function AppSidebar({ user, teams, navMain, projects, onNavigate, ...prop
     if ([
       "Dashboard", "Messages", "Analytics", "Pitch Deck",
       "My Posts", "My Projects", "Browse Projects",
-      "AI Pitch Practice", "Discovery", "Notifications", "Proposal", "News",
+      "AI Pitch Practice", "Discovery", "Notifications", "Proposal",
     ].includes(item.title)) return true;
     if (item.title === "Entrepreneur") return role === "entrepreneur";
     if (item.title === "Freelancer") return role === "freelancer";
