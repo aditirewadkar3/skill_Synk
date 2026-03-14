@@ -15,6 +15,7 @@ import InvestorDashboard from "@/pages/investor"
 import MyPostsPage from "@/pages/myposts"
 import MyProjectsPage from "@/pages/my-projects"
 import ProjectApplicationsPage from "@/pages/project-applications.jsx"
+import MyInvestmentsPage from "@/pages/my-investments"
 import Landing from "@/pages/landing"
 import MeetingPage from "@/pages/meeting"
 import NotificationsPage from "@/pages/notifications"
@@ -186,6 +187,9 @@ function App() {
     } else if (path === "/myprojects") {
       setIsAuthenticated(true)
       setPage("myprojects")
+    } else if (path === "/my-investments") {
+      setIsAuthenticated(true)
+      setPage("my-investments")
     } else if (path === "/discovery") {
       setIsAuthenticated(true)
       setPage("discovery")
@@ -296,6 +300,9 @@ function App() {
       } else if (path === '/myprojects') {
         setIsAuthenticated(true)
         setPage('myprojects')
+      } else if (path === '/my-investments') {
+        setIsAuthenticated(true)
+        setPage('my-investments')
       }
     }
     window.addEventListener('popstate', handleLocation)
@@ -314,7 +321,7 @@ function App() {
     const protectedPages = [
       "meeting", "chat", "profile", "client-profile",
       "freelanceranalytics", "investoranalytics", "entrepreneuranalytics",
-      "myposts", "myprojects", "notifications", "proposal", "news", "discovery", "pitch-practice"
+      "myposts", "myprojects", "my-investments", "notifications", "proposal", "news", "discovery", "pitch-practice"
     ]
     if (page !== target && !protectedPages.includes(page)) {
       setPage(target)
@@ -345,6 +352,7 @@ function App() {
       ] : []),
       ...(currentRole === 'freelancer' || currentRole === 'investor' ? [
         { title: "Browse Projects", icon: Search, url: "/myprojects" },
+        ...(currentRole === 'investor' ? [{ title: "My Investments", icon: TrendingUp, url: "/my-investments" }] : []),
         { title: "Notifications", icon: Bell, url: "/notifications" }
       ] : []),
     ]
@@ -450,6 +458,7 @@ function App() {
                     proposal: "Send Proposal",
                     news: "Ecosystem News",
                     myprojects: "My Projects",
+                    "my-investments": "My Investments",
                     myposts: "My Posts",
                     "project-applications": "Project Applications",
                     "pitch-practice": "AI Pitch Practice",
@@ -546,6 +555,7 @@ function App() {
               {page === "investor" && <InvestorDashboard />}
               {page === "myposts" && <MyPostsPage />}
               {page === "myprojects" && <MyProjectsPage />}
+              {page === "my-investments" && <MyInvestmentsPage />}
               {page === "notifications" && <NotificationsPage />}
               {page === "proposal" && <ProposalPage />}
               {page === "news" && <NewsPage />}

@@ -210,6 +210,47 @@ router.post('/applications/:id/respond', verifyToken, async (req, res) => {
   }
 });
 
+// GET /api/projects/my-investments
+router.get('/my-investments', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.uid;
+    
+    // As Firebase doesn't support array-contains for object properties easily,
+    // we query all projects (or a reasonable limit) and filter in memory.
+    const snap = await db.collection('projects').get();
+    
+    let investments = [];
+    snap.docs.forEach(doc => {
+      const projectData = doc.data();
+      const applicants = projectData.applicants || [];
+      
+      const myApplication = applicants.find(app => app.applicantId === userId && app.type === 'investor');
+      
+      if (myApplication) {
+        investments.push({
+          projectId: doc.id,
+          projectName: projectData.name,
+          projectDetails: projectData.details,
+          communityChatId: projectData.communityChatId,
+          ownerId: projectData.ownerId,
+          investmentAmount: myApplication.investmentAmount,
+          equityWanted: myApplication.equityWanted,
+          status: myApplication.status || 'pending',
+          appliedAt: myApplication.appliedAt || projectData.createdAt
+        });
+      }
+    });
+
+    // Sort descending by applied date
+    investments.sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt));
+
+    return res.json({ success: true, investments });
+  } catch (err) {
+    console.error('Fetch my investments error:', err);
+    return res.status(500).json({ error: 'Failed to fetch investments', message: err.message });
+  }
+});
+
 // POST /api/projects/:id/apply
 router.post('/:id/apply', verifyToken, async (req, res) => {
   try {
