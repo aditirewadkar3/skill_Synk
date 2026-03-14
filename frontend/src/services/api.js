@@ -439,6 +439,12 @@ export const projectsAPI = {
   getMyInvestments: async () => {
     const response = await apiRequest('/projects/my-investments');
     return response.investments || [];
+  },
+  respondToApplication: async (projectId, applicantId, action) => {
+    return await apiRequest(`/projects/applications/${projectId}_${applicantId}/respond`, {
+      method: 'POST',
+      body: JSON.stringify({ action })
+    });
   }
 };
 

@@ -185,21 +185,88 @@ router.post('/applications/:id/respond', verifyToken, async (req, res) => {
       return res.status(404).json({ error: 'Application not found' });
     }
 
-    applicants[appIndex].status = action; // 'accepted' or 'rejected'
+    const applicantData = applicants[appIndex];
+    applicantData.status = action; // 'accepted' or 'rejected'
 
     await projectRef.update({ applicants });
 
-    // If accepted, add applicant to community chat
-    if (action === 'accepted' && projectData.communityChatId) {
-      const chatRef = db.collection('chats').doc(projectData.communityChatId);
-      const chatDoc = await chatRef.get();
-      if (chatDoc.exists) {
-        const chatData = chatDoc.data();
-        const members = chatData.members || [];
-        if (!members.includes(applicantId)) {
-          members.push(applicantId);
-          await chatRef.update({ members });
+    // If accepted, add applicant to community chat and notify
+    if (action === 'accepted') {
+      if (projectData.communityChatId) {
+        const chatRef = db.collection('chats').doc(projectData.communityChatId);
+        const chatDoc = await chatRef.get();
+        if (chatDoc.exists) {
+          const chatData = chatDoc.data();
+          const members = chatData.members || [];
+          if (!members.includes(applicantId)) {
+            members.push(applicantId);
+            const applicantName = applicantData.freelancerName || 'A new member';
+            await chatRef.update({ 
+              members,
+              updatedAt: new Date(),
+              lastMessage: `${applicantName} joined the project community!`,
+              lastMessageTime: new Date()
+            });
+
+            // Add system message to the chat
+            await db.collection('messages').add({
+              chatId: projectData.communityChatId,
+              content: `${applicantName} was added to the project community.`,
+              senderId: 'system',
+              timestamp: new Date(),
+              type: 'system'
+            });
+          }
         }
+      }
+
+      // Create an accepted notification for the applicant
+      const notificationRef = db.collection('notifications').doc();
+      await notificationRef.set({
+        uid: applicantId,
+        type: 'application_accepted',
+        title: 'Application Accepted',
+        message: `Your application to project "${projectData.name || 'Project'}" was accepted!`,
+        relatedId: projectId,
+        senderName: 'Entrepreneur',
+        senderUid: ownerId,
+        createdAt: new Date(),
+        read: false
+      });
+
+      // Emit real-time socket notification to applicant
+      const io = req.app.get('io');
+      if (io) {
+        io.to(applicantId).emit('notification', {
+          type: 'application_accepted',
+          id: notificationRef.id,
+          senderUid: ownerId,
+          createdAt: new Date().toISOString()
+        });
+      }
+    } else if (action === 'rejected') {
+      // Create a rejected notification
+      const notificationRef = db.collection('notifications').doc();
+      await notificationRef.set({
+        uid: applicantId,
+        type: 'application_rejected',
+        title: 'Application Update',
+        message: `Your application to project "${projectData.name || 'Project'}" was declined.`,
+        relatedId: projectId,
+        senderName: 'Entrepreneur',
+        senderUid: ownerId,
+        createdAt: new Date(),
+        read: false
+      });
+
+      const io = req.app.get('io');
+      if (io) {
+        io.to(applicantId).emit('notification', {
+          type: 'application_rejected',
+          id: notificationRef.id,
+          senderUid: ownerId,
+          createdAt: new Date().toISOString()
+        });
       }
     }
 
@@ -299,6 +366,33 @@ router.post('/:id/apply', verifyToken, async (req, res) => {
     await projectRef.update({
       applicants: [...applicants, application]
     });
+
+    // Create a notification for the project owner (entrepreneur)
+    if (projectData.ownerId) {
+      await db.collection('notifications').add({
+        uid: projectData.ownerId, // The person receiving the notification
+        type: 'project_application',
+        title: 'New Project Application',
+        message: `${nameToSave} applied to your project "${projectData.name || 'Project'}"`,
+        relatedId: id,
+        senderName: nameToSave,
+        senderUid: applicantId,
+        createdAt: new Date(),
+        read: false
+      });
+
+      // Emit real-time socket notification
+      const io = req.app.get('io');
+      if (io) {
+        io.to(projectData.ownerId).emit('notification', {
+          type: 'project_application',
+          id: id,
+          senderUid: applicantId,
+          senderName: nameToSave,
+          createdAt: new Date().toISOString()
+        });
+      }
+    }
 
     return res.json({ success: true, message: 'Application submitted', application });
   } catch (err) {
