@@ -68,8 +68,8 @@ export function NavMain({
                         onNavigate(item.url)
                       }
                     }} aria-current={isActive ? 'page' : undefined}>
-                    {item.icon && <item.icon className={`size-4 ${isActive ? 'text-primary' : 'text-foreground'}`} />}
-                    <span className={isActive ? "text-primary font-bold" : ""}>{item.title}</span>
+                    {item.icon && <item.icon className={`size-4 group-data-[collapsible=icon]:size-5 shrink-0 ${isActive ? 'text-primary' : 'text-foreground'}`} />}
+                    <span className={`truncate ${isActive ? "text-primary font-bold" : ""} group-data-[collapsible=icon]:hidden`}>{item.title}</span>
                   </a>
                 </SidebarMenuButton>
               </CollapsibleTrigger>

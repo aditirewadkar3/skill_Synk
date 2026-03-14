@@ -38,10 +38,10 @@ export function TeamSwitcher({
               size="lg"
               className="transition-all duration-300 interactive-item hover:bg-primary/5 active:scale-[0.98] data-[state=open]:bg-primary/10 data-[state=open]:text-primary data-[state=open]:shadow-inner">
               <div
-                className="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-xl shadow-lg ring-1 ring-white/20">
-                <activeTeam.logo className="size-4 animate-float" />
+                className="bg-primary text-primary-foreground flex aspect-square size-8 group-data-[collapsible=icon]:size-9 items-center justify-center rounded-xl shadow-lg ring-1 ring-white/20">
+                <activeTeam.logo className="size-4 group-data-[collapsible=icon]:size-5 animate-float" />
               </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
+              <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                 <a href="/dashboard" className="truncate font-medium">slynk</a>
                 {/* <span className="truncate text-xs">{activeTeam.plan}</span> */}
               </div>
